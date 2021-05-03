@@ -1,0 +1,151 @@
+package com.bornfire.config;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+
+import javax.net.ssl.SSLContext;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.HttpClients;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
+import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestTemplate;
+
+import com.bornfire.messagebuilder.AppHeaders;
+import com.bornfire.messagebuilder.DataPDUs;
+import com.bornfire.messagebuilder.DocumentPacks;
+import com.bornfire.messagebuilder.ParamMTmessage;
+
+import javassist.NotFoundException;
+
+@Configuration
+@EnableAsync
+
+public class IPSGenConfig {
+	@Bean
+	public SequenceGenerator sequence() {
+		return new SequenceGenerator();
+	}
+
+	@Bean
+	public ParamMTmessage paramMTmsg() {
+		return new ParamMTmessage();
+	}
+
+	@Bean
+	public DataPDUs dataPDUs() {
+		return new DataPDUs();
+	}
+
+	@Bean
+	public AppHeaders appHeaders() {
+		return new AppHeaders();
+	}
+
+	@Bean
+	public DocumentPacks documentPacks() {
+		return new DocumentPacks();
+	}
+
+	@Bean
+	public TaskExecutor taskExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(400);
+		executor.setMaxPoolSize(750);
+		executor.setKeepAliveSeconds(120);
+		executor.setQueueCapacity(10000);
+		executor.setThreadNamePrefix("Request>>");
+		executor.initialize();
+		return executor;
+
+	}
+
+	@Bean
+	public RestTemplate restTemplate() throws NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, KeyStoreException, KeyManagementException, UnrecoverableKeyException {
+		KeyStore ks = KeyStore.getInstance("JKS");
+		//char[] pwdArray = "_password_".toCharArray();
+		char[] pwdArray = "_production_".toCharArray();
+
+		//ks.load(new FileInputStream(ResourceUtils.getFile("classpath:bob.jks")), pwdArray);
+		ks.load(new FileInputStream(ResourceUtils.getFile("classpath:bobmumprod.jks")), pwdArray);
+		
+		SSLContext sslContext=org.apache.http.ssl.SSLContextBuilder.create()
+				.loadKeyMaterial(ks, pwdArray)
+				.loadTrustMaterial(null, new TrustSelfSignedStrategy())
+				.build();
+		
+		SSLConnectionSocketFactory socketFactory=new SSLConnectionSocketFactory(sslContext,NoopHostnameVerifier.INSTANCE);
+		
+		//HttpClient httpClient=HttpClients.custom().setSSLContext(sslContext).build();
+		HttpClient httpClient=HttpClients.custom().setSSLSocketFactory(socketFactory).build();
+	
+		ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(
+				httpClient);
+		
+	
+		RestTemplate restTemplate = new RestTemplate(requestFactory);
+		return restTemplate;
+		//return builder.errorHandler(getRestErrorHandler()).build();
+	}
+	
+	@Bean
+	public HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory() {
+		HttpComponentsClientHttpRequestFactory t=new HttpComponentsClientHttpRequestFactory();
+		return t;
+	}
+	
+
+	@Bean
+	public ResponseErrorHandler getRestErrorHandler() {
+		
+	
+	return new ResponseErrorHandler() {
+	 
+	    @Override
+	    public boolean hasError(ClientHttpResponse httpResponse) 
+	      throws IOException {
+	 
+	        return (httpResponse.getStatusCode().series()==HttpStatus.Series.SERVER_ERROR||httpResponse.getStatusCode().series()== HttpStatus.Series.CLIENT_ERROR);
+	    }
+	 
+	    @Override
+	    public void handleError(ClientHttpResponse httpResponse) 
+	      throws IOException {
+	 
+	        if (httpResponse.getStatusCode()
+	          .series() == HttpStatus.Series.SERVER_ERROR) {
+	            System.out.println("httpResponseServer"+httpResponse.getStatusCode());
+
+	            // handle SERVER_ERROR
+	        } else if (httpResponse.getStatusCode()
+	          .series() == HttpStatus.Series.CLIENT_ERROR) {
+	            // handle CLIENT_ERROR
+	            System.out.println("httpResponse"+httpResponse.getStatusCode());
+	        }
+	    }
+	};
+	}
+	
+	
+}

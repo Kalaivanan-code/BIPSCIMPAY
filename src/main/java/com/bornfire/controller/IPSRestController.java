@@ -1,0 +1,740 @@
+package com.bornfire.controller;
+
+/*CREATED BY	: KALAIVANAN RAJENDRAN.R
+CREATED ON	: 30-DEC-2019
+PURPOSE		: IPS Rest Controller
+*/
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.List;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.bornfire.clientService.IPSXClient;
+import com.bornfire.config.CronJobScheduler;
+import com.bornfire.config.IpsCertificateDAO;
+import com.bornfire.config.LdapConfig;
+import com.bornfire.config.SequenceGenerator;
+import com.bornfire.entity.AccountContactResponse;
+import com.bornfire.entity.AccountListResponse;
+import com.bornfire.entity.AccountsListAccounts;
+import com.bornfire.entity.BukCreditTransferRequest;
+import com.bornfire.entity.BulkDebitFndTransferRequest;
+import com.bornfire.entity.C24FTResponse;
+import com.bornfire.entity.ConsentAccessRequest;
+import com.bornfire.entity.ConsentAccessResponse;
+import com.bornfire.entity.ConsentAccountBalance;
+import com.bornfire.entity.ConsentRequest;
+import com.bornfire.entity.ConsentResponse;
+import com.bornfire.entity.IPSChargesAndFeesRep;
+import com.bornfire.entity.MCCreditTransferRequest;
+import com.bornfire.entity.MCCreditTransferResponse;
+import com.bornfire.entity.ManualFndTransferRequest;
+import com.bornfire.entity.OtherBankDetResponse;
+import com.bornfire.entity.SCAAthenticationResponse;
+import com.bornfire.entity.SCAAuthenticatedData;
+import com.bornfire.entity.SettlementAccountRep;
+import com.bornfire.entity.SettlementLimitResponse;
+import com.bornfire.entity.TranCBSTable;
+import com.bornfire.entity.TranIPSTableRep;
+import com.bornfire.entity.TransactionListResponse;
+import com.bornfire.entity.UserRegistrationRequest;
+import com.bornfire.entity.UserRegistrationResponse;
+import com.bornfire.exception.FieldValidation;
+import com.bornfire.messagebuilder.SignDocument;
+
+@RestController
+public class IPSRestController {
+
+	private static final Logger logger = LoggerFactory.getLogger(IPSRestController.class);
+
+	@Autowired
+	CronJobScheduler cronJobSchedular;
+
+	@Autowired
+	IpsCertificateDAO cert;
+
+	@Autowired
+	IPSXClient ipsxClient;
+
+	@Autowired
+	SequenceGenerator sequence;
+
+	@Autowired
+	IPSConnection ipsConnection;
+
+	@Autowired
+	Connect24Service connect24Service;
+
+	@Autowired
+	IpsCertificateDAO ipsCertificateDAO;
+
+	@Autowired
+	IPSDao ipsDao;
+
+	@Autowired
+	FieldValidation fieldValidation;
+
+	@Autowired
+	TranIPSTableRep tranIPSTableRep;
+
+	@Autowired
+	SignDocument signDocument;
+
+	@Autowired
+	IPSChargesAndFeesRep ipsChargesAndFeeRep;
+
+	@Autowired
+	Environment env;
+
+	@Autowired
+	SettlementAccountRep settlAccountRep;
+
+	/* Credit Fund Transfer Initiated from MConnect Application */
+	/* MConnect Initiate the request */
+	@PostMapping(path = "/api/ws/creditFndTransfer", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<MCCreditTransferResponse> sendCreditTransferMessage(
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "PSU_ID", required = false) String psuID,
+			@RequestHeader(value = "Participant_BIC", required = true) String senderParticipantBIC,
+			@RequestHeader(value = "Participant_SOL", required = true) String participantSOL,
+			@RequestBody MCCreditTransferRequest mcCreditTransferRequest)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		logger.info("Service Starts");
+
+		MCCreditTransferResponse response = null;
+
+		logger.info("Calling Credit Transfer Connection flow Starts");
+		response = ipsConnection.createFTConnection(psuDeviceID, psuIpAddress, psuID, senderParticipantBIC,
+				participantSOL, mcCreditTransferRequest);
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	//// Bulk Credit Fund Transfer
+	@PostMapping(path = "/api/ws/bulkCreditFndTransfer", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<MCCreditTransferResponse> bulkCreditTransfer(
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "PSU_ID", required = false) String psuID,
+			@RequestHeader(value = "Participant_BIC", required = true) String senderParticipantBIC,
+			@RequestHeader(value = "Participant_SOL", required = true) String participantSOL,
+			@RequestHeader(value = "USER_ID", required = true) String userID,
+			@RequestBody BukCreditTransferRequest mcCreditTransferRequest) {
+
+		MCCreditTransferResponse response = null;
+
+		response = ipsConnection.createBulkCreditConnection(psuDeviceID, psuIpAddress, psuID, senderParticipantBIC,
+				participantSOL, mcCreditTransferRequest, userID);
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	//// Bulk Debit Fund Transfer
+	@PostMapping(path = "/api/ws/bulkDebitFndTransfer", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<MCCreditTransferResponse> bulkDebitFndTransfer(
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "USER_ID", required = true) String userID,
+			@RequestBody BulkDebitFndTransferRequest bulkDebitFndTransferRequest) {
+
+		MCCreditTransferResponse response = null;
+
+		response = ipsConnection.createBulkDebitConnection(psuDeviceID, psuIpAddress, bulkDebitFndTransferRequest,
+				userID);
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@PostMapping(path = "/api/ws/manualCreditFndTransfer", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<MCCreditTransferResponse> manualCreditFndTransfer(
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "USER_ID", required = true) String userID,
+			@RequestBody List<ManualFndTransferRequest> manualFundTransferRequest) {
+
+		MCCreditTransferResponse response = null;
+
+		response = ipsConnection.createMAnualTransaction(psuDeviceID, psuIpAddress, manualFundTransferRequest, userID);
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	//// Reverse Transaction (Debit) from IPS Admin Manually
+	@PostMapping(path = "api/ws/{userID}/reverseDebit", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<String> ManualdebitReverseTransaction(
+			@PathVariable(value = "userID", required = true) String UserID,
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestBody TranCBSTable tranCBSTable) {
+
+		logger.info("ManualDebitReverse" + UserID);
+		String response = ipsConnection.reverseDebitTransaction(tranCBSTable, UserID);
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+	}
+
+	//// Reverse Transaction (Credit) from IPS Admin Manually
+	@PostMapping(path = "api/ws/{userID}/reverseCredit", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<String> ManualCreditReverseTransaction(
+			@PathVariable(value = "userID", required = true) String UserID,
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestBody TranCBSTable tranCBSTable) {
+
+		logger.info("ManualCreditReverse" + UserID);
+		String response = ipsConnection.reverseCreditTransaction(tranCBSTable, UserID);
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+	}
+
+	//// Reverse Transaction (Bulk Credit) from IPS Admin Manually
+	@PostMapping(path = "api/ws/{userID}/reverseBulkCredit", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<String> ManualreverseBulkCreditReverseTransaction(
+			@PathVariable(value = "userID", required = true) String UserID,
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestBody TranCBSTable tranCBSTable) {
+
+		logger.info("ManualDebitReverse" + UserID);
+		String response = ipsConnection.reversereverseBulkCreditTransaction(tranCBSTable, UserID);
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+	}
+
+	//// Reverse Transaction (Bulk Debit) from IPS Admin Manually
+	@PostMapping(path = "api/ws/{userID}/reverseBulkDebit", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<String> ManualreverseBulkDebitReverseTransaction(
+			@PathVariable(value = "userID", required = true) String UserID,
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestBody TranCBSTable tranCBSTable) {
+
+		logger.info("ManualDebitReverse" + UserID);
+		String response = ipsConnection.reverseBulkDebitTransaction(tranCBSTable, UserID);
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+	}
+
+	//// Settlement Limit Cap
+	@PostMapping(path = "/api/ws/setSL", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<String> setSL() throws FileNotFoundException, DatatypeConfigurationException, JAXBException {
+
+		logger.info("Calling Modify Settlement Limit Connection flow Starts");
+		String response = ipsConnection.setSL();
+
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+	}
+
+	//// Settlement Report
+	@PostMapping(path = "/api/ws/slReport", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<SettlementLimitResponse> slReport()
+			throws FileNotFoundException, DatatypeConfigurationException, JAXBException {
+
+		logger.info("Calling Settlement Report Connection flow Starts");
+		SettlementLimitResponse response = ipsConnection.generateSLReport();
+
+		return new ResponseEntity<SettlementLimitResponse>(response, HttpStatus.OK);
+	}
+
+	//// Other Bank List(IPS Participants)
+	@PostMapping(path = "/api/ws/otherBankDet", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<List<OtherBankDetResponse>> otherBankDet(
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "PSU_ID", required = false) String psuID) {
+
+		logger.info("Get Bank List flow Starts");
+		List<OtherBankDetResponse> response = ipsDao.getOtherBankDet();
+
+		return new ResponseEntity<List<OtherBankDetResponse>>(response, HttpStatus.OK);
+	}
+
+	//// MYT Registration
+	//// Create Public Key
+	@PostMapping(path = "/mvc/0/public-service/accounts/public-keys", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<UserRegistrationResponse> createUserPublicKey(
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String senderParticipantBIC,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String senderParticipantMemberID,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiverParticipantBIC,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiverPartcipantMemberID,
+			@RequestHeader(value = "PSU-DEVICE-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-ADDRESS", required = true) String ipAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestBody UserRegistrationRequest userRequest) throws KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException {
+
+		logger.info("Calling Create Public Key flow Starts" + userRequest.toString());
+
+		UserRegistrationResponse response = ipsConnection.createUserPublicKey(senderParticipantBIC,
+				senderParticipantMemberID, receiverParticipantBIC, receiverPartcipantMemberID, psuDeviceID, ipAddress,
+				psuID, userRequest);
+
+		return new ResponseEntity<UserRegistrationResponse>(response, HttpStatus.OK);
+	}
+
+	//// Update MYT Application Customer Details
+	@PutMapping(path = "/mvc/0/public-service/accounts/public-keys/{RecordID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<UserRegistrationResponse> updateUserPublicKey(
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String senderParticipantBIC,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String senderParticipantMemberID,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiverParticipantBIC,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiverPartcipantMemberID,
+			@RequestHeader(value = "PSU-DEVICE-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-ADDRESS", required = true) String ipAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID, @PathVariable("RecordID") String recordID,
+			@RequestBody UserRegistrationRequest userRequest) throws KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException {
+
+		logger.info("Calling Update Public Key flow Starts");
+
+		UserRegistrationResponse response = ipsConnection.updateUserPublicKey(senderParticipantBIC,
+				senderParticipantMemberID, receiverParticipantBIC, receiverPartcipantMemberID, psuDeviceID, ipAddress,
+				psuID, userRequest, recordID);
+
+		return new ResponseEntity<UserRegistrationResponse>(response, HttpStatus.OK);
+	}
+
+	//// Delete Public Key
+	@DeleteMapping(path = "/mvc/0/public-service/accounts/public-keys/{RecordID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<String> deleteUserPublicKey(
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String senderParticipantBIC,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String senderParticipantMemberID,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiverParticipantBIC,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiverPartcipantMemberID,
+			@RequestHeader(value = "PSU-DEVICE-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-ADDRESS", required = true) String ipAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID, @PathVariable("RecordID") String recordID) {
+
+		String response = ipsConnection.deletePublicKey(senderParticipantBIC, senderParticipantMemberID,
+				receiverParticipantBIC, receiverPartcipantMemberID, psuDeviceID, ipAddress, psuID, recordID);
+
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+	}
+
+	//// MYT Authentication
+	/// Validate OTP
+	@PutMapping(path = "/mvc/0/public-service/accounts/public-keys/{RecordID}/authorisations/{AuthID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<SCAAthenticationResponse> authTransaction(
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String senderParticipantBIC,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String senderParticipantMemberID,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiverParticipantBIC,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiverPartcipantMemberID,
+			@RequestHeader(value = "PSU-DEVICE-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-ADDRESS", required = true) String ipAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
+			@PathVariable("RecordID") String recordID,
+			@PathVariable("AuthID") String authID, @RequestBody SCAAuthenticatedData scaAuthenticatedData) {
+		
+		
+		logger.info("authTransaction  AuthID:" + authID);
+
+		System.out.println("authTransaction  AuthID:" + authID);
+		System.out.println("authTransaction  RecordID:" + recordID);
+		logger.info("authTransaction  RecordID:" + recordID);
+		logger.info("authTransaction  authorization:" + authorization);
+
+		logger.info("Calling SCA Authentication Starts");
+		logger.info("authTransaction :" + scaAuthenticatedData.toString());
+
+		SCAAthenticationResponse response = ipsConnection.authTransaction(senderParticipantBIC,
+				senderParticipantMemberID, receiverParticipantBIC, receiverPartcipantMemberID, psuDeviceID, ipAddress,
+				psuID, scaAuthenticatedData, recordID, authID);
+
+		return new ResponseEntity<SCAAthenticationResponse>(response, HttpStatus.OK);
+	}
+
+	///// MYT Consent Registration
+	@PostMapping(path = "/mvc/0/public-service/account-access-consents", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<ConsentResponse> registerConsent(
+			@RequestHeader(value = "PSU-DEVICE-ID", required = false) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-ADDRESS", required = false) String ipAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestBody ConsentRequest consentRequest) {
+		logger.info("Calling Consent");
+
+		logger.info("Calling Create Consent flow Starts" + consentRequest.toString());
+
+		String consentID = sequence.generateRecordId();
+		String authID = sequence.generateRecordId();
+		ConsentResponse response = ipsConnection.createConsentID(psuDeviceID, ipAddress, psuID, consentRequest,
+				consentID, authID);
+
+		return new ResponseEntity<ConsentResponse>(response, HttpStatus.OK);
+	}
+
+	//// MYT Authentication
+	/// Validate Consent OTP
+	@PutMapping(path = "/mvc/0/public-service/account-access-consents/{ConsentID}/authorisations/{AuthID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<SCAAthenticationResponse> authTransactionConsent(
+			@RequestHeader(value = "PSU-DEVICE-ID", required = false) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-ADDRESS", required = false) String ipAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@PathVariable("ConsentID") String consentID, @PathVariable("AuthID") String authID,
+			@RequestBody SCAAuthenticatedData scaAuthenticatedData) {
+		logger.info("Calling SCA Authentication Starts");
+		logger.info("authTransaction :" + scaAuthenticatedData.toString());
+
+		SCAAthenticationResponse response = ipsConnection.authTransactionConsent(psuDeviceID, ipAddress, psuID,
+				scaAuthenticatedData, consentID, authID);
+
+		return new ResponseEntity<SCAAthenticationResponse>(response, HttpStatus.OK);
+	}
+
+	//// Delete Consent ID
+	@DeleteMapping(path = "/mvc/0/public-service/account-access-consents/{ConsentID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<String> deleteConsent(
+			@RequestHeader(value = "PSU-DEVICE-ID", required = false) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-ADDRESS", required = false) String ipAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@PathVariable("ConsentID") String ConsentID) {
+
+		return new ResponseEntity<String>("Success", HttpStatus.OK);
+	}
+
+	///// MYT Consent Registration
+	@PostMapping(path = "/mvc/0/public-service/accounts-consentsexx", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<ConsentAccessResponse> registerConsentAccess(
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String sender_participant_bic,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String sender_participant_member_id,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiver_participant_bic,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiver_participant_member_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestBody ConsentAccessRequest consentRequest) {
+		logger.info("Calling Consent");
+
+		logger.info("Calling Create Consent access flow Starts" + consentRequest.toString());
+
+		ConsentAccessResponse response = ipsConnection.createConsentAccessID(x_request_id, sender_participant_bic,
+				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, consentRequest);
+
+		return new ResponseEntity<ConsentAccessResponse>(response, HttpStatus.OK);
+	}
+
+	///// MYT Consent Registration Auth
+	@PutMapping(path = "/mvc/0/public-service/accounts-consents/{consentID}/authorisations/{authID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<SCAAthenticationResponse> authConsentAccess(
+			@PathVariable(value = "consentID", required = true) String consentID,
+			@PathVariable(value = "authID", required = true) String authID,
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String sender_participant_bic,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String sender_participant_member_id,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiver_participant_bic,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiver_participant_member_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "Cryptogram", required = true) String cryptogram,
+			@RequestBody SCAAuthenticatedData scaAuthenticatedData) {
+		logger.info("Calling Consent");
+
+		logger.info("Consent Authentication Starts" + scaAuthenticatedData.toString());
+
+		SCAAthenticationResponse response = ipsConnection.authConsentAccessID(x_request_id, sender_participant_bic,
+				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, scaAuthenticatedData, consentID, authID, cryptogram);
+
+		return new ResponseEntity<SCAAthenticationResponse>(response, HttpStatus.OK);
+	}
+
+	///// MYT Consent Registration Auth
+	@DeleteMapping(path = "/mvc/0/public-service/accounts-consents/{consentID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<String> deleteConsentAccess(
+			@PathVariable(value = "consentID", required = true) String consentID,
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String sender_participant_bic,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String sender_participant_member_id,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiver_participant_bic,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiver_participant_member_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestBody SCAAuthenticatedData scaAuthenticatedData) {
+		logger.info("Calling Consent");
+
+		logger.info("Consent Authentication Starts" + scaAuthenticatedData.toString());
+
+		String response = ipsConnection.deleteConsentAccessID(x_request_id, sender_participant_bic,
+				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, scaAuthenticatedData, consentID);
+
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+	}
+
+	///// MYT Balance
+	@GetMapping(path = "/mvc/0/public-service/accounts/{accountID}/balances", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<ConsentAccountBalance> MytAccessBalance(
+			@PathVariable(value = "accountID", required = true) String accountID,
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String sender_participant_bic,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String sender_participant_member_id,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiver_participant_bic,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiver_participant_member_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "Consent-ID", required = true) String consentID,
+			@RequestHeader(value = "Cryptogram", required = true) String cryptogram) {
+		logger.info("Calling Consent");
+
+		logger.info("Consent Balance Request Starts" + accountID);
+
+		ConsentAccountBalance response = ipsConnection.consentBalance(x_request_id, sender_participant_bic,
+				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, accountID, cryptogram);
+
+		return new ResponseEntity<ConsentAccountBalance>(response, HttpStatus.OK);
+	}
+
+	///// MYT Account List
+	@GetMapping(path = "/mvc/0/public-service/accounts", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<AccountListResponse> MytAccountList(
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String sender_participant_bic,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String sender_participant_member_id,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiver_participant_bic,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiver_participant_member_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "Consent-ID", required = true) String consentID,
+			@RequestHeader(value = "Cryptogram", required = true) String cryptogram) {
+
+		logger.info("Calling Consent");
+
+		logger.info("Consent Account List Request Starts" + consentID);
+
+		AccountListResponse response = ipsConnection.accountList(x_request_id, sender_participant_bic,
+				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, cryptogram);
+
+		return new ResponseEntity<AccountListResponse>(response, HttpStatus.OK);
+	}
+
+	///// MYT Account List
+	@GetMapping(path = "/mvc/0/public-service/accounts/{AccountID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<AccountsListAccounts> MytAccountInd(
+			@PathVariable(value = "AccountID", required = true) String accountID,
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String sender_participant_bic,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String sender_participant_member_id,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiver_participant_bic,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiver_participant_member_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "Consent-ID", required = true) String consentID,
+			@RequestHeader(value = "Cryptogram", required = true) String cryptogram) {
+
+		logger.info("Calling Consent");
+
+		logger.info("Consent Account List Request Starts" + consentID);
+
+		AccountsListAccounts response = ipsConnection.accountListInd(x_request_id, sender_participant_bic,
+				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, cryptogram,accountID);
+
+		return new ResponseEntity<AccountsListAccounts>(response, HttpStatus.OK);
+	}
+
+	///// MYT Transaction List
+	@GetMapping(path = "/mvc/0/public-service/accounts/{AccountID}/transactions", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<TransactionListResponse> MytTranList(
+			@PathVariable(value = "AccountID", required = true) String accountID,
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@RequestHeader(value = "SenderParticipant-BIC", required = false) String sender_participant_bic,
+			@RequestHeader(value = "SenderParticipant-MemberID", required = false) String sender_participant_member_id,
+			@RequestHeader(value = "ReceiverParticipant-BIC", required = false) String receiver_participant_bic,
+			@RequestHeader(value = "ReceiverParticipant-MemberID", required = false) String receiver_participant_member_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "Consent-ID", required = true) String consentID,
+			@RequestHeader(value = "Cryptogram", required = true) String cryptogram,
+			@RequestParam(value = "fromBookingDateTime",required = true)String fromBookingDateTime,
+			@RequestParam(value = "toBookingDateTime",required = true)String toBookingDateTime) {
+
+		logger.info("Calling Consent");
+
+		logger.info("Consent Account List Request Starts" + consentID);
+
+		TransactionListResponse response = ipsConnection.tranList(x_request_id, sender_participant_bic,
+				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, cryptogram,accountID,fromBookingDateTime,toBookingDateTime);
+
+		return new ResponseEntity<TransactionListResponse>(response, HttpStatus.OK);
+	}
+
+	@PostMapping(path = "api/ws/payableAccount", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<String> payableAccount(@RequestBody MCCreditTransferRequest mcCreditTransferRequest,
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "USER_ID", required = true) String userID) {
+		String response = ipsConnection.payableAccount(mcCreditTransferRequest, userID);
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+
+	}
+
+	@RequestMapping(value = "api/ws/receivableAccount")
+	public ResponseEntity<String> receivableAccount(@RequestBody MCCreditTransferRequest mcCreditTransferRequest,
+			@RequestHeader(value = "USER_ID", required = true) String userID) {
+		String response = ipsConnection.receivableAccount(mcCreditTransferRequest, userID);
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+
+	}
+
+	/*
+	 * @PostMapping(path = "api/ws/expenseAccount", produces = "application/json",
+	 * consumes = "application/json") public ResponseEntity<String>
+	 * expenseAccount(@RequestBody MCCreditTransferRequest mcCreditTransferRequest,
+	 * 
+	 * @RequestHeader(value = "USER_ID", required = true) String userID) { String
+	 * response=ipsConnection.expenseAccount(mcCreditTransferRequest,userID); return
+	 * new ResponseEntity<String>(response, HttpStatus.OK);
+	 * 
+	 * }
+	 * 
+	 * @PostMapping(path = "api/ws/incomeAccount", produces = "application/json",
+	 * consumes = "application/json") public ResponseEntity<String>
+	 * incomeAccount(@RequestBody MCCreditTransferRequest mcCreditTransferRequest,
+	 * 
+	 * @RequestHeader(value = "USER_ID", required = true) String userID) { String
+	 * response=ipsConnection.incomeAccount(mcCreditTransferRequest,userID); return
+	 * new ResponseEntity<String>(response, HttpStatus.OK);
+	 * 
+	 * }
+	 */
+
+	/*
+	 * @RequestMapping(value = "/ws/balancePayAcct") public ResponseEntity<String>
+	 * balancePayableAcct() {
+	 * 
+	 * ResponseEntity<C24FTResponse> balannce = connect24Service
+	 * .getBalance(settlAccountRep.findById("04").get().getAccount_number());
+	 * 
+	 * if (balannce.getStatusCode() == HttpStatus.OK) { return new
+	 * ResponseEntity<String>(balannce.getBody().getBalance().getAvailableBalance(),
+	 * HttpStatus.OK); }else { return new ResponseEntity<String>("Failure",
+	 * HttpStatus.OK); } }
+	 */
+
+	@RequestMapping(value = "/portal/ldap")
+	public String testLdap() {
+		// List<X509Certificate> se= cert.getCertificates();
+		// System.out.println(se.toString());
+
+		System.out.println(cronJobSchedular.getCertificates().get(0).getPublicKey());
+		System.out.println(cronJobSchedular.getLdapCert().get(0).getSignature());
+		System.out.println("Public key re------>" + cronJobSchedular.getLdapCert().get(0).getPublicKey());
+		System.out.println("serial key re------>" + cronJobSchedular.getLdapCert().get(0).getSerialNumber());
+		return "success";
+	}
+
+	@RequestMapping(value = "/portal/test")
+	public String test() {
+		// List<X509Certificate> se= cert.getCertificates();
+		// System.out.println(se.toString());
+		// String res = ipsDao.RegisterInMsgRecord("1234", "BOB1234", "IPSX12345",
+		// "IPSX12345", "", "1234",
+		// new BigDecimal("100"), "MUR", TranMonitorStatus.INITIATED.toString());
+
+		// sequence.sms("32457", "23058884847");
+		String ame = "<Body>\n" + "<AppHdr xmlns=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.01\">\n"
+				+ "<Fr><FIId><FinInstnId><ClrSysMmbId><MmbId>BOMMMUPLIPS</MmbId></ClrSysMmbId></FinInstnId></FIId></Fr>\n"
+				+ "<To><FIId><FinInstnId><BICFI>BARBMUMU</BICFI></FinInstnId></FIId></To>\n"
+				+ "<BizMsgIdr>200625BOMMMUPLAIPS0001000071</BizMsgIdr>\n" + "<MsgDefIdr>pacs.002.001.10</MsgDefIdr>\n"
+				+ "<BizSvc>ACH</BizSvc>\n" + "<CreDt>2020-06-25T13:35:10Z</CreDt>\n"
+				+ "<Sgntr><ds:Signature xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\"><ds:SignedInfo><ds:CanonicalizationMethod Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"></ds:CanonicalizationMethod><ds:SignatureMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\"></ds:SignatureMethod><ds:Reference URI=\"#_64191869-fcad-48fa-94df-adbaa10c8ae6\"><ds:Transforms><ds:Transform Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"></ds:Transform></ds:Transforms><ds:DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"></ds:DigestMethod><ds:DigestValue>GtEGIaSqFnFLqVZR1AlG+Ee25BQ=</ds:DigestValue></ds:Reference><ds:Reference URI=\"#_ffa95b2b-df2d-4623-9333-c124c3af5519\" Type=\"http://uri.etsi.org/01903/v1.3.2#SignedProperties\"><ds:Transforms><ds:Transform Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"></ds:Transform></ds:Transforms><ds:DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"></ds:DigestMethod><ds:DigestValue>a2bkOviUGWcmPgeR712LasEryOM=</ds:DigestValue></ds:Reference><ds:Reference><ds:Transforms><ds:Transform Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"></ds:Transform></ds:Transforms><ds:DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"></ds:DigestMethod><ds:DigestValue>AN28DM1IDweM4PWH2wyMY9zSzv0=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>TJm1X0goJ3aCa5uVN536qD5p7XRz4gG53EmELWs9QJMdF8VIOP7gicNuqvL37H99HPF4NG7H2vquD3z7jsWCP6PRZNy8aAc9XJ1Pm+xHHS8C9Ycmn1OzhjKMRO/xfsVjQZicHaQX/yT53l/V172s8kvGyN7COukOs2e2XnMf6g4oaNd8IW2ftSaePRquCOAvrvc15885yjg+8PISbVBMkpIRK7+bJnqQcTGf2l5Y2QNpbnd96CyczV8agTVk5zDRUKke5UIJJcGz57AyMXIclWwlqCL9uAtxUiJFAoxz+WaOFYWWTsLaVzfnysr2Msg19P6Ob/YJHZoSlxt8oYunnQ==</ds:SignatureValue><ds:KeyInfo Id=\"_64191869-fcad-48fa-94df-adbaa10c8ae6\"><ds:X509Data><ds:X509IssuerSerial><ds:X509IssuerName>CN=IPSMAUCASMUCA,DC=IPS,DC=MAUCAS,DC=MU</ds:X509IssuerName><ds:X509SerialNumber>535217884808206288039911693999711158961963016</ds:X509SerialNumber></ds:X509IssuerSerial></ds:X509Data></ds:KeyInfo><ds:Object><xades:QualifyingProperties xmlns:xades=\"http://uri.etsi.org/01903/v1.3.2#\"><xades:SignedProperties Id=\"_ffa95b2b-df2d-4623-9333-c124c3af5519\"><xades:SignedSignatureProperties><xades:SigningTime>2020-06-25T09:35:10Z</xades:SigningTime></xades:SignedSignatureProperties></xades:SignedProperties></xades:QualifyingProperties></ds:Object></ds:Signature></Sgntr></AppHdr>\n"
+				+ "<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.002.001.10\">\n" + "	<FIToFIPmtStsRpt>\n"
+				+ "		<GrpHdr>\n" + "			<MsgId>M1254068/002</MsgId>\n"
+				+ "			<CreDtTm>2020-06-25T13:27:06</CreDtTm>\n" + "		</GrpHdr>\n"
+				+ "		<OrgnlGrpInfAndSts>\n" + "			<OrgnlMsgId>BARB200625132936673067</OrgnlMsgId>\n"
+				+ "			<OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId>\n"
+				+ "			<OrgnlCreDtTm>2020-06-25T13:29:41Z</OrgnlCreDtTm>\n" + "			<GrpSts>RJCT</GrpSts>\n"
+				+ "		</OrgnlGrpInfAndSts>\n" + "		<TxInfAndSts>\n" + "			<StsId>NOAN</StsId>\n"
+				+ "			<OrgnlInstrId>BARB200625132936673067</OrgnlInstrId>\n"
+				+ "			<OrgnlEndToEndId>BARBMUMU20200625233503</OrgnlEndToEndId>\n"
+				+ "			<OrgnlTxId>BARB200625132936673067</OrgnlTxId>\n" + "			<TxSts>RJCT</TxSts>\n"
+				+ "			<StsRsnInf>\n" + "				<Rsn>\n" + "					<Prtry>EL202</Prtry>\n"
+				+ "				</Rsn>\n" + "				<AddtlInf>NRT - Rejected by timeout</AddtlInf>\n"
+				+ "			</StsRsnInf>\n" + "			<AcctSvcrRef>2610</AcctSvcrRef>\n" + "			<InstgAgt>\n"
+				+ "				<FinInstnId>\n" + "					<BICFI>BARBMUMU</BICFI>\n"
+				+ "				</FinInstnId>\n" + "			</InstgAgt>\n" + "			<InstdAgt>\n"
+				+ "				<FinInstnId>\n" + "					<BICFI>ABCKMUMU</BICFI>\n"
+				+ "					<Othr>\n" + "						<Id>ONLINE</Id>\n"
+				+ "					</Othr>\n" + "				</FinInstnId>\n" + "			</InstdAgt>\n"
+				+ "			<OrgnlTxRef>\n" + "				<IntrBkSttlmAmt Ccy=\"MUR\">100</IntrBkSttlmAmt>\n"
+				+ "				<IntrBkSttlmDt>2020-06-25</IntrBkSttlmDt>\n" + "				<PmtTpInf>\n"
+				+ "					<ClrChanl>RTGS</ClrChanl>\n" + "					<SvcLvl>\n"
+				+ "						<Prtry>0100</Prtry>\n" + "					</SvcLvl>\n"
+				+ "					<LclInstrm>\n" + "						<Prtry>CSDC</Prtry>\n"
+				+ "					</LclInstrm>\n" + "					<CtgyPurp>\n"
+				+ "						<Prtry>100</Prtry>\n" + "					</CtgyPurp>\n"
+				+ "				</PmtTpInf>\n" + "			</OrgnlTxRef>\n" + "		</TxInfAndSts>\n"
+				+ "	</FIToFIPmtStsRpt>\n" + "</Document>\n" + "</Body>";
+		signDocument.verifySignParseDoc(ame);
+
+		logger.info(signDocument.verifySignParseDoc(ame).toString());
+		return "";
+	}
+
+	@RequestMapping(value = "/portal/test1")
+	public ResponseEntity<AccountContactResponse> test1() {
+
+		// List<X509Certificate> se= cert.getCertificates();
+		// System.out.println(se.toString());
+		// ipsDao.updateIPSXStatusResponseRJCT("IPSX12345", "okkk", "",
+		// TranMonitorStatus.IN_PROGRESS.toString(),
+		// TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+		// TranMonitorStatus.RJCT.toString(), "EL09");
+		// ipsDao.insertTranIPS("2", "1", "camt.025.001.05", "", "", "", "","O");
+
+		// NumberFormat formatter = new DecimalFormat("#0.00");
+
+		AccountContactResponse response = ipsConnection.test();
+		return new ResponseEntity<AccountContactResponse>(response, HttpStatus.OK);
+
+		// ipsDao.updateIPSFlow("767", "87", "", "");
+	}
+
+}
