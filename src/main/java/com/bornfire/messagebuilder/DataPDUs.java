@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.bornfire.entity.BankAgentTable;
+import com.bornfire.entity.CIMCreditTransferRequest;
 import com.bornfire.entity.CreditTransferTransaction;
 import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.jaxb.wsdl.SendT;
@@ -17,7 +18,7 @@ public class DataPDUs {
 	@Autowired
 	DocumentPacks documentPacks;
 
-	public String getDataPDUPacs008(String msgType, SendT request, String msgId,MCCreditTransferRequest mcCreditTransferRequest,
+	public String getDataPDUPacs008(String msgType, SendT request, String msgId,CIMCreditTransferRequest mcCreditTransferRequest,
 			BankAgentTable othBankAgent,String msgSeq,String endToEndID) {
 
 		StringBuilder sb = new StringBuilder();
@@ -113,6 +114,23 @@ public class DataPDUs {
 		sb.append("<DataPDU xmlns=\"urn:cma:stp:xsd:stp.1.0\">\r\n" + "<Body>\r\n");
 		sb.append(appHeaders.getAppHeader(msgType,msgSeq));
 		sb.append(documentPacks.getPacsBulkDebit_008_001_01Doc(msgId,frAccountName,frAccountNumber,toAccountName,toAccountNumber,trAmt,trCurrency,othBankAgent,msgSeq,endToEndID));
+		sb.append("</Body>\r\n" + "</DataPDU>");
+
+		return sb.toString();
+	}
+
+	
+
+	public String getDataPDUPain001(String msgType, SendT request, String acctName, String acctNumber,
+			String currencyCode, String bank_agent, String bank_agent_account, String benName, String benAcctNumber,
+			String trAmt, String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID,
+			String msgNetMir) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<DataPDU xmlns=\"urn:cma:stp:xsd:stp.1.0\">\r\n" + "<Body>\r\n");
+		sb.append(appHeaders.getAppHeader(msgType,msgSeq));
+		sb.append(documentPacks.getPain_001_001_09Doc(msgType,request,acctName, acctNumber,  currencyCode,
+				 bank_agent,  bank_agent_account,  benName,  benAcctNumber,  trAmt,
+				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir));
 		sb.append("</Body>\r\n" + "</DataPDU>");
 
 		return sb.toString();

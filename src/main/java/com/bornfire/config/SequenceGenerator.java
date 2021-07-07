@@ -13,21 +13,34 @@ import java.util.Random;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import com.bornfire.entity.TranCimCBSTableRep;
+
 import ch.qos.logback.classic.Logger;
 
 public class SequenceGenerator {
 
 	@Autowired
 	Environment env;
+	
+	@Autowired
+	TranCimCBSTableRep tranCimCBSTableRep;
+	
 	private static final String CHAR_LIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	private static final int RECORD_ID = 11;
+	private static final int WALLET_ACCT_NO = 6;
 	private static final int CONSENT_ID = 11;
+	private static final int WALLET_ID = 11;
 	private static final int SEQ_MSG_ID = 5;
 	private static final int SYSTEM_TRACE_AUDIT_NUMBER = 6;
 	private static final int SEQ_UNIQUE_ID = 6;
 	private static final int OTP = 6;
 	private static final int MSG_SEQ = 6;
 	private static final String NUM_LIST = "0123456789";
+	private static final int TRAN_NUMBER = 6;
+	private static final int REQUEST_UUID = 6;
+	
+	static Long NUM_REQUEST_UUID = 1L;
+	
 
 	public String generateRecordId() {
 
@@ -44,6 +57,28 @@ public class SequenceGenerator {
 
 		StringBuffer randStr = new StringBuffer();
 		for (int i = 0; i < CONSENT_ID; i++) {
+			int number = getRandomNumber();
+			char ch = CHAR_LIST.charAt(number);
+			randStr.append(ch);
+		}
+		return randStr.toString();
+	}
+	
+	public String generateAuthId() {
+
+		StringBuffer randStr = new StringBuffer();
+		for (int i = 0; i < CONSENT_ID; i++) {
+			int number = getRandomNumber();
+			char ch = CHAR_LIST.charAt(number);
+			randStr.append(ch);
+		}
+		return randStr.toString();
+	}
+	
+	public String generateWalletId() {
+
+		StringBuffer randStr = new StringBuffer();
+		for (int i = 0; i < WALLET_ID; i++) {
 			int number = getRandomNumber();
 			char ch = CHAR_LIST.charAt(number);
 			randStr.append(ch);
@@ -112,6 +147,19 @@ public class SequenceGenerator {
 		}
 		return randStr.toString();
 	}
+	
+	public String generateWalletAccountNumber(String phoneNumber) {
+		StringBuffer randStr = new StringBuffer();
+		randStr.append(phoneNumber);
+		randStr.append(new SimpleDateFormat("MMdd").format(new Date()));
+
+		for (int i = 0; i < WALLET_ACCT_NO; i++) {
+			int number = getRandomMsgNumber();
+			char ch = NUM_LIST.charAt(number);
+			randStr.append(ch);
+		}
+		return randStr.toString();
+	}
 
 	private int getRandomMsgNumber() {
 		int randomInt = 0;
@@ -132,6 +180,34 @@ public class SequenceGenerator {
 		randStr.append(new SimpleDateFormat("yyMMddHHmmss").format(new Date()));
 
 		for (int i = 0; i < SEQ_UNIQUE_ID; i++) {
+			int number = getRandomMsgNumber();
+			char ch = NUM_LIST.charAt(number);
+			randStr.append(ch);
+		}
+		return randStr.toString();
+	}
+	
+	
+	
+	public String generateRequestUUId() {
+
+		StringBuffer randStr = new StringBuffer();
+		randStr.append(new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		randStr.append("_");
+		
+		Long request_UUID=tranCimCBSTableRep.getRequestUUID();
+		
+		randStr.append(String.format("%04d", request_UUID));
+		
+		return randStr.toString();
+	}
+	
+	public String generateTranNumber() {
+
+		StringBuffer randStr = new StringBuffer();
+		randStr.append(new SimpleDateFormat("yyMMddHHmmss").format(new Date()));
+
+		for (int i = 0; i < TRAN_NUMBER; i++) {
 			int number = getRandomMsgNumber();
 			char ch = NUM_LIST.charAt(number);
 			randStr.append(ch);
@@ -294,5 +370,7 @@ public class SequenceGenerator {
 		}
 		return retval;
 	}
+
+	
 
 }

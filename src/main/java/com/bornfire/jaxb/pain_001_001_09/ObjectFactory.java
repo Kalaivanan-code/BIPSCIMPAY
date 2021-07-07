@@ -79,7 +79,8 @@ public class ObjectFactory {
     public Authorisation1Choice1 createAuthorisation1Choice1() {
         return new Authorisation1Choice1();
     }
-
+    
+    
     /**
      * Create an instance of {@link BranchAndFinancialInstitutionIdentification61 }
      * 
@@ -360,6 +361,8 @@ public class ObjectFactory {
      * @return
      *     the new instance of {@link JAXBElement }{@code <}{@link Document }{@code >}
      */
+    
+    
     @XmlElementDecl(namespace = "urn:iso:std:iso:20022:tech:xsd:pain.001.001.09", name = "Document")
     public JAXBElement<Document> createDocument(Document value) {
         return new JAXBElement<Document>(_Document_QNAME, Document.class, null, value);

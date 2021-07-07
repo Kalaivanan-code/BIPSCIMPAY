@@ -6,6 +6,7 @@ public class SCAAuthenticatedData {
 	@JsonProperty("SCAAuthenticationData")
 	private String ScaAuthenticationData;
 
+	@JsonProperty("SCAAuthenticationData")
 	public String getScaAuthenticationData() {
 		return ScaAuthenticationData;
 	}

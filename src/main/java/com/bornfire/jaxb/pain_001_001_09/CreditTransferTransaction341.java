@@ -388,4 +388,14 @@ public class CreditTransferTransaction341 {
         this.rmtInf = value;
     }
 
+	public void setInstrForCdtrAgt(List<InstructionForCreditorAgent11> instrForCdtrAgt) {
+		this.instrForCdtrAgt = instrForCdtrAgt;
+	}
+
+	public void setRgltryRptg(List<RegulatoryReporting31> rgltryRptg) {
+		this.rgltryRptg = rgltryRptg;
+	}
+    
+    
+
 }

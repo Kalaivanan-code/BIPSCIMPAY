@@ -1,0 +1,348 @@
+package com.bornfire.controller;
+
+import static com.bornfire.exception.ErrorResponseCode.SERVER_ERROR_CODE;
+
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
+
+import com.bornfire.config.Listener;
+import com.bornfire.entity.C24FTRequest;
+import com.bornfire.entity.C24FTResponse;
+import com.bornfire.entity.C24RequestAcount;
+import com.bornfire.entity.CimCBSrequest;
+import com.bornfire.entity.CimCBSrequestData;
+import com.bornfire.entity.CimCBSrequestHeader;
+import com.bornfire.entity.CimCBSresponse;
+import com.bornfire.entity.SettlementAccount;
+import com.bornfire.entity.TranCimCBSTable;
+import com.bornfire.entity.TranCimCBSTableRep;
+import com.bornfire.entity.TranMonitorStatus;
+import com.google.gson.Gson;
+
+@Component
+public class CimCBSservice {
+	private static final Logger logger = LoggerFactory.getLogger(CimCBSservice.class);
+	
+	@Autowired
+	Listener listener;
+	
+	@Autowired
+	RestTemplate restTemplate;
+	
+	@Autowired
+	Environment env;
+
+	@Autowired
+	TranCimCBSTableRep tranCimCBSTableRep;
+	
+	@Autowired
+	IPSDao ipsDao;
+
+	public ResponseEntity<CimCBSresponse> cdtFundRequest(String requestUUID,String acctNumber, String trAmt, String currency,
+			String sysTraceAuditNumber, String SeqUniqueID,String trRmks) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		/*httpHeaders.set("requestUUId", sysTraceAuditNumber);
+		httpHeaders.set("channelId", "BIPS");
+		httpHeaders.set("serviceRequestVersion", "1.0");
+		httpHeaders.set("serviceRequestId", sysTraceAuditNumber);
+		httpHeaders.set("messageDateTime", listener.getxmlGregorianCalender("2").toString());*/
+		
+		
+		TranCimCBSTable data=tranCimCBSTableRep.findById(requestUUID).get();
+		
+		CimCBSrequest cimCBSrequest=new CimCBSrequest();
+		
+		CimCBSrequestHeader cimCBSrequestHeader=new CimCBSrequestHeader();
+		cimCBSrequestHeader.setRequestUUId(data.getRequest_uuid());
+		cimCBSrequestHeader.setChannelId(data.getChannel_id());
+		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
+		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequest.setHeader(cimCBSrequestHeader);
+		
+		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
+		cimCBSrequestData.setTransactionNo(data.getTran_no());
+		cimCBSrequestData.setInitiatingChannel(data.getInit_channel());
+		cimCBSrequestData.setInitatorTransactionNo(data.getInit_tran_no());
+		if(data.getPost_to_cbs()=="True") {
+			cimCBSrequestData.setPostToCBS(Boolean.TRUE);
+		}else {
+			cimCBSrequestData.setPostToCBS(Boolean.FALSE);
+		}
+		cimCBSrequestData.setTransactionType(data.getTran_type());
+		cimCBSrequestData.setIsReversal(data.getIsreversal());
+		cimCBSrequestData.setTransactionNoFromCBS(data.getTran_no_from_cbs());
+		cimCBSrequestData.setCustomerName(data.getCustomer_name());
+		cimCBSrequestData.setFromAccountNo(data.getFrom_account_no());
+		cimCBSrequestData.setToAccountNo(data.getTo_account_no());
+		cimCBSrequestData.setTransactionAmount(Float.parseFloat(data.getTran_amt().toString()));
+		cimCBSrequestData.setTransactionDate(data.getTran_date());
+		cimCBSrequestData.setTransactionCurrency(data.getTran_currency());
+		cimCBSrequestData.setTransactionParticularCode(data.getTran_particular_code());
+		cimCBSrequestData.setCreditRemarks(data.getCredit_remarks());
+		cimCBSrequestData.setDebitRemarks(data.getDebit_remarks());
+		cimCBSrequestData.setReservedField1(data.getResv_field_1());
+		cimCBSrequestData.setReservedField2(data.getResv_field_2());
+		cimCBSrequest.setData(cimCBSrequestData);
+		
+	
+		HttpEntity<CimCBSrequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
+				
+		ResponseEntity<CimCBSresponse> response = null;
+		try {
+			logger.info("Sending message to connect24 credit using restTemplate");
+			response = restTemplate.postForEntity(env.getProperty("connect24.crurl"),
+					entity, CimCBSresponse.class);
+
+			
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+
+		} catch (HttpClientErrorException ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		} catch (HttpServerErrorException ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		}
+
+	}
+	
+	public ResponseEntity<CimCBSresponse> dbtFundRequest(String requestUUID) {
+		
+		////Request Headers
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		
+		
+		////Get Data from Table
+		TranCimCBSTable data=tranCimCBSTableRep.findById(requestUUID).get();
+		
+		/////////////////////Request Body Creation/////////////////////////////
+		CimCBSrequest cimCBSrequest=new CimCBSrequest();
+		
+		CimCBSrequestHeader cimCBSrequestHeader=new CimCBSrequestHeader();
+		cimCBSrequestHeader.setRequestUUId(data.getRequest_uuid());
+		cimCBSrequestHeader.setChannelId(data.getChannel_id());
+		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
+		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequest.setHeader(cimCBSrequestHeader);
+		
+		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
+		cimCBSrequestData.setTransactionNo(data.getTran_no());
+		cimCBSrequestData.setInitiatingChannel(data.getInit_channel());
+		cimCBSrequestData.setInitatorTransactionNo(data.getInit_tran_no());
+		if(data.getPost_to_cbs()=="True") {
+			cimCBSrequestData.setPostToCBS(Boolean.TRUE);
+		}else {
+			cimCBSrequestData.setPostToCBS(Boolean.FALSE);
+		}
+		cimCBSrequestData.setTransactionType(data.getTran_type());
+		cimCBSrequestData.setIsReversal(data.getIsreversal());
+		cimCBSrequestData.setTransactionNoFromCBS(data.getTran_no_from_cbs());
+		cimCBSrequestData.setCustomerName(data.getCustomer_name());
+		cimCBSrequestData.setFromAccountNo(data.getFrom_account_no());
+		cimCBSrequestData.setToAccountNo(data.getTo_account_no());
+		cimCBSrequestData.setTransactionAmount(Float.parseFloat(data.getTran_amt().toString()));
+		cimCBSrequestData.setTransactionDate(data.getTran_date());
+		cimCBSrequestData.setTransactionCurrency(data.getTran_currency());
+		cimCBSrequestData.setTransactionParticularCode(data.getTran_particular_code());
+		cimCBSrequestData.setCreditRemarks(data.getCredit_remarks());
+		cimCBSrequestData.setDebitRemarks(data.getDebit_remarks());
+		cimCBSrequestData.setReservedField1(data.getResv_field_1());
+		cimCBSrequestData.setReservedField2(data.getResv_field_2());
+		cimCBSrequest.setData(cimCBSrequestData);
+		///////////////////////////////////////////////////
+	
+		HttpEntity<CimCBSrequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
+		
+		/////Call REST API
+		ResponseEntity<CimCBSresponse> response = null;
+		try {
+			logger.info("Sending message to ESB Cable for Debit the Customer Amount");
+			response = restTemplate.postForEntity(env.getProperty("connect24.drurl"),
+					entity, CimCBSresponse.class);
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+		} catch (HttpClientErrorException ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		} catch (HttpServerErrorException ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		}
+
+	}
+
+	
+	
+	public ResponseEntity<CimCBSresponse> cbsResponseSuccess(String requestUUID) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		/*httpHeaders.set("requestUUId", sysTraceAuditNumber);
+		httpHeaders.set("channelId", "BIPS");
+		httpHeaders.set("serviceRequestVersion", "1.0");
+		httpHeaders.set("serviceRequestId", sysTraceAuditNumber);
+		httpHeaders.set("messageDateTime", listener.getxmlGregorianCalender("2").toString());*/
+		
+		
+		TranCimCBSTable data=tranCimCBSTableRep.findById(requestUUID).get();
+		
+		CimCBSrequest cimCBSrequest=new CimCBSrequest();
+		
+		CimCBSrequestHeader cimCBSrequestHeader=new CimCBSrequestHeader();
+		cimCBSrequestHeader.setRequestUUId(data.getRequest_uuid());
+		cimCBSrequestHeader.setChannelId(data.getChannel_id());
+		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
+		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequest.setHeader(cimCBSrequestHeader);
+		
+		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
+		cimCBSrequestData.setTransactionNo(data.getTran_no());
+		cimCBSrequestData.setInitiatingChannel(data.getInit_channel());
+		cimCBSrequestData.setInitatorTransactionNo(data.getInit_tran_no());
+		if(data.getPost_to_cbs()=="True") {
+			cimCBSrequestData.setPostToCBS(Boolean.TRUE);
+		}else {
+			cimCBSrequestData.setPostToCBS(Boolean.FALSE);
+		}
+		cimCBSrequestData.setTransactionType(data.getTran_type());
+		cimCBSrequestData.setIsReversal(data.getIsreversal());
+		cimCBSrequestData.setTransactionNoFromCBS(data.getTran_no_from_cbs());
+		cimCBSrequestData.setCustomerName(data.getCustomer_name());
+		cimCBSrequestData.setFromAccountNo(data.getFrom_account_no());
+		cimCBSrequestData.setToAccountNo(data.getTo_account_no());
+		cimCBSrequestData.setTransactionAmount(Float.parseFloat(data.getTran_amt().toString()));
+		cimCBSrequestData.setTransactionDate(data.getTran_date());
+		cimCBSrequestData.setTransactionCurrency(data.getTran_currency());
+		cimCBSrequestData.setTransactionParticularCode(data.getTran_particular_code());
+		cimCBSrequestData.setCreditRemarks(data.getCredit_remarks());
+		cimCBSrequestData.setDebitRemarks(data.getDebit_remarks());
+		cimCBSrequestData.setReservedField1(data.getResv_field_1());
+		cimCBSrequestData.setReservedField2(data.getResv_field_2());
+		cimCBSrequest.setData(cimCBSrequestData);
+		
+	
+		HttpEntity<CimCBSrequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
+				
+		ResponseEntity<CimCBSresponse> response = null;
+		try {
+			logger.info("Sending message to CBS credit using restTemplate Success");
+			response = restTemplate.postForEntity(env.getProperty("connect24.url") + "/api/ws/cdtActfndTransfer?",
+					entity, CimCBSresponse.class);
+
+			
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+
+		} catch (HttpClientErrorException ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		} catch (HttpServerErrorException ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		}
+
+	}
+	
+	public ResponseEntity<CimCBSresponse> cbsResponseFailure(String requestUUID) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		/*httpHeaders.set("requestUUId", sysTraceAuditNumber);
+		httpHeaders.set("channelId", "BIPS");
+		httpHeaders.set("serviceRequestVersion", "1.0");
+		httpHeaders.set("serviceRequestId", sysTraceAuditNumber);
+		httpHeaders.set("messageDateTime", listener.getxmlGregorianCalender("2").toString());*/
+		
+		
+		TranCimCBSTable data=tranCimCBSTableRep.findById(requestUUID).get();
+		
+		CimCBSrequest cimCBSrequest=new CimCBSrequest();
+		
+		CimCBSrequestHeader cimCBSrequestHeader=new CimCBSrequestHeader();
+		cimCBSrequestHeader.setRequestUUId(data.getRequest_uuid());
+		cimCBSrequestHeader.setChannelId(data.getChannel_id());
+		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
+		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequest.setHeader(cimCBSrequestHeader);
+		
+		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
+		cimCBSrequestData.setTransactionNo(data.getTran_no());
+		cimCBSrequestData.setInitiatingChannel(data.getInit_channel());
+		cimCBSrequestData.setInitatorTransactionNo(data.getInit_tran_no());
+		if(data.getPost_to_cbs()=="True") {
+			cimCBSrequestData.setPostToCBS(Boolean.TRUE);
+		}else {
+			cimCBSrequestData.setPostToCBS(Boolean.FALSE);
+		}
+		cimCBSrequestData.setTransactionType(data.getTran_type());
+		cimCBSrequestData.setIsReversal(data.getIsreversal());
+		cimCBSrequestData.setTransactionNoFromCBS(data.getTran_no_from_cbs());
+		cimCBSrequestData.setCustomerName(data.getCustomer_name());
+		cimCBSrequestData.setFromAccountNo(data.getFrom_account_no());
+		cimCBSrequestData.setToAccountNo(data.getTo_account_no());
+		cimCBSrequestData.setTransactionAmount(Float.parseFloat(data.getTran_amt().toString()));
+		cimCBSrequestData.setTransactionDate(data.getTran_date());
+		cimCBSrequestData.setTransactionCurrency(data.getTran_currency());
+		cimCBSrequestData.setTransactionParticularCode(data.getTran_particular_code());
+		cimCBSrequestData.setCreditRemarks(data.getCredit_remarks());
+		cimCBSrequestData.setDebitRemarks(data.getDebit_remarks());
+		cimCBSrequestData.setReservedField1(data.getResv_field_1());
+		cimCBSrequestData.setReservedField2(data.getResv_field_2());
+		cimCBSrequest.setData(cimCBSrequestData);
+		
+	
+		HttpEntity<CimCBSrequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
+				
+		ResponseEntity<CimCBSresponse> response = null;
+		try {
+			logger.info("Sending message to CBS credit using restTemplate Failure");
+			response = restTemplate.postForEntity(env.getProperty("connect24.url") + "/api/ws/cdtActfndTransfer?",
+					entity, CimCBSresponse.class);
+
+			
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+
+		} catch (HttpClientErrorException ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		} catch (HttpServerErrorException ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception ex) {
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		}
+
+	}
+
+
+
+}

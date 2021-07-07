@@ -386,4 +386,10 @@ public class PaymentInstruction301 {
         return this.cdtTrfTxInf;
     }
 
+	public void setCdtTrfTxInf(List<CreditTransferTransaction341> cdtTrfTxInf) {
+		this.cdtTrfTxInf = cdtTrfTxInf;
+	}
+    
+    
+
 }

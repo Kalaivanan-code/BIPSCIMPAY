@@ -29,6 +29,7 @@ public class ConsentAccessRequest {
 	@JsonProperty("Permissions")
 	private List<String> permissions;
 
+	@JsonProperty("PhoneNumber")
 	public String getPhoneNumber() {
 		return phoneNumber;
 	}
@@ -37,6 +38,7 @@ public class ConsentAccessRequest {
 		this.phoneNumber = phoneNumber;
 	}
 
+	@JsonProperty("PublicKey")
 	public String getPublicKey() {
 		return publicKey;
 	}
@@ -45,6 +47,7 @@ public class ConsentAccessRequest {
 		this.publicKey = publicKey;
 	}
 
+	@JsonProperty("ExpirationDateTime")
 	public XMLGregorianCalendar getExpirationDateTime() {
 		return expirationDateTime;
 	}
@@ -53,6 +56,7 @@ public class ConsentAccessRequest {
 		this.expirationDateTime = expirationDateTime;
 	}
 
+	@JsonProperty("TransactionFromDateTime")
 	public XMLGregorianCalendar getTransactionFromDateTime() {
 		return transactionFromDateTime;
 	}
@@ -61,6 +65,7 @@ public class ConsentAccessRequest {
 		this.transactionFromDateTime = transactionFromDateTime;
 	}
 
+	@JsonProperty("TransactionToDateTime")
 	public XMLGregorianCalendar getTransactionToDateTime() {
 		return transactionToDateTime;
 	}
@@ -69,6 +74,7 @@ public class ConsentAccessRequest {
 		this.transactionToDateTime = transactionToDateTime;
 	}
 
+	@JsonProperty("Accounts")
 	public List<Account> getAccount() {
 		return account;
 	}
@@ -77,6 +83,7 @@ public class ConsentAccessRequest {
 		this.account = account;
 	}
 
+	@JsonProperty("Permissions")
 	public List<String> getPermissions() {
 		return permissions;
 	}

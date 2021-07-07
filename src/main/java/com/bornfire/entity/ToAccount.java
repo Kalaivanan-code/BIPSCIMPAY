@@ -1,6 +1,9 @@
 package com.bornfire.entity;
 
+import javax.validation.constraints.NotBlank;
+
 public class ToAccount {
+	
 	private String AcctName;
 	private String AcctNumber;
 	private String BankCode;

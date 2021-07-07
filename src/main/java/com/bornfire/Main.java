@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
@@ -19,17 +20,25 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.bornfire.config.SequenceGenerator;
 import com.bornfire.controller.IPSDao;
 import com.bornfire.entity.C24FTResponse;
 import com.bornfire.entity.CryptogramResponse;
 import com.bornfire.entity.DocType;
+import com.bornfire.entity.OutwardTransactionMonitoringTable;
+import com.bornfire.entity.TranIPSTable;
 import com.bornfire.jaxb.camt_052_001_08.Document;
 import com.bornfire.messagebuilder.DocumentPacks;
 import com.google.gson.Gson;
@@ -42,9 +51,12 @@ import com.unboundid.ldap.sdk.SearchScope;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.io.IOException;
 import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
@@ -52,34 +64,50 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
 public class Main {
-	/*private final static String TIMESTAMP_PATTERN = "yyyy-MM-dd hh:mm:ss";
-	private final static DateFormat TIMESTAMP_FORMATTER = new SimpleDateFormat(TIMESTAMP_PATTERN);
-	private final static TimeZone IST_TIMEZONE = TimeZone.getTimeZone("IST");
-
-	public static String formatTimeStamp(XMLGregorianCalendar cal) {
-		if (cal == null)
-			return "";
-		else {
-			return TIMESTAMP_FORMATTER.format(cal.toGregorianCalendar(IST_TIMEZONE, Locale.FRENCH, null).getTime());
-		}
-	}
-
-	public static void main(String[] args) throws DatatypeConfigurationException {
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTime(new Date());
-
-		XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-
-		String formmatedDateTimestamp = formatTimeStamp(calendar);
-		String mydatetime="2011-09-29T08:55:00Z";
-		XMLGregorianCalendar xgc=DatatypeFactory.newInstance().newXMLGregorianCalendar(mydatetime);
-		System.out.println(xgc.toString());
-		System.out.println(formmatedDateTimestamp);
-	}
-*/
-	  public static void main(String[] args) throws IOException  {
+		  public static void main(String[] args) throws IOException  {
 	
+		  
+		  SequenceGenerator seq=new SequenceGenerator();
+		 
+		/*  for (int i=0;i<10;i++) {
+			  System.out.println("inside"+i);
+				if (i==5) {
+					System.out.println("OK"+i);
+					break;
+				}
+				System.out.println("outside"+i);
+			}
+		  */
+		  System.out.println( "Seq:"+seq.generateRequestUUId());
+		  
+			String dataFormat = null;
+	  dataFormat=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000").format(new Date());
+			/*switch(type) {
+			case "0":
+				dataFormat=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(new Date());
+				break;
+			case "1":
+				dataFormat=new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+				break;
+			}*/
+			XMLGregorianCalendar xgc = null;
+			try {
+				xgc = DatatypeFactory.newInstance()
+						.newXMLGregorianCalendar(dataFormat);
+			} catch (DatatypeConfigurationException e) {
+				e.printStackTrace();
+			}
+			
+		
+
+			System.out.println(xgc);
+	  
 		  String name="5454,sydtfysf,,";
+		  
+		  String name1="100";
+		 Integer dd= Integer.valueOf(name1);
+		  System.out.println(name1);
+
 		  
 		  System.out.println(name.replace(",", ", ").split(",")[1]+"chgd");
 		/*
@@ -100,9 +128,30 @@ public class Main {
 		 */
 		  
 		  try {
-			  String realmPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArMFLC7eq3rgDKiOJKtJk6CCYsQ47sZ3JhSz+tCciuXwGOzm9LDtLz/WJSDNzsG4hScBCh0EzKDzcVffknyxkkIaPH16wsZXK0axzC/rRCAstTR/Mz6p7gUFm6TkVFT11J51gyN2fObJ3hWjaNUcvQ67cmzNUjuoTK7EOMCequp2G2Kng96N2iLyBHxCMtM9U8U3cUw3JuOuaDFYYwRJyI8796JOyeThjehjOvzr8AzVorGb3rchJTOK4LZwIIkIhNBh4ONbkb8QpssA3USwBDFmS5o2XswYUn1MpaV/aPsUNRf7NAalRZvofQ3DzzOi+Jxz+3Lnh5uotD0Ps2HdkXQIDAQAB";
-		        String accessTokenString = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJhbW91bnQiOiIxMDAuMDAiLCJjdXJyZW5jeSI6Ik1VUiIsImRlYnRvckFjY291bnQiOiI5MDMxMDE5MDAwNTMwOCIsImNyZWRpdG9yQWNjb3VudCI6IjAyMzA1Nzc3Nzg5NyIsImVuZFRvRW5kSWQiOiJDTUNMTVVNMDIwMjAwODIwMDA0MDMzIn0.BtBzoQ0bHYoaO1guJ_35r5tJcHwf679NKi-2o9L8r22prRdvFKxK5V2q_YC4w18JKjumQN-X8xoJdIROuDXWLcHrzqaaJbwadnQckDHMmvCJMNP7u1qtfM6vLvynf2bGxoSO0T0OlAw6-uKxbkrgkNVOeRTA29lpnyAHMb-tFAT4hT3Li0iY9l09RnjDBqJlsQ4lMZuJgjrsr-M92FTbIf6aM3QTEX2wsmqxV4wK4AH95bZekYQKCrdN1bGvUnJaOnJepYRgVaK_QwLb0ieKvm6OyD5zQvhqFDeuXlldZrarpi9EWk_EJRQw-ewse_VyRsYBSQ9Hv-GVvR1G4RIKpw";
+			  
+			  KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance("RSA");
+				keyGenerator.initialize(1024);
 
+				KeyPair kp = keyGenerator.genKeyPair();
+				PublicKey publicKey1 = (PublicKey) kp.getPublic();
+				PrivateKey privateKey = (PrivateKey) kp.getPrivate();
+
+				String encodedPublicKey = Base64.getEncoder().encodeToString(publicKey1.getEncoded());
+				System.out.println("Public Key:");
+				System.out.println(convertToPublicKey(encodedPublicKey));
+				String token = generateJwtToken(privateKey);
+				System.out.println("TOKEN:");
+				System.out.println(token);
+				printStructure(token, publicKey1);
+				
+			 // String realmPublicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCmZ3Tad38LTWRLXFKm1jLeJxsTwVhi3cU+w5hgJQt/pxRlems4LHVlflgXXLruOPmcfedMhktQkBCUX/g3h5UL4+JmNHxBFYhrrezgzqCC/GiufD1UqpF3T0xQLWnR8mXBWULQZBXKGjSxWXgRTtJGQUgJ2Tk4GlI12nuumqNkNwIDAQAB";
+		      //  String accessTokenString = "eyJhbGciOiJSUzUxMiJ9.eyJyb2xlIjoidXNlciIsImNyZWF0ZWQiOjE2MjI0NDcxMjAyOTAsImlkIjoieHh4In0.YXW4H1Io-_O49R9sDqzjgTvMBuRjlc7kDVlYxzR4-EMq-LXB5dMSopjqOKl-XHu-RInyOgoN2BkGxboFkNXo6jLxe3SJ639tqvdPxkdtxdHGHCZmAJdttaw_82eUI66mi9rMhtG2hfzTHdms44tOB6lqKAFuW_dnra8pIXfR_us";
+
+				String realmPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB";
+		        String accessTokenString = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6IjgyMzY1ODk3MzQ1Njc5ODMyMzA5IiwiYW1vdW50IjoiMzQ3LjAwIiwiY3VycmVuY3kiOiJNVVIiLCJkZWJ0b3JBY2NvdW50IjoiOTAzMTAxOTAwMDQzNjMiLCJjcmVkaXRvckFjY291bnQiOiI5MDMxMDE5MDAwMzUxNSIsImVuZFRvRW5kSWQiOiJCQVJCMDA3In0.RNYXDruZlrUju_oyhU6fYpKz2Ab0gEPfBkhGLt2qjGzvu3GRO-VCqrmS5dAdZos2h0TArBK2va1mCzxOsW7khtKlfizRPT5ai_gQjhKdcGb_pXaIfRXq9wDMCCsxJ3CBKyNj5W5jDUoVPMF_eiqIeOUCMNnSeccmcgjIHdOrE69SeHlcMX5yiNLHhzc8m4v4kQpJ5N31ZiBo_TJZsZ6QSij_OpFLgXSwBUEgVpH7BW4W-bWniSXFSUsmDsC_vsTbzhbOK13cqSCq31YQhPCOvQfB6FjX_wufSrk5Mqqkr_SNlFJRwPofsRzqfNUdBmtxjBjBhA-CRMKB7Sutf_7eOg";
+
+		        
+		        
 		        String[] split_string = accessTokenString.split("\\.");
 				String base64EncodedHeader = split_string[0];
 				String base64EncodedBody = split_string[1];
@@ -114,11 +163,25 @@ public class Main {
 			 */
 
 		        
-		    //    String realmPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWwkWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mrm/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEiNQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQAB";
-		      //  String accessTokenString = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6IjgyMzY1ODk3MzQ1Njc5ODMyMzA5IiwiYW1vdW50IjoiMzQ3LjAwIiwiY3VycmVuY3kiOiJNVVIiLCJkZWJ0b3JBY2NvdW50IjoiOTAzMTAxOTAwMDQzNjMiLCJjcmVkaXRvckFjY291bnQiOiI5MDMxMDE5MDAwMzUxNSIsImVuZFRvRW5kSWQiOiJCQVJCMDA3In0.RNYXDruZlrUju_oyhU6fYpKz2Ab0gEPfBkhGLt2qjGzvu3GRO-VCqrmS5dAdZos2h0TArBK2va1mCzxOsW7khtKlfizRPT5ai_gQjhKdcGb_pXaIfRXq9wDMCCsxJ3CBKyNj5W5jDUoVPMF_eiqIeOUCMNnSeccmcgjIHdOrE69SeHlcMX5yiNLHhzc8m4v4kQpJ5N31ZiBo_TJZsZ6QSij_OpFLgXSwBUEgVpH7BW4W-bWniSXFSUsmDsC_vsTbzhbOK13cqSCq31YQhPCOvQfB6FjX_wufSrk5Mqqkr_SNlFJRwPofsRzqfNUdBmtxjBjBhA-CRMKB7Sutf_7eOg";
-
+		        String savePath="blrs/gg1/home/BLRS_DOCS//BLRS_DOCS//07-06-2021/010204861LN00003/REM1";
 		        
-		        PublicKey publicKey = decodePublicKey(pemToDer(realmPublicKey));
+		        File folders = new File(savePath);
+				 System.out.println(savePath);
+
+				 boolean success11 = true;
+				 if (!folders.exists()) {
+
+					 System.out.println("Folder Created");
+				 success11 = folders.mkdirs();
+				 } else {
+					 System.out.println("Folder Not Created");
+					 
+				 }
+				 
+				 System.out.println(folders.getAbsolutePath());
+				 
+				 
+				 PublicKey publicKey = decodePublicKey(pemToDer(realmPublicKey));
 
 		        Jws<Claims> claimsJws = Jwts.parser() //
 		                .setSigningKey(publicKey) //
@@ -187,6 +250,46 @@ public class Main {
 	            }
 	        }
 	    }
+	    
+	    
+	    @SuppressWarnings("deprecation")
+		public static String generateJwtToken(PrivateKey privateKey) {
+	    	
+	    	 Map<String, Object> claims = new HashMap<String, Object>();
+
+	            // put your information into claim
+	            claims.put("id", "xxx");
+	            claims.put("role", "user");
+	            claims.put("created", new Date());
+
+	            String token = Jwts.builder().setClaims(claims).signWith(SignatureAlgorithm.RS512, privateKey).compact();
+				return token;
+
+		
+		}
+
+		//Print structure of JWT
+		public static void printStructure(String token, PublicKey publicKey) {
+			Jws
+	            
+	               parseClaimsJws = Jwts.parser().setSigningKey(publicKey)
+					.parseClaimsJws(token);
+
+			System.out.println("Header     : " + parseClaimsJws.getHeader());
+			System.out.println("Body       : " + parseClaimsJws.getBody());
+			System.out.println("Signature  : " + parseClaimsJws.getSignature());
+		}
+
+		
+		// Add BEGIN and END comments
+		private static String convertToPublicKey(String key){
+			StringBuilder result = new StringBuilder();
+			result.append("-----BEGIN PUBLIC KEY-----\n");
+			result.append(key);
+			result.append("\n-----END PUBLIC KEY-----");
+			return result.toString();
+		}
+
 	
 
 

@@ -1,5 +1,9 @@
 package com.bornfire.entity;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 public class FrAccount {
 	private String SchmType;
 	private String AcctName;

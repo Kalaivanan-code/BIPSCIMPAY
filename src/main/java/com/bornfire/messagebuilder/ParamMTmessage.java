@@ -10,6 +10,7 @@ import org.springframework.core.env.Environment;
 
 import com.bornfire.config.SequenceGenerator;
 import com.bornfire.entity.BankAgentTable;
+import com.bornfire.entity.CIMCreditTransferRequest;
 import com.bornfire.entity.CreditTransferTransaction;
 import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.jaxb.wsdl.ParamsMtMsg;
@@ -28,7 +29,7 @@ public class ParamMTmessage {
 	@Autowired
 	SequenceGenerator sequence;
 	
-	public ParamsMtMsg getParamMTmsg(String msgType,SendT request, String msgId,MCCreditTransferRequest mcCreditTransferRequest,
+	public ParamsMtMsg getParamMTmsg(String msgType,SendT request, String msgId,CIMCreditTransferRequest mcCreditTransferRequest,
 			BankAgentTable othBankAgent,String msgSeq,String endToEndID) {
 		ParamsMtMsg paramMtMsg = new ParamsMtMsg();
 		paramMtMsg.setMsgFormat("S");
@@ -52,7 +53,8 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID)));
+		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID)));
+		paramMtMsg.setBlock4(dataPDUs.getDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID));
 
 		return paramMtMsg;
 		
@@ -82,7 +84,8 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs002(msgType,request,msgId,creditStatusType,creditStatusCode,creditStatusDesc,msgSeq)));
+		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs002(msgType,request,msgId,creditStatusType,creditStatusCode,creditStatusDesc,msgSeq)));
+		paramMtMsg.setBlock4(dataPDUs.getDataPDUPacs002(msgType,request,msgId,creditStatusType,creditStatusCode,creditStatusDesc,msgSeq));
 
 		return paramMtMsg;
 	}
@@ -111,7 +114,8 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getRTPDataPDUPacs008(msgType,request,bobMsgID,msgSeq)));
+		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getRTPDataPDUPacs008(msgType,request,bobMsgID,msgSeq)));
+		paramMtMsg.setBlock4(dataPDUs.getRTPDataPDUPacs008(msgType,request,bobMsgID,msgSeq));
 
 		return paramMtMsg;
 	}
@@ -139,7 +143,8 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPain002(msgType,request,bobMsgID,CreditStatusCode,CreditStatusDesc,msgSeq)));
+		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPain002(msgType,request,bobMsgID,CreditStatusCode,CreditStatusDesc,msgSeq)));
+		paramMtMsg.setBlock4(dataPDUs.getDataPDUPain002(msgType,request,bobMsgID,CreditStatusCode,CreditStatusDesc,msgSeq));
 
 		return paramMtMsg;
 	}
@@ -168,7 +173,9 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUCamt011(msgType,bobMsgID,msgSeq)));
+		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUCamt011(msgType,bobMsgID,msgSeq)));
+		paramMtMsg.setBlock4(dataPDUs.getDataPDUCamt011(msgType,bobMsgID,msgSeq));
+
 
 		return paramMtMsg;
 	}
@@ -197,7 +204,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUCamt009(msgType,bobMsgID,msgSeq)));
+		paramMtMsg.setBlock4(dataPDUs.getDataPDUCamt009(msgType,bobMsgID,msgSeq));
 
 		return paramMtMsg;
 	}
@@ -227,7 +234,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUBulkCreditPacs008(msgType,request,msgId,frAccountName,frAccountNumber,toAccountName,toAccountNumber,trAmt,trCurrency,othBankAgent, msgSeq,endToEndID)));
+		paramMtMsg.setBlock4(dataPDUs.getDataPDUBulkCreditPacs008(msgType,request,msgId,frAccountName,frAccountNumber,toAccountName,toAccountNumber,trAmt,trCurrency,othBankAgent, msgSeq,endToEndID));
 
 		return paramMtMsg;
 		
@@ -259,7 +266,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUBulkDebitPacs008(msgType,request,msgId,frAccountName,frAccountNumber,toAccountName,toAccountNumber,trAmt,trCurrency,othBankAgent, msgSeq,endToEndID)));
+		paramMtMsg.setBlock4(dataPDUs.getDataPDUBulkDebitPacs008(msgType,request,msgId,frAccountName,frAccountNumber,toAccountName,toAccountNumber,trAmt,trCurrency,othBankAgent, msgSeq,endToEndID));
 
 		return paramMtMsg;
 		
@@ -299,6 +306,42 @@ public class ParamMTmessage {
 	}*/
 	
 	
+	public ParamsMtMsg getRTPParamMTmsgPain001(String msgType,SendT request, String acctName, String acctNumber, String currencyCode,
+			String bank_agent, String bank_agent_account, String benName, String benAcctNumber, String trAmt,
+			String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID, String msgNetMir) {
+		ParamsMtMsg paramMtMsg = new ParamsMtMsg();
+		paramMtMsg.setMsgFormat("S");
+		paramMtMsg.setMsgSubFormat("I");
+		paramMtMsg.setMsgSender(env.getProperty("ipsx.sender"));
+		paramMtMsg.setMsgReceiver(env.getProperty("ipsx.msgReceiver"));
+		paramMtMsg.setMsgType(msgType);
+		paramMtMsg.setMsgPriority("N");
+		paramMtMsg.setMsgDelNotifRq("N");
+		paramMtMsg.setMsgUserPriority("0100");
+		paramMtMsg.setMsgUserReference("");
+		paramMtMsg.setMsgCopySrvId("");
+		paramMtMsg.setMsgFinValidation("");
+		paramMtMsg.setMsgPde("N");
+		paramMtMsg.setMsgSession("0001");
+		paramMtMsg.setMsgSequence(msgSeq);
+		paramMtMsg.setMsgNetInputTime(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		paramMtMsg.setMsgNetOutputDate(new SimpleDateFormat("yyMMddHHmm").format(new Date()));
+		paramMtMsg.setMsgNetMir(msgNetMir);
+		paramMtMsg.setMsgCopySrvInfo("");
+		paramMtMsg.setMsgPacResult("");
+		paramMtMsg.setMsgPdm("N");
+		paramMtMsg.setFormat("MX");
+		/*paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPain001(msgType,request,acctName, acctNumber,  currencyCode,
+				 bank_agent,  bank_agent_account,  benName,  benAcctNumber,  trAmt,
+				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir)));*/
+		
+		paramMtMsg.setBlock4(dataPDUs.getDataPDUPain001(msgType,request,acctName, acctNumber,  currencyCode,
+				 bank_agent,  bank_agent_account,  benName,  benAcctNumber,  trAmt,
+				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir));
+
+
+		return paramMtMsg;
+	}
 
 	
 }

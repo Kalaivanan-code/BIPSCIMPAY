@@ -9,6 +9,7 @@ RTP,
 BULK_CREDIT,
 MANUAL,
 BULK_DEBIT,
+OUTWARD_BULK_RTP,
 
 VALIDATION_ERROR,
 
@@ -73,8 +74,8 @@ Debit,
 ///Acct Bal Type
 InterimAvailable,
 
+////Bulk RTP Status
+RTP_Initiated,
 
-
-	
 
 }

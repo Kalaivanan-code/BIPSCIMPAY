@@ -75,4 +75,10 @@ public class StructuredRegulatoryReporting31 {
         return this.inf;
     }
 
+	public void setInf(List<String> inf) {
+		this.inf = inf;
+	}
+    
+    
+
 }

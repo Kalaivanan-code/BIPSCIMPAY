@@ -4,6 +4,9 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.validation.ConstraintViolationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.ws.client.WebServiceIOException;
 import static com.bornfire.exception.ErrorResponseCode.*;
 
@@ -40,7 +45,7 @@ public class CustomExceptionHandler {
 	@ExceptionHandler(IPSXRestException.class)
 	public final ResponseEntity<ErrorRestResponse> handleIPSXRestException(IPSXRestException ex, WebRequest request) {
 		String errMessage=ex.getLocalizedMessage();
-		ErrorRestResponse error = new ErrorRestResponse(errMessage.split(":")[0], errMessage.split(":")[1]);
+		ErrorRestResponse error = new ErrorRestResponse(Integer.parseInt(errMessage.split(":")[0]), errMessage.split(":")[1]);
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 	}
 	
@@ -116,4 +121,5 @@ public class CustomExceptionHandler {
 		ErrorResponse error = new ErrorResponse(BAD_REQUEST,details);
 		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+	
 }

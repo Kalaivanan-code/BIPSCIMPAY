@@ -467,4 +467,10 @@ public class PostalAddress241 {
         return this.adrLine;
     }
 
+	public void setAdrLine(List<String> adrLine) {
+		this.adrLine = adrLine;
+	}
+    
+    
+
 }

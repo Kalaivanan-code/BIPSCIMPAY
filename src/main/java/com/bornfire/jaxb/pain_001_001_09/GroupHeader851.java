@@ -218,4 +218,10 @@ public class GroupHeader851 {
         this.fwdgAgt = value;
     }
 
+	public void setAuthstn(List<Authorisation1Choice1> authstn) {
+		this.authstn = authstn;
+	}
+    
+    
+
 }

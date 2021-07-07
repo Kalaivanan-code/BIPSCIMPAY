@@ -11,9 +11,10 @@ public class SCAAthenticationResponse implements Serializable{
 	 */
 	private static final long serialVersionUID = -810040690818347587L;
 
-	
+	@JsonProperty("Links")
 	private Links Links;
 
+	@JsonProperty("SCAStatus")
 	private String SCAStatus;
 
 	@JsonProperty("Links")

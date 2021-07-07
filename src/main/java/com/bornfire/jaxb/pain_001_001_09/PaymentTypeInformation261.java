@@ -131,4 +131,10 @@ public class PaymentTypeInformation261 {
         this.ctgyPurp = value;
     }
 
+	public void setSvcLvl(List<ServiceLevel8Choice1> svcLvl) {
+		this.svcLvl = svcLvl;
+	}
+    
+    
+
 }

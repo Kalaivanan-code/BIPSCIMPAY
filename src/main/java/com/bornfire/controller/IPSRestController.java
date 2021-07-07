@@ -16,7 +16,13 @@ import java.security.cert.CertificateException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
+import javax.management.monitor.Monitor;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 
@@ -26,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,11 +41,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bornfire.clientService.IPSXClient;
 import com.bornfire.config.CronJobScheduler;
+import com.bornfire.config.ErrorResponseCode;
 import com.bornfire.config.IpsCertificateDAO;
 import com.bornfire.config.LdapConfig;
 import com.bornfire.config.SequenceGenerator;
@@ -48,16 +57,23 @@ import com.bornfire.entity.AccountsListAccounts;
 import com.bornfire.entity.BukCreditTransferRequest;
 import com.bornfire.entity.BulkDebitFndTransferRequest;
 import com.bornfire.entity.C24FTResponse;
+import com.bornfire.entity.CIMCreditTransferRequest;
 import com.bornfire.entity.ConsentAccessRequest;
 import com.bornfire.entity.ConsentAccessResponse;
 import com.bornfire.entity.ConsentAccountBalance;
+import com.bornfire.entity.ConsentOutwardAccessAuthRequest;
+import com.bornfire.entity.ConsentOutwardAccessAuthResponse;
+import com.bornfire.entity.ConsentOutwardAccessRequest;
 import com.bornfire.entity.ConsentRequest;
 import com.bornfire.entity.ConsentResponse;
 import com.bornfire.entity.IPSChargesAndFeesRep;
 import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.entity.MCCreditTransferResponse;
 import com.bornfire.entity.ManualFndTransferRequest;
+import com.bornfire.entity.McConsentOutwardAccessResponse;
 import com.bornfire.entity.OtherBankDetResponse;
+import com.bornfire.entity.RTPbulkTransferRequest;
+import com.bornfire.entity.RTPbulkTransferResponse;
 import com.bornfire.entity.SCAAthenticationResponse;
 import com.bornfire.entity.SCAAuthenticatedData;
 import com.bornfire.entity.SettlementAccountRep;
@@ -67,10 +83,18 @@ import com.bornfire.entity.TranIPSTableRep;
 import com.bornfire.entity.TransactionListResponse;
 import com.bornfire.entity.UserRegistrationRequest;
 import com.bornfire.entity.UserRegistrationResponse;
+import com.bornfire.entity.WalletAccessRequest;
+import com.bornfire.entity.WalletAccessResponse;
+import com.bornfire.entity.WalletBalanceResponse;
+import com.bornfire.entity.WalletFndTransferRequest;
+import com.bornfire.entity.WalletFndTransferResponse;
+import com.bornfire.entity.WalletStatementResponse;
 import com.bornfire.exception.FieldValidation;
+import com.bornfire.exception.IPSXException;
 import com.bornfire.messagebuilder.SignDocument;
 
 @RestController
+@Validated
 public class IPSRestController {
 
 	private static final Logger logger = LoggerFactory.getLogger(IPSRestController.class);
@@ -78,6 +102,9 @@ public class IPSRestController {
 	@Autowired
 	CronJobScheduler cronJobSchedular;
 
+	@Autowired
+	ErrorResponseCode errorCode;
+	
 	@Autowired
 	IpsCertificateDAO cert;
 
@@ -116,27 +143,34 @@ public class IPSRestController {
 
 	@Autowired
 	SettlementAccountRep settlAccountRep;
+	
+	@Autowired
+	AsyncService async;
 
 	/* Credit Fund Transfer Initiated from MConnect Application */
 	/* MConnect Initiate the request */
 	@PostMapping(path = "/api/ws/creditFndTransfer", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<MCCreditTransferResponse> sendCreditTransferMessage(
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "P_ID", required = true) @NotEmpty(message="Required")String p_id,
+			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message="Required")String psuDeviceID,
 			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
 			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "Participant_BIC", required = true) String senderParticipantBIC,
-			@RequestHeader(value = "Participant_SOL", required = true) String participantSOL,
-			@RequestBody MCCreditTransferRequest mcCreditTransferRequest)
+			@RequestHeader(value = "Participant_BIC", required = false) String senderParticipantBIC,
+			@RequestHeader(value = "Participant_SOL", required = false) String participantSOL,
+			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU_Resv_Field1", required = true) String resvfield1,
+			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@Valid @RequestBody CIMCreditTransferRequest mcCreditTransferRequest)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 
-		logger.info("Service Starts");
+		logger.info("Service Starts"+p_id);
 
 		MCCreditTransferResponse response = null;
 
 		logger.info("Calling Credit Transfer Connection flow Starts");
 		response = ipsConnection.createFTConnection(psuDeviceID, psuIpAddress, psuID, senderParticipantBIC,
-				participantSOL, mcCreditTransferRequest);
+				participantSOL, mcCreditTransferRequest,p_id,channelID,resvfield1,resvfield2);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -736,5 +770,367 @@ public class IPSRestController {
 
 		// ipsDao.updateIPSFlow("767", "87", "", "");
 	}
+	
+	
+	
+///// Wallet Registration
+	@PostMapping(path = "/api/ws/wallet_Access", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<WalletAccessResponse> registerWalletAccess(
+			@RequestHeader(value = "W-Request-ID", required = true) String w_request_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestBody WalletAccessRequest walletRequest) {
+		logger.info("Calling Wallet");
+
+		logger.info("Calling Create Wallet access flow Starts" + walletRequest.toString());
+
+		WalletAccessResponse response = ipsConnection.createWalletAccessID(w_request_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, walletRequest);
+
+		
+		return new ResponseEntity<WalletAccessResponse>(response, HttpStatus.OK);
+	}
+
+	///// Wallet Registration Auth
+	@PutMapping(path = "/api/ws/accounts-wallet/{walletID}/authorisations/{authID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<SCAAthenticationResponse> authWalletAccess(
+			@PathVariable(value = "walletID", required = true) String walletID,
+			@PathVariable(value = "authID", required = true) String authID,
+			@RequestHeader(value = "W-Request-ID", required = true) String w_request_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			//@RequestHeader(value = "Cryptogram", required = true) String cryptogram,
+			@RequestBody SCAAuthenticatedData scaAuthenticatedData) {
+		logger.info("Calling Wallet");
+
+		logger.info("Wallet Authentication Starts" + scaAuthenticatedData.toString());
+
+		SCAAthenticationResponse response = ipsConnection.authWalletAccessID(w_request_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, scaAuthenticatedData, walletID, authID);
+
+		return new ResponseEntity<SCAAthenticationResponse>(response, HttpStatus.OK);
+	}
+	
+    ///// Topup Wallet
+	@PostMapping(path = "/api/ws/accounts-Wallet-topup/{walletID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<WalletFndTransferResponse> topupWallet(
+			@PathVariable(value = "walletID", required = true) String walletID,
+			@RequestHeader(value = "W-Request-ID", required = true) String w_request_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			//@RequestHeader(value = "Cryptogram", required = true) String cryptogram,
+			@RequestBody WalletFndTransferRequest walletFndTransferRequest) {
+		logger.info("Calling Topup Wallet");
+
+
+		WalletFndTransferResponse response = ipsConnection.walletFundTransferTopupConnection(w_request_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, walletID,walletFndTransferRequest);
+
+		return new ResponseEntity<WalletFndTransferResponse>(response, HttpStatus.OK);
+	}
+	
+	 /////  Wallet Transaction
+		@PostMapping(path = "/api/ws/accounts-Wallet-fundTran/{walletID}/{tranTypeCode}", produces = "application/json;charset=utf-8", consumes = "application/json")
+		public ResponseEntity<WalletFndTransferResponse> walletTransaction(
+				@PathVariable(value = "walletID", required = true) String walletID,
+				@PathVariable(value = "tranTypeCode", required = true) String tranTypeCode,
+				@RequestHeader(value = "W-Request-ID", required = true) String w_request_id,
+				@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+				@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+				@RequestHeader(value = "PSU-ID", required = true) String psuID,
+				@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+				@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+				//@RequestHeader(value = "Cryptogram", required = true) String cryptogram,
+				@RequestBody WalletFndTransferRequest walletFndTransferRequest) {
+			logger.info("Calling Topup Wallet");
+
+
+			WalletFndTransferResponse response = ipsConnection.walletFundTransferConnection(w_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, walletID,walletFndTransferRequest,tranTypeCode);
+
+			return new ResponseEntity<WalletFndTransferResponse>(response, HttpStatus.OK);
+		}
+		
+		 /////  Wallet Balance
+		@PostMapping(path = "/api/ws/accounts-Wallet-balance/{walletID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+		public ResponseEntity<WalletBalanceResponse> walletBalane(
+				@PathVariable(value = "walletID", required = true) String walletID,
+				@RequestHeader(value = "W-Request-ID", required = true) String w_request_id,
+				@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+				@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+				@RequestHeader(value = "PSU-ID", required = true) String psuID,
+				@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+				@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType
+				) {
+			logger.info("Calling Wallet Balance");
+
+
+			WalletBalanceResponse response = ipsConnection.walletBalnceResponse(w_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, walletID);
+
+			return new ResponseEntity<WalletBalanceResponse>(response, HttpStatus.OK);
+		}
+
+		 /////  Wallet Balance
+		@PostMapping(path = "/api/ws/accounts-Wallet-statement/{walletID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+		public ResponseEntity<WalletStatementResponse> walletStatement(
+				@PathVariable(value = "walletID", required = true) String walletID,
+				@RequestHeader(value = "W-Request-ID", required = true) String w_request_id,
+				@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+				@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+				@RequestHeader(value = "PSU-ID", required = true) String psuID,
+				@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+				@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType
+				) {
+			logger.info("Calling Wallet Balance");
+
+
+			WalletStatementResponse response = ipsConnection.walletStatement(w_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, walletID);
+
+			return new ResponseEntity<WalletStatementResponse>(response, HttpStatus.OK);
+		}
+		
+		////Bank Management
+		@PostMapping(path = "/api/ws/accounts-consents", produces = "application/json;charset=utf-8", consumes = "application/json")
+		public ResponseEntity<McConsentOutwardAccessResponse> outwardAccountsConsents(
+				@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+				@PathVariable(value = "consentID", required = false) String consentID,
+				@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+				@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+				@RequestHeader(value = "PSU-ID", required = true) String psuID,
+				@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+				@RequestHeader(value = "PSU-ID-Type", required = true)String psuIDType,
+				@RequestBody ConsentOutwardAccessRequest consentOutwardAccessRequest) throws NoSuchAlgorithmException {
+
+			logger.debug("Calling Outward Consent Access");
+
+			McConsentOutwardAccessResponse response = ipsConnection.outwardConsentAccess(x_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessRequest);
+
+			return new ResponseEntity<McConsentOutwardAccessResponse>(response, HttpStatus.OK);
+		}
+		
+	//// Bank Account Authorisation
+	@PutMapping(path = "/api/ws/accounts-consents/{consentID}/authorisations/{authID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<ConsentOutwardAccessAuthResponse> outwardAccountsConsentsAuthorisation(
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@PathVariable(value = "consentID", required = true) String consentID,
+			@PathVariable(value = "authID", required = true) String authID,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestBody ConsentOutwardAccessAuthRequest consentOutwardAccessAuthRequest) throws NoSuchAlgorithmException {
+
+		logger.debug("Calling Outward Consent Access Authorisation");
+
+		ConsentOutwardAccessAuthResponse response = ipsConnection.outwardConsentAccessSCAAuth(x_request_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessAuthRequest,consentID,authID);
+
+		return new ResponseEntity<ConsentOutwardAccessAuthResponse>(response, HttpStatus.OK);
+	}
+	
+    ////Delete Bank Access
+	@DeleteMapping(path = "/api/ws/accounts-consents/{consentID}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<String> outwardDeleteAccountsConsents(
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@PathVariable(value = "consentID", required = true) String consentID,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType) throws NoSuchAlgorithmException {
+
+		logger.debug("Calling Outward Consent Access Authorisation");
+
+		String response = ipsConnection.outwardDeleteConsentAccess(x_request_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID);
+
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+	}
+	
+    ////Read Balances
+	@GetMapping(path = "/api/ws/accounts/{accountID}/balances", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<ConsentAccountBalance> outwardAccountsConsentsBalances(
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@PathVariable(value = "accountID", required = true) String accountID,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws NoSuchAlgorithmException {
+
+		logger.debug("Calling Outward Consent Access Balance Inquiry");
+
+		ConsentAccountBalance response = ipsConnection.outwardConsentAccessBalances(x_request_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID,accountID);
+
+		return new ResponseEntity<ConsentAccountBalance>(response, HttpStatus.OK);
+	}
+	
+    ////Read Transaction Inquiry
+	@GetMapping(path = "/api/ws/accounts/{accountID}/transactions", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<TransactionListResponse> outwardAccountsConsentstransactions(
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@PathVariable(value = "accountID", required = true) String accountID,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "Consent-ID", required = true) String consentID,
+			@RequestParam(value="fromBookingDateTime",required=false)String fromBookingDateTime,
+			@RequestParam(value="toBookingDateTime",required=false)String toBookingDateTime) throws NoSuchAlgorithmException {
+
+		logger.debug("Calling Outward Consent Access Transaction Inquiry");
+
+		TransactionListResponse response = ipsConnection.outwardConsentAccessTransactionInc(x_request_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID,accountID,fromBookingDateTime,toBookingDateTime);
+
+		return new ResponseEntity<TransactionListResponse>(response, HttpStatus.OK);
+	}
+	
+    ////Read Accounts List Inquiry
+	@GetMapping(path = "/api/ws/accounts", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<AccountListResponse> outwardAccountsConsentsAccounts(
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws NoSuchAlgorithmException {
+
+		logger.debug("Calling Outward Consent Access Account List Inquiry");
+
+		AccountListResponse response = ipsConnection.outwardConsentAccessAccountListInc(x_request_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID);
+
+		return new ResponseEntity<AccountListResponse>(response, HttpStatus.OK);
+	}
+	
+    ////Read Accounts List Inquiry
+	@GetMapping(path = "/api/ws/accounts/{AccountId}", produces = "application/json;charset=utf-8", consumes = "application/json")
+	public ResponseEntity<AccountsListAccounts> outwardAccountsConsentsAccountsInd(
+			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
+			@PathVariable(value="AcountId",required=true)String accountID,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-ID", required = true) String psuID,
+			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws NoSuchAlgorithmException {
+
+		logger.debug("Calling Outward Consent Access Account Inquiry");
+
+		AccountsListAccounts response = ipsConnection.outwardConsentAccessAccountInc(x_request_id, psuDeviceID,
+				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID,accountID);
+
+		return new ResponseEntity<AccountsListAccounts>(response, HttpStatus.OK);
+	}
+	
+	/* Credit Fund Transfer Initiated from MConnect Application */
+	/* MConnect Initiate the request */
+	/*@PostMapping(path = "/api/ws/bulkRTPTransfer", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<RTPbulkTransferResponse> bulkRTPTransfer(
+			@RequestHeader(value = "P_ID", required = true) String p_id,
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "PSU_ID", required = false) String psuID,
+			@RequestBody RTPbulkTransferRequest rtpBulkTransferRequest)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		logger.info("Service Bulk RTP Starts"+p_id);
+
+		RTPbulkTransferResponse response = null;
+
+		logger.info("Calling Bulk RTP Credit Transfer Connection flow Starts");
+		
+		logger.info("PID:"+p_id);
+		logger.info("PSU_Device_ID:"+psuDeviceID);
+		logger.info("PSU_IP_Address:"+psuIpAddress);
+		logger.info("PSU_ID:"+psuID);
+		
+		logger.info("RTP Bulk Request->"+rtpBulkTransferRequest);
+		
+		response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID, rtpBulkTransferRequest,p_id);
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}*/
+
+
+	@RequestMapping(value = "/testAsynch", method = RequestMethod.GET)
+	public String  testAsynch() throws InterruptedException, ExecutionException 
+    {
+        logger.info("testAsynch Start");
+ 
+        CompletableFuture<Object> employeeAddress =async.getEmployeeAddress();
+        CompletableFuture<Object> employeeName = async.getEmployeeName();
+        CompletableFuture<Object> employeePhone = async.getEmployeePhone();
+ 
+        // Wait until they are all done
+        CompletableFuture.allOf(employeeAddress, employeeName, employeePhone).join();
+         
+        logger.info("EmployeeAddress--> " + employeeAddress.get());
+        logger.info("EmployeeName--> " + employeeName.get());
+        logger.info("EmployeePhone--> " + employeePhone.get());
+        
+        logger.info("ok");
+        return "ok";
+    }
+	
+	
+	/* Credit Fund Transfer Initiated from MConnect Application */
+	/* MConnect Initiate the request */
+	@PostMapping(path = "/api/ws/bulkRTPTransfer", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<RTPbulkTransferResponse> bulkRTPTransfer1(
+			@RequestHeader(value = "P_ID", required = true)@NotEmpty(message="Required")String p_id ,
+			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message="Required")String psuDeviceID,
+			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "PSU_ID", required = false) String psuID,
+			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU_Resv_Field1", required = true) String resvfield1,
+			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@Valid @RequestBody RTPbulkTransferRequest rtpBulkTransferRequest)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		
+		logger.info("Service Bulk RTP Starts :"+p_id);
+		
+		RTPbulkTransferResponse response = null;
+
+		logger.info("Calling Bulk RTP Credit Transfer Connection flow Starts");
+		
+		logger.info("PID:"+p_id);
+		logger.info("PSU_Device_ID:"+psuDeviceID);
+		logger.info("PSU_IP_Address:"+psuIpAddress);
+		logger.info("PSU_ID:"+psuID);
+		
+		logger.info("RTP Bulk Request->"+rtpBulkTransferRequest);
+		
+		if(!ipsDao.invalidBankCode(rtpBulkTransferRequest.getRemitterAccount().getBankCode())) {
+			response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID, rtpBulkTransferRequest,p_id,channelID,resvfield1,resvfield2);
+		}else {
+			String responseStatus = errorCode.validationError("BIPS10");
+			throw new IPSXException(responseStatus);
+		}
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
 
 }

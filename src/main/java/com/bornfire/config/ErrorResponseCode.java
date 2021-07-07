@@ -101,7 +101,21 @@ public class ErrorResponseCode {
 			responseDesc = "308:Authorization is incorrect";
 		}else if(code.equals("13")){
 			responseDesc = "315:Invalid consent";
-		}else {
+		}
+		
+		else if(code.equals("21")) {
+			responseDesc="351:Insufficient Fund";
+		}else if(code.equals("22")) {
+			responseDesc="352:Maximum Amount Not Permitted(must be less than or equal 10000 Only)";
+		}else if(code.equals("23")) {
+			responseDesc="101:No account found with specified CPR/CR";
+		}else if(code.equals("24")) {
+			responseDesc="102:wrong credentials";
+		}else if(code.equals("25")) {
+			responseDesc="500:Internal Server Error";
+		}
+		
+		else {
 			responseDesc = "104:Internal error";
 		}
 		return responseDesc;
