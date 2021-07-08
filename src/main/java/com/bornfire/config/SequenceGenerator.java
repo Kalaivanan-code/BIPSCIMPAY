@@ -138,7 +138,7 @@ public class SequenceGenerator {
 	public String generateSystemTraceAuditNumber() {
 
 		StringBuffer randStr = new StringBuffer();
-		randStr.append(new SimpleDateFormat("yyMMdd").format(new Date()));
+		randStr.append(new SimpleDateFormat("yyyyMMdd").format(new Date()));
 
 		for (int i = 0; i < SYSTEM_TRACE_AUDIT_NUMBER; i++) {
 			int number = getRandomMsgNumber();

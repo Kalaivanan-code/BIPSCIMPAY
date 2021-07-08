@@ -310,9 +310,13 @@ public class IPSConnection {
 									TranMonitorStatus.FAILURE.toString());
 	
 							//// Send Failure Message to CIM
-							ipsDao.ReturnCIMcnfResponseRJCT(seqUniqueID, "", "", TranMonitorStatus.FAILURE.toString(), "", "",
+							ipsDao.updateIPSXStatusResponseRJCTBulkRTP(seqUniqueID, connect24Response.getBody().getStatus().getMessage(), seqUniqueID,
+									TranMonitorStatus.FAILURE.toString(), "",
+									"",  connect24Response.getBody().getStatus().getStatusCode());
+							
+							/*ipsDao.ReturnCIMcnfResponseRJCT(seqUniqueID, "", "", TranMonitorStatus.FAILURE.toString(), "", "",
 									"", connect24Response.getBody().getStatus().getStatusCode(),
-									connect24Response.getBody().getStatus().getMessage());
+									connect24Response.getBody().getStatus().getMessage());*/
 
 						}
 					} else {
@@ -324,10 +328,15 @@ public class IPSConnection {
 						ipsDao.updateCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
 								connect24Response.getBody().getStatus().getMessage(), TranMonitorStatus.FAILURE.toString());
 	
-						////Send Failure Message to CIM
+					    //// Send Failure Message to CIM
+						ipsDao.updateIPSXStatusResponseRJCTBulkRTP(seqUniqueID, connect24Response.getBody().getStatus().getMessage(), seqUniqueID,
+								TranMonitorStatus.FAILURE.toString(), "",
+								"",  connect24Response.getBody().getStatus().getStatusCode());
+						
+						/*////Send Failure Message to CIM
 						ipsDao.ReturnCIMcnfResponseRJCT(seqUniqueID, "", "", TranMonitorStatus.FAILURE.toString(), "", "", "",
 								connect24Response.getBody().getStatus().getStatusCode(),
-								connect24Response.getBody().getStatus().getMessage());
+								connect24Response.getBody().getStatus().getMessage());*/
 
 					}
 
@@ -3849,13 +3858,13 @@ public class IPSConnection {
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 								sysTraceAuditNumber,"MOFINANS","","True","CR","N","",
 								acctNumber, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"RTP","","","","");
+								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","","","","");
 					}else {
 						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 								sysTraceAuditNumber,"MOFINANS","","True","CR","N","",
 								acctNumber, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT","","","","");
+								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","","","","");
 					}
 					
 					

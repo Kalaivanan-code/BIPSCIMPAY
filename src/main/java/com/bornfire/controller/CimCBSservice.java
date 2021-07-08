@@ -109,7 +109,7 @@ public class CimCBSservice {
 		ResponseEntity<CimCBSresponse> response = null;
 		try {
 			logger.info("Sending message to connect24 credit using restTemplate");
-			response = restTemplate.postForEntity(env.getProperty("connect24.crurl"),
+			response = restTemplate.postForEntity(env.getProperty("cimESB.url")+"appname="+env.getProperty("cimESB.appname")+"&prgname="+env.getProperty("cimESB.prgname")+"&arguments="+env.getProperty("cimESB.arguments"),
 					entity, CimCBSresponse.class);
 
 			
@@ -181,7 +181,7 @@ public class CimCBSservice {
 		ResponseEntity<CimCBSresponse> response = null;
 		try {
 			logger.info("Sending message to ESB Cable for Debit the Customer Amount");
-			response = restTemplate.postForEntity(env.getProperty("connect24.drurl"),
+			response = restTemplate.postForEntity(env.getProperty("cimESB.url")+"appname="+env.getProperty("cimESB.appname")+"&prgname="+env.getProperty("cimESB.prgname")+"&arguments="+env.getProperty("cimESB.arguments"),
 					entity, CimCBSresponse.class);
 			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
 		} catch (HttpClientErrorException ex) {
@@ -252,7 +252,7 @@ public class CimCBSservice {
 		ResponseEntity<CimCBSresponse> response = null;
 		try {
 			logger.info("Sending message to CBS credit using restTemplate Success");
-			response = restTemplate.postForEntity(env.getProperty("connect24.url") + "/api/ws/cdtActfndTransfer?",
+			response = restTemplate.postForEntity(env.getProperty("cimESB.url")+"appname="+env.getProperty("cimESB.appname")+"&prgname="+env.getProperty("cimESB.prgname")+"&arguments="+env.getProperty("cimESB.arguments"),
 					entity, CimCBSresponse.class);
 
 			
@@ -324,7 +324,7 @@ public class CimCBSservice {
 		ResponseEntity<CimCBSresponse> response = null;
 		try {
 			logger.info("Sending message to CBS credit using restTemplate Failure");
-			response = restTemplate.postForEntity(env.getProperty("connect24.url") + "/api/ws/cdtActfndTransfer?",
+			response = restTemplate.postForEntity(env.getProperty("cimESB.url")+"appname="+env.getProperty("cimESB.appname")+"&prgname="+env.getProperty("cimESB.prgname")+"&arguments="+env.getProperty("cimESB.arguments"),
 					entity, CimCBSresponse.class);
 
 			

@@ -576,10 +576,7 @@ public class IPSDao {
 									// Transfer");
 								}
 								
-								if (!tm.getMsg_type().equals(TranMonitorStatus.OUTGOING.toString())) {
-									ReturnCIMcnfOutgoingResponseACSP(seqUniqueID,"","",TranMonitorStatus.SUCCESS.toString(),"","","","",
-											"");
-								}
+								
 
 							}
 
@@ -1186,7 +1183,7 @@ public class IPSDao {
 
 	}
 
-
+/*
 	public void ReturnCIMcnfOutgoingResponseACSP(String seqUniqueID, String ipsxerrorDesc, String ipsxMsgID,
 			String tranStatus, String ipsXStatus, String ipsxResponseStatus, String ipsxErrorCode, String cbsStatus,
 			String cbsError) {
@@ -1272,7 +1269,7 @@ public class IPSDao {
 		}
 
 	}
-
+*/
 	public void updateIPSXStatusResponseRJCTBulkRTP(String seqUniqueID, String ipsxerrorDesc, String ipsxMsgID,
 			String tranStatus, String ipsXStatus, String ipsxResponseStatus, String ipsxErrorCode) {
 		try {
@@ -1290,68 +1287,117 @@ public class IPSDao {
 				Optional<OutwardTransactionMonitoringTable> otm = outwardTranRep.findById(item.getSequence_unique_id());
 				if (otm.isPresent()) {
 					OutwardTransactionMonitoringTable tm = otm.get();
-					tm.setIpsx_message_id(ipsxMsgID);
-					tm.setIpsx_status(ipsXStatus);
-					tm.setIpsx_status_error(ipsxerrorDesc);
-					tm.setResponse_status(ipsxResponseStatus);
-					tm.setIpsx_response_time(new Date());
-					tm.setTran_status(tranStatus);
-					tm.setIpsx_status_code(ipsxErrorCode);
 					
-					
-				    /////Send Failure Message to CIM
-					
-					////Generate RequestUUID
-					String requestUUID=sequence.generateRequestUUId();
-					
-					String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-							env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-							sequence.generateTranNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
-							tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-							tm.getSequence_unique_id(),tm.getIpsx_account(),tm.getIpsx_account_name(),"RTP","","","Failure",ipsxerrorDesc);
-					
-					logger.info("Pain Output Return Msg to ThirdParty Application");
+					if(tm.getMsg_type().equals(TranMonitorStatus.OUTWARD_BULK_RTP.toString())) {
+						tm.setIpsx_message_id(ipsxMsgID);
+						tm.setIpsx_status(ipsXStatus);
+						tm.setIpsx_status_error(ipsxerrorDesc);
+						tm.setResponse_status(ipsxResponseStatus);
+						tm.setIpsx_response_time(new Date());
+						tm.setTran_status(tranStatus);
+						tm.setIpsx_status_code(ipsxErrorCode);
+						outwardTranRep.save(tm);
 
-					logger.info(tm.getSequence_unique_id() + " :CIM Register Reverse Data Output:"+response);
-
-					if(response.equals("1")) {
-						ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice
-								.cbsResponseFailure(requestUUID);
-
-						logger.info(tm.getSequence_unique_id() + "CIM : 0");
 						
-						if (connect24Response.getStatusCode() == HttpStatus.OK) {
+						
+					    /////Send Failure Message to CIM
+						
+						////Generate RequestUUID
+						String requestUUID=sequence.generateRequestUUId();
+						
+						String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
+								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
+								sequence.generateTranNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
+								tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
+								tm.getSequence_unique_id(),tm.getIpsx_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc);
+						
+						logger.info("Pain Output Return Msg to ThirdParty Application");
 
-							logger.info(tm.getSequence_unique_id() + " CIM: 1");
-							if(connect24Response.getBody().getStatus().getIsSuccess()) {
-								updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
-								
-								logger.info(tm.getSequence_unique_id() + " CIM: 2");
-								tm.setCim_cnf_request_uid(requestUUID);
-								tm.setCim_cnf_status("Success");
-								tm.setCim_cnf_status_error("");
-							}else {
-								updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
-								logger.info(tm.getSequence_unique_id() + " CIM: 3");
-								tm.setCim_cnf_request_uid(requestUUID);
-								tm.setCim_cnf_status("FAILURE");
-								tm.setCim_cnf_status_error(connect24Response.getBody().getStatus().getMessage());
+						logger.info(tm.getSequence_unique_id() + " :CIM Register Reverse Data Output:"+response);
+
+						if(response.equals("1")) {
+							ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice
+									.cbsResponseFailure(requestUUID);
+
+							logger.info(tm.getSequence_unique_id() + "CIM : 0");
+							
+							if (connect24Response.getStatusCode() == HttpStatus.OK) {
+
+								logger.info(tm.getSequence_unique_id() + " CIM: 1");
+								if(connect24Response.getBody().getStatus().getIsSuccess()) {
+									updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
+									
+									logger.info(tm.getSequence_unique_id() + " CIM: 2");
+									updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"SUCCESS","");
+									
+								}else {
+									updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
+									logger.info(tm.getSequence_unique_id() + " CIM: 3");
+									updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE",connect24Response.getBody().getStatus().getMessage());								}
+							} else {
+								logger.info(tm.getSequence_unique_id() + " : CIM 4:Failure");
+								updateCIMcbsData(requestUUID,"FAILURE","500","Something went wrong at server end");
+								updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE","Something went wrong at server end");
+
 							}
-						} else {
-							logger.info(tm.getSequence_unique_id() + " : CIM 4:Failure");
-							updateCIMcbsData(requestUUID,"FAILURE","500","Something went wrong at server end");
-							tm.setCim_cnf_request_uid(requestUUID);
-							tm.setCim_cnf_status("FAILURE");
-							tm.setCim_cnf_status_error("Something went wrong at server end");
-
 						}
-					}
-					
-					
-					outwardTranRep.save(tm);
+						
+						
+					}else {
+						tm.setIpsx_message_id(ipsxMsgID);
+						tm.setIpsx_status(ipsXStatus);
+						tm.setIpsx_status_error(ipsxerrorDesc);
+						tm.setResponse_status(ipsxResponseStatus);
+						tm.setIpsx_response_time(new Date());
+						tm.setTran_status(tranStatus);
+						tm.setIpsx_status_code(ipsxErrorCode);
+						
+						outwardTranRep.save(tm);
 
-					
-					
+					    /////Send Failure Message to CIM
+						
+						////Generate RequestUUID
+						String requestUUID=sequence.generateRequestUUId();
+						
+						String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
+								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
+								sequence.generateTranNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
+								tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
+								tm.getSequence_unique_id(),tm.getIpsx_account(),tm.getIpsx_account_name(),"NRT/RTP","","","Failure",ipsxerrorDesc);
+						
+						logger.info("Pain Output Return Msg to ThirdParty Application");
+
+						logger.info(tm.getSequence_unique_id() + " :CIM Register Reverse Data Output:"+response);
+
+						if(response.equals("1")) {
+							ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice
+									.cbsResponseFailure(requestUUID);
+
+							logger.info(tm.getSequence_unique_id() + "CIM : 0");
+							
+							if (connect24Response.getStatusCode() == HttpStatus.OK) {
+
+								logger.info(tm.getSequence_unique_id() + " CIM: 1");
+								if(connect24Response.getBody().getStatus().getIsSuccess()) {
+									updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
+									
+									logger.info(tm.getSequence_unique_id() + " CIM: 2");
+									updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"SUCCESS","");
+									
+								}else {
+									updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
+									logger.info(tm.getSequence_unique_id() + " CIM: 3");
+									updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE",connect24Response.getBody().getStatus().getMessage());								}
+							} else {
+								logger.info(tm.getSequence_unique_id() + " : CIM 4:Failure");
+								updateCIMcbsData(requestUUID,"FAILURE","500","Something went wrong at server end");
+								updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE","Something went wrong at server end");
+
+							}
+						}
+						
+					}
+
 					break;
 				}
 			}
@@ -1363,6 +1409,10 @@ public class IPSDao {
 
 	}
 	
+	public void updateCIMCNFData(String seqUniqueID,String requestUUID,String status,String statusError) {
+		
+	}
+	
 	public void updateIPSXStatusResponseACSPBulkRTP(String seqUniqueID, String ipsxMsgID, String tranStatus,String msgType) {
 		try {
 
@@ -1370,10 +1420,6 @@ public class IPSDao {
 
 			List<TranIPSTable> otmTranIPS = tranIPStableRep.findByIdCustom(seqUniqueID);
 
-			//// In for loop used for reversal transaction of RTP(Transaction created
-			//// between BOB Customers)
-			//// Tran IPS Table is used for Maintaining IPS Packages and got Original ID Of
-			//// Packages and updated tran status to Transaction_monitoring _table
 
 			for (TranIPSTable item : otmTranIPS) {
 				Optional<OutwardTransactionMonitoringTable> otm = outwardTranRep.findById(item.getSequence_unique_id());
@@ -1384,7 +1430,8 @@ public class IPSDao {
 					tm.setIpsx_message_id(ipsxMsgID);
 					tm.setIpsx_response_time(new Date());
 					tm.setTran_status(tranStatus);
-					
+					outwardTranRep.save(tm);
+
 					
 					
 				    /////Send Failure Message to CIM
@@ -1392,11 +1439,11 @@ public class IPSDao {
 					////Generate RequestUUID
 					String requestUUID=sequence.generateRequestUUId();
 					
-					String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-							env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-							sequence.generateTranNumber(),"MOFINANS",tm.getReq_unique_id(),"False","","","",
+					String response=registerCIMcbsIncomingData(
+							requestUUID,env.getProperty("cimCBS.channelID"),env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
+							sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
 							tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-							tm.getSequence_unique_id(),tm.getIpsx_account(),tm.getIpsx_account_name(),"RTP","","","Success","Success");
+							tm.getSequence_unique_id(),tm.getIpsx_account(),tm.getIpsx_account_name(),"NRT/RTP","","","SUCCESS","SUCCESS");
 					
 					
 					logger.info("Pain Output Return Msg to ThirdParty Application");
@@ -1415,28 +1462,20 @@ public class IPSDao {
 							if(connect24Response.getBody().getStatus().getIsSuccess()) {
 								updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
 								logger.info(tm.getSequence_unique_id() + " CIM: 2");
-								tm.setCim_cnf_request_uid(requestUUID);
-								tm.setCim_cnf_status("Success");
-								tm.setCim_cnf_status_error("");
+								updateCIMCNFData(tm.getSequence_unique_id(), requestUUID, "SUCCESS", "");
 							}else {
 								updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
 								logger.info(tm.getSequence_unique_id() + " CIM: 3");
-								tm.setCim_cnf_request_uid(requestUUID);
-								tm.setCim_cnf_status("Failure");
-								tm.setCim_cnf_status_error(connect24Response.getBody().getStatus().getMessage());
+								updateCIMCNFData(tm.getSequence_unique_id(), requestUUID, "FAILURE", connect24Response.getBody().getStatus().getMessage());
 							}
 						} else {
 							logger.info(tm.getSequence_unique_id() + " : CIM 4:Failure");
 							updateCIMcbsData(requestUUID,"FAILURE","500","Something went wrong at server end");
-							tm.setCim_cnf_request_uid(requestUUID);
-							tm.setCim_cnf_status("Failure");
-							tm.setCim_cnf_status_error("Something went wrong at server end");
+							updateCIMCNFData(tm.getSequence_unique_id(), requestUUID, "FAILURE", "Something went wrong at server end");
+
 
 						}
 					}
-					
-					outwardTranRep.save(tm);
-
 					
 					
 					break;

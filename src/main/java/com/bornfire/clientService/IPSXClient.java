@@ -140,7 +140,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 		///// Create Pacs.008
 		logger.info("Creating pacs.008.001.01 message");
-		SendT sendRequest = new SendT();
+		/*SendT sendRequest = new SendT();
 		sendRequest.setMessage(paramMTMsgs.getParamMTmsg(DocType.pacs_008_001_08.getDocs(), sendRequest, bobMsgID,
 				mcCreditTransferRequest, othBankAgent, msgSeq, endToEndIDt));
 
@@ -199,7 +199,53 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 			
 		}
+*/
+		
+		String NetMIR = "1111";
+		String UserRef ="2222";
 
+		////// Update ACK Message
+		logger.info("update Out Message ACK to Table");
+		ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_ACK_RECEIVED.toString(),
+				TranMonitorStatus.IN_PROGRESS.toString());
+
+		ipsDao.updateTranIPSACK(seqUniqueID, seqUniqueID, "O", "SUCCESS", NetMIR, UserRef);
+		
+		if(mcCreditTransferRequest.getToAccount().getAcctNumber().equals("90310908776876")){
+			ipsDao.updateIPSXStatusResponseACSP(seqUniqueID, seqUniqueID, TranMonitorStatus.SUCCESS.toString(),"pacs.002.001.10");
+
+			ipsDao.updateIPSXStatusResponseACSPBulkRTP(seqUniqueID, seqUniqueID,
+					TranMonitorStatus.SUCCESS.toString(), "pacs.002.001.10");
+			
+		}else if(mcCreditTransferRequest.getToAccount().getAcctNumber().equals("90310908776877")){
+			ipsDao.updateIPSXStatusResponseRJCT(seqUniqueID,  "Closed Account Number",  seqUniqueID,
+					TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+					TranMonitorStatus.RJCT.toString(),  "CA100","pacs.002.001.10");
+			
+			ipsDao.updateIPSXStatusResponseRJCTBulkRTP(seqUniqueID, "Closed Account Number", seqUniqueID,
+					TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+					TranMonitorStatus.RJCT.toString(), "CA100");
+		}else if(mcCreditTransferRequest.getToAccount().getAcctNumber().equals("90310908776878")){
+			
+			ipsDao.updateIPSXStatusResponseRJCT(seqUniqueID,  "Transaction Forbidden",  "Closed Account Number",
+					TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+					TranMonitorStatus.RJCT.toString(),  "CA101","pacs.002.001.10");
+			
+			ipsDao.updateIPSXStatusResponseRJCTBulkRTP(seqUniqueID, "Transaction Forbidden", seqUniqueID,
+					TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+					TranMonitorStatus.RJCT.toString(), "CA101");
+			
+			
+		}else {
+			ipsDao.updateIPSXStatusResponseRJCT(seqUniqueID,  "Incorrect Account Number",  "Closed Account Number",
+					TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+					TranMonitorStatus.RJCT.toString(),  "CA101","pacs.002.001.10");
+			
+			ipsDao.updateIPSXStatusResponseRJCTBulkRTP(seqUniqueID, "Incorrect Account Number", seqUniqueID,
+					TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+					TranMonitorStatus.RJCT.toString(), "CA102");
+		}
+		
 		
 	}
 
@@ -556,6 +602,8 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					+ doc.getFIToFIPmtStsRpt().getOrgnlGrpInfAndSts().getOrgnlMsgId() + " ,Status :"
 					+ doc.getFIToFIPmtStsRpt().getTxInfAndSts().get(0).getTxSts());
 			
+			doc.getFIToFIPmtStsRpt().getGrpHdr().getInstgAgt().getFinInstnId().getBICFI();
+			
 
 			///// Transaction Status
 			String tranStatus002 = doc.getFIToFIPmtStsRpt().getTxInfAndSts().get(0).getTxSts();
@@ -597,6 +645,10 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 				ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "", "ACSP", "", "", "I", msgSender,
 						msgReceiver, msgNetMIR, userReference);
+				
+				ipsDao.updateIPSXStatusResponseACSPBulkRTP(orglMsgID002, msgID002,
+						TranMonitorStatus.SUCCESS.toString(), "pacs.002.001.10");
+				
 			} else if(tranStatus002.equals(TranMonitorStatus.RJCT.toString())){
 
 				logger.info(orglMsgID002 + " :Update IPSX RJCT msg response in table");
@@ -635,6 +687,11 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				
 				ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "",tranStatus002, errorCode002, errorDesc002,
 						"I", msgSender, msgReceiver, msgNetMIR, userReference);
+				
+				ipsDao.updateIPSXStatusResponseRJCTBulkRTP(orglMsgID002, errorDesc002, msgID002,
+							TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+							TranMonitorStatus.RJCT.toString(), errorCode002);
+				
 
 			}else {
 				logger.info(orglMsgID002 + " :Update IPSX other msg response in table");

@@ -106,7 +106,8 @@ public class SignDocument {
 			char[] pwdArray = env.getProperty("sign.pwd").toCharArray();
 
 			//ks.load(new FileInputStream(ResourceUtils.getFile("classpath:ipsx.jks")), pwdArray);
-			ks.load(new FileInputStream(ResourceUtils.getFile("classpath:ipsxprod.jks")), pwdArray);
+			//ks.load(new FileInputStream(ResourceUtils.getFile("classpath:ipsxprod.jks")), pwdArray);
+			ks.load(new FileInputStream(env.getProperty("sign.file")), pwdArray);
 
 			Enumeration<String> e = ks.aliases();
 			String alis = e.nextElement();

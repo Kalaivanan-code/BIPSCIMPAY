@@ -23,9 +23,11 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.HttpClients;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -50,6 +52,9 @@ import javassist.NotFoundException;
 @EnableAsync
 
 public class IPSGenConfig {
+	
+	@Autowired
+	Environment env;
 	@Bean
 	public SequenceGenerator sequence() {
 		return new SequenceGenerator();
@@ -110,11 +115,12 @@ public class IPSGenConfig {
 	public RestTemplate restTemplate() throws NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, KeyStoreException, KeyManagementException, UnrecoverableKeyException {
 		KeyStore ks = KeyStore.getInstance("JKS");
 		//char[] pwdArray = "_password_".toCharArray();
-		char[] pwdArray = "_production_".toCharArray();
+		//char[] pwdArray = "_production_".toCharArray();
+		char[] pwdArray = env.getProperty("cimESB.jks.password").toCharArray();
 
 		//ks.load(new FileInputStream(ResourceUtils.getFile("classpath:bob.jks")), pwdArray);
-		ks.load(new FileInputStream(ResourceUtils.getFile("classpath:bobmumprod.jks")), pwdArray);
-		
+		//ks.load(new FileInputStream(ResourceUtils.getFile("classpath:bobmumprod.jks")), pwdArray);
+		ks.load(new FileInputStream(env.getProperty("cimESB.jks.file")), pwdArray);
 		SSLContext sslContext=org.apache.http.ssl.SSLContextBuilder.create()
 				.loadKeyMaterial(ks, pwdArray)
 				.loadTrustMaterial(null, new TrustSelfSignedStrategy())
