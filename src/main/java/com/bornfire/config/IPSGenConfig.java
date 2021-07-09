@@ -13,6 +13,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.concurrent.Executor;
 
@@ -22,7 +23,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.TrustStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -113,7 +116,7 @@ public class IPSGenConfig {
     
 	@Bean
 	public RestTemplate restTemplate() throws NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, KeyStoreException, KeyManagementException, UnrecoverableKeyException {
-		KeyStore ks = KeyStore.getInstance("JKS");
+		/*KeyStore ks = KeyStore.getInstance("JKS");
 		//char[] pwdArray = "_password_".toCharArray();
 		//char[] pwdArray = "_production_".toCharArray();
 		char[] pwdArray = env.getProperty("cimESB.jks.password").toCharArray();
@@ -137,7 +140,17 @@ public class IPSGenConfig {
 	
 		RestTemplate restTemplate = new RestTemplate(requestFactory);
 		return restTemplate;
-		//return builder.errorHandler(getRestErrorHandler()).build();
+*/		//return builder.errorHandler(getRestErrorHandler()).build();
+		
+		
+		TrustStrategy acceptingTrustStrategy = (x509Certificates, s) -> true;
+	    SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
+	    SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier());
+	    CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
+	    HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+	    requestFactory.setHttpClient(httpClient);
+	    RestTemplate restTemplate = new RestTemplate(requestFactory);
+	    return restTemplate;
 	}
 	
 	@Bean
