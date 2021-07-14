@@ -74,6 +74,13 @@ public class CimCBSrequestHeader {
 	public void setMessageDateTime(XMLGregorianCalendar messageDateTime) {
 		this.messageDateTime = messageDateTime;
 	}
+
+	@Override
+	public String toString() {
+		return "CimCBSrequestHeader [requestUUId=" + requestUUId + ", channelId=" + channelId
+				+ ", serviceRequestVersion=" + serviceRequestVersion + ", serviceRequestId=" + serviceRequestId
+				+ ", messageDateTime=" + messageDateTime + "]";
+	}
 	
 	
 }

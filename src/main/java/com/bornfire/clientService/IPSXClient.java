@@ -406,7 +406,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 			}else {
 			///// Calling Connect 24 and Validation
-				String responseIncomeMsg = ipsConnection.incomingFundTransferConnection(creditorAccount008,
+				String responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,
 						trAmount008.toString(), trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
 						debtorAccount008,debtorAccountName008,instgAgtPacs008);
 

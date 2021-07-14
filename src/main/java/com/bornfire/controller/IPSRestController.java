@@ -91,6 +91,7 @@ import com.bornfire.entity.WalletFndTransferResponse;
 import com.bornfire.entity.WalletStatementResponse;
 import com.bornfire.exception.FieldValidation;
 import com.bornfire.exception.IPSXException;
+import com.bornfire.jaxb.wsdl.SendT;
 import com.bornfire.messagebuilder.SignDocument;
 
 @RestController
@@ -169,9 +170,20 @@ public class IPSRestController {
 		MCCreditTransferResponse response = null;
 
 		logger.info("Calling Credit Transfer Connection flow Starts");
-		response = ipsConnection.createFTConnection(psuDeviceID, psuIpAddress, psuID, senderParticipantBIC,
-				participantSOL, mcCreditTransferRequest,p_id,channelID,resvfield1,resvfield2);
-
+		if(ipsDao.invalidP_ID(p_id)) {
+			if(!ipsDao.invalidBankCode(mcCreditTransferRequest.getToAccount().getBankCode())) {
+				response = ipsConnection.createFTConnection(psuDeviceID, psuIpAddress, psuID, senderParticipantBIC,
+						participantSOL, mcCreditTransferRequest,p_id,channelID,resvfield1,resvfield2);
+			}else {
+				String responseStatus = errorCode.validationError("BIPS10");
+				throw new IPSXException(responseStatus);
+			}
+		}else{
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+		
+		
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
@@ -1122,15 +1134,34 @@ public class IPSRestController {
 		
 		logger.info("RTP Bulk Request->"+rtpBulkTransferRequest);
 		
-		if(!ipsDao.invalidBankCode(rtpBulkTransferRequest.getRemitterAccount().getBankCode())) {
-			response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID, rtpBulkTransferRequest,p_id,channelID,resvfield1,resvfield2);
-		}else {
-			String responseStatus = errorCode.validationError("BIPS10");
+		if(ipsDao.invalidP_ID(p_id)) {
+			if(!ipsDao.invalidBankCode(rtpBulkTransferRequest.getRemitterAccount().getBankCode())) {
+				response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID, rtpBulkTransferRequest,p_id,channelID,resvfield1,resvfield2);
+			}else {
+				String responseStatus = errorCode.validationError("BIPS10");
+				throw new IPSXException(responseStatus);
+			}
+		}else{
+			String responseStatus = errorCode.validationError("BIPS13");
 			throw new IPSXException(responseStatus);
 		}
-
+		
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	
+	
+	@GetMapping(path = "/api/ws/TestData", produces = "application/json;charset=utf-8")
+	public ResponseEntity<String> TestData() {
+
+		logger.debug("Calling Outward Consent Access Account Inquiry");
+
+		
+		 ipsConnection.incomingFundTransferConnection1("GAL2129026", "100.00",
+				"MUR", sequence.generateSystemTraceAuditNumber(), sequence.generateSeqUniqueID(),
+				"",null,"MPACCNO","CUSTOMER TEST","BARBMUM0");
+
+		return new ResponseEntity<String>("Test", HttpStatus.OK);
+	}
 
 }

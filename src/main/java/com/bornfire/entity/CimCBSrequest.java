@@ -30,6 +30,11 @@ public class CimCBSrequest {
 	public void setData(CimCBSrequestData data) {
 		this.data = data;
 	}
+
+	@Override
+	public String toString() {
+		return "CimCBSrequest [header=" + header + ", data=" + data + "]";
+	}
 	
 	
 	

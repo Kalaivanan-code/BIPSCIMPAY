@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 @Entity
 @Table(name="BIPS_TRAN_CIM_CBS_TABLE")
 public class TranCimCBSTable {
@@ -29,6 +31,7 @@ public class TranCimCBSTable {
 	private String from_account_no;
 	private String to_account_no;
 	private BigDecimal tran_amt;
+	@JsonFormat(pattern="dd-MM-yyyy")
 	private Date tran_date;
 	private String tran_currency;
 	private String tran_particular_code;

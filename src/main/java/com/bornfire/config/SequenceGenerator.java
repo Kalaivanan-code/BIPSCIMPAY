@@ -123,7 +123,7 @@ public class SequenceGenerator {
 	public String generateSeqMsgId() {
 
 		StringBuffer randStr = new StringBuffer();
-		randStr.append("BOB");
+		randStr.append("CFSL");
 		randStr.append(new SimpleDateFormat("yyMMdd").format(new Date()));
 
 		for (int i = 0; i < SEQ_MSG_ID; i++) {

@@ -66,6 +66,8 @@ public class ErrorResponseCode {
 			responseDesc = "BIPS11:Invalid Purpose Code";
 		}else if(code.equals("BIPS12")) {
 			responseDesc = "BIPS12:Maximum Amount Not Permitted";
+		}else if(code.equals("BIPS13")) {
+			responseDesc = "BIPS13:Unable to Process Request.Dublicate Reference ID:PID";
 		}
 		
 		return responseDesc;

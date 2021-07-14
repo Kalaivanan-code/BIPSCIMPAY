@@ -667,7 +667,7 @@ public class IPSDao {
 
 							logger.info(tm.getSequence_unique_id() + " : Incoming / " + tm.getCbs_status());
 
-							if (tm.getCbs_status().equals(TranMonitorStatus.CBS_CREDIT_OK.toString())) {
+							/*if (tm.getCbs_status().equals(TranMonitorStatus.CBS_CREDIT_OK.toString())) {
 
 								updateCBSStatus(tm.getSequence_unique_id(),
 										TranMonitorStatus.CBS_CREDIT_REVERSE_INITIATED.toString(),
@@ -675,12 +675,12 @@ public class IPSDao {
 
 								logger.info(tm.getSequence_unique_id() + " : Initiate Reversal Transaction");
 
-								/*
+								
 								 * connect24Service.cdtReverseFundRequest(tm.getBob_account(),
 								 * tm.getTran_amount().toString(), tm.getTran_currency().toString(),
 								 * sequence.generateSystemTraceAuditNumber(), tm.getSequence_unique_id(),
 								 * "RT/"+tm.getTran_audit_number()+"/"+ ipsxerrorDesc);
-								 */
+								 
 
 								///// Credit Reversal Start
 
@@ -773,7 +773,7 @@ public class IPSDao {
 
 								updateCBSStatus(tm.getSequence_unique_id(), tm.getCbs_status(),
 										TranMonitorStatus.FAILURE.toString());
-							}
+							}*/
 
 						} else if (tm.getMsg_type().equals(TranMonitorStatus.OUTGOING.toString())) {
 
@@ -1300,6 +1300,9 @@ public class IPSDao {
 
 						
 						
+						/*if(tm.get) {
+							
+						}*/
 					    /////Send Failure Message to CIM
 						
 						////Generate RequestUUID
@@ -1410,7 +1413,14 @@ public class IPSDao {
 	}
 	
 	public void updateCIMCNFData(String seqUniqueID,String requestUUID,String status,String statusError) {
-		
+		Optional<OutwardTransactionMonitoringTable> data=outwardTranRep.findById(seqUniqueID);
+		if(data.isPresent()) {
+			OutwardTransactionMonitoringTable outTable=data.get();
+			outTable.setCim_cnf_request_uid(requestUUID);
+			outTable.setCim_cnf_status(status);
+			outTable.setCim_cnf_status_error(statusError);
+			outwardTranRep.save(outTable);
+		}
 	}
 	
 	public void updateIPSXStatusResponseACSPBulkRTP(String seqUniqueID, String ipsxMsgID, String tranStatus,String msgType) {
@@ -1434,7 +1444,7 @@ public class IPSDao {
 
 					
 					
-				    /////Send Failure Message to CIM
+				   /* /////Send Sucess Message to CIM
 					
 					////Generate RequestUUID
 					String requestUUID=sequence.generateRequestUUId();
@@ -1452,7 +1462,7 @@ public class IPSDao {
 
 					if(response.equals("1")) {
 						ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice
-								.cbsResponseFailure(requestUUID);
+								.cbsResponseSuccess(requestUUID);
 
 						logger.info(tm.getSequence_unique_id() + "CIM : 0");
 						
@@ -1475,7 +1485,7 @@ public class IPSDao {
 
 
 						}
-					}
+					}*/
 					
 					
 					break;
@@ -2690,11 +2700,28 @@ public class IPSDao {
 			Optional<BankAgentTable> otm = bankAgentTableRep.findById(bankCode);
 
 			if (otm.isPresent()) {
-				if(otm.get().getBank_code().equals("02")) {
+				if(otm.get().getBank_code().equals(env.getProperty("cim.bankcodeAgent"))) {
 					valid = true;
 				}else {
 					valid = false;
 				}
+			} else {
+				valid = true;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+
+		return valid;
+	}
+	
+	public boolean invalidP_ID(String pid) {
+		boolean valid = false;
+		try {
+			List<Object[]> otm = outwardTranRep.existsByPID(pid);
+
+			if (otm.size()>0) {
+				valid = false;
 			} else {
 				valid = true;
 			}

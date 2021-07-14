@@ -360,9 +360,9 @@ public class IPSConnection {
 							if (!mcCreditTransferRequest.getTrAmt().equals("")) {
 								if (!mcCreditTransferRequest.getTrAmt().equals("0")
 										&& !mcCreditTransferRequest.getTrAmt().equals("0.00")) {
-									if (Double.parseDouble(mcCreditTransferRequest.getTrAmt())<=Integer.parseInt(env.getProperty("bob.maxamount"))) {
+									if (Double.parseDouble(mcCreditTransferRequest.getTrAmt())<=Integer.parseInt(env.getProperty("cim.maxamount"))) {
 										if (!mcCreditTransferRequest.getCurrencyCode().equals("")) {
-											if (mcCreditTransferRequest.getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+											if (mcCreditTransferRequest.getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 												if(ipsDao.invalidBankCode(mcCreditTransferRequest.getToAccount().getBankCode())) {
 													String responseStatus = errorCode.validationError("BIPS10");
 													ipsDao.updateCBSStatusError(seqUniqueID,
@@ -631,7 +631,7 @@ public class IPSConnection {
 											TranMonitorStatus.FAILURE.toString());
 
 								} else {
-									if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+									if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 									///// Calling Connect 24 for Bulk Credit
 										logger.info("Send message to Connect24");
 										connect24Response = connect24Service.BulkCreditRequest(senderParticipantBIC,
@@ -896,7 +896,7 @@ public class IPSConnection {
 												TranMonitorStatus.FAILURE.toString());
 									} else {
 										
-										if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+										if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 										///// Calling Connect 24 for Bulk Debit
 											logger.info("Send message to Connect24");
 											logger.info("Send message to Connect24SDGFF");
@@ -997,7 +997,7 @@ public class IPSConnection {
 					MCCreditTransferResponse response = ipsxClient.sendBulkDebitFndTransefer("BOB", "",
 							bulkDebitFndTransferRequest.getBenAccount().getAcctName(),
 							bulkDebitFndTransferRequest.getBenAccount().getAcctNumber(), formatter.format(totAmt),
-							env.getProperty("bob.crncycode"), sysTraceNumber, bobMsgID + "/1", seqUniqueID + "/1", othBankAgent, msgSeq,
+							env.getProperty("cim.crncycode"), sysTraceNumber, bobMsgID + "/1", seqUniqueID + "/1", othBankAgent, msgSeq,
 							endTOEndID,msgNetMir);
 				}
 
@@ -1082,7 +1082,7 @@ public class IPSConnection {
 			{
 
 		/*///// Generate Master Ref Id
-		String master_ref_id = "BARB" + sequence.generateSystemTraceAuditNumber();
+		String master_ref_id = "CFSL" + sequence.generateSystemTraceAuditNumber();
 
 		MCCreditTransferResponse mcCreditTransferResponse = null;
 
@@ -1142,7 +1142,7 @@ public class IPSConnection {
 												"Transaction forbidden on this type of account/" + "Freeze Account",
 												TranMonitorStatus.FAILURE.toString());
 									}else {
-										if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+										if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 										////// Calling Connect 24 for Manual Transaction
 											logger.info("Send message to Connect24");
 											connect24Response = connect24Service.ManualDbtFundRequest(manualFundTransferRequest.get(i),
@@ -1366,7 +1366,7 @@ public class IPSConnection {
 
 							if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("A")) {
 
-								if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+								if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 
 									if (connect24ResponseAccContactExist.getBody().getFrezCode().equals("T")
 											|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("C")
@@ -1483,7 +1483,7 @@ public class IPSConnection {
 
 							if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("A")) {
 
-								if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+								if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 
 									if (connect24ResponseAccContactExist.getBody().getFrezCode().equals("T")
 											|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("C")
@@ -1684,7 +1684,7 @@ public class IPSConnection {
 
 							if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("A")) {
 
-								if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+								if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 
 									if (connect24ResponseAccContactExist.getBody().getFrezCode().equals("T")
 											|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("C")
@@ -2020,7 +2020,7 @@ public class IPSConnection {
 									tranResponse = errorCode.ErrorCode("BOB119");
 								} else {
 
-									if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+									if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 
 										if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(ccy)) {
 											logger.info(seqUniqueID + ": Token/Cryptogram Token Validated");
@@ -2268,7 +2268,7 @@ public class IPSConnection {
 												TranMonitorStatus.FAILURE.toString());
 										tranResponse = errorCode.ErrorCode("BOB119");
 									} else {
-										if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+										if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 											if (connect24ResponseAccContactExist.getBody().getCurrencyCode()
 													.equals(currency)) {
 
@@ -2928,7 +2928,7 @@ public class IPSConnection {
 
 							if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("A")) {
 
-								if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
+								if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
 
 									if (connect24ResponseAccContactExist.getBody().getFrezCode().equals("T")
 											|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("C")
@@ -3203,9 +3203,9 @@ public class IPSConnection {
 		McConsentOutwardAccessResponse response=null;
 		try {
 
-			String sender_participant_bic="BARBMUM0";
+			String sender_participant_bic=env.getProperty("bicfi");
 			String sender_participant_member_id="";
-			String receiver_participant_bic="BARBMUM0";
+			String receiver_participant_bic=env.getProperty("bicfi");
 			String receiver_participant_member_id="";
 			
 			logger.debug("Calling Outward Consent Access Connection");
@@ -3878,10 +3878,15 @@ public class IPSConnection {
 
 							
 							if(connect24Response.getBody().getStatus().getIsSuccess()) {
+								logger.info(SeqUniqueID + ": success"+connect24Response.getBody().getStatus().getIsSuccess());
+
 								ipsDao.updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
 								tranResponse = errorCode.ErrorCode("BOB0");
 								
 							}else {
+								logger.info(SeqUniqueID + ": Fail"+connect24Response.getBody().getStatus().getIsSuccess());
+								logger.info(SeqUniqueID + ": Fail"+connect24Response.getBody().getStatus().getMessage());
+
 								ipsDao.updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
 								tranResponse = errorCode.ErrorCode(connect24Response.getBody().getStatus().getStatusCode());
 							}

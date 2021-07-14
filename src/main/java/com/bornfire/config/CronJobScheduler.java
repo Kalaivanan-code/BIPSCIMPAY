@@ -516,7 +516,7 @@ public class CronJobScheduler {
 	 * } }else { this.setSettlDate(new Date()); this.setSettleFlg("Y"); } } }
 	 */
 
-	@Scheduled(cron = "0 0/1 * 1/1 * ?")
+	//@Scheduled(cron = "0 0/1 * 1/1 * ?")
 	public void updateIncomingMessage() {
 
 		if(this.getCount11()==1) {

@@ -117,12 +117,8 @@ public class IPSGenConfig {
 	@Bean
 	public RestTemplate restTemplate() throws NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, KeyStoreException, KeyManagementException, UnrecoverableKeyException {
 		/*KeyStore ks = KeyStore.getInstance("JKS");
-		//char[] pwdArray = "_password_".toCharArray();
-		//char[] pwdArray = "_production_".toCharArray();
 		char[] pwdArray = env.getProperty("cimESB.jks.password").toCharArray();
 
-		//ks.load(new FileInputStream(ResourceUtils.getFile("classpath:bob.jks")), pwdArray);
-		//ks.load(new FileInputStream(ResourceUtils.getFile("classpath:bobmumprod.jks")), pwdArray);
 		ks.load(new FileInputStream(env.getProperty("cimESB.jks.file")), pwdArray);
 		SSLContext sslContext=org.apache.http.ssl.SSLContextBuilder.create()
 				.loadKeyMaterial(ks, pwdArray)

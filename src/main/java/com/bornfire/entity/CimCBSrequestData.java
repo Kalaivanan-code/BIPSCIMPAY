@@ -1,5 +1,6 @@
 package com.bornfire.entity;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,7 +20,7 @@ public class CimCBSrequestData {
 	@JsonProperty("initatorTransactionNo")
 	private String initatorTransactionNo;
 	
-	@JsonProperty("PostToCBS")
+	@JsonProperty("postToCBS")
 	private Boolean PostToCBS;
 	
 	@JsonProperty("transactionType")
@@ -41,12 +42,11 @@ public class CimCBSrequestData {
 	private String toAccountNo;
 	
 	@JsonProperty("transactionAmount")
-	private Float transactionAmount;
+	private BigDecimal transactionAmount;
 	
-	@DateTimeFormat(pattern="yyyy-MM-dd")
-	@JsonFormat(pattern="yyyy-MM-dd")
+	//@JsonFormat(shape = JsonFormat.Shape.STRING,pattern="yyyy-MM-dd")
 	@JsonProperty("transactionDate")
-	private Date transactionDate;
+	private String transactionDate;
 	
 	@JsonProperty("transactionCurrency")
 	private String transactionCurrency;
@@ -146,19 +146,19 @@ public class CimCBSrequestData {
 		this.toAccountNo = toAccountNo;
 	}
 
-	public Float getTransactionAmount() {
+	public BigDecimal getTransactionAmount() {
 		return transactionAmount;
 	}
 
-	public void setTransactionAmount(Float transactionAmount) {
+	public void setTransactionAmount(BigDecimal transactionAmount) {
 		this.transactionAmount = transactionAmount;
 	}
 
-	public Date getTransactionDate() {
+	public String getTransactionDate() {
 		return transactionDate;
 	}
 
-	public void setTransactionDate(Date transactionDate) {
+	public void setTransactionDate(String transactionDate) {
 		this.transactionDate = transactionDate;
 	}
 
@@ -208,6 +208,18 @@ public class CimCBSrequestData {
 
 	public void setReservedField2(String reservedField2) {
 		this.reservedField2 = reservedField2;
+	}
+
+	@Override
+	public String toString() {
+		return "CimCBSrequestData [transactionNo=" + transactionNo + ", initiatingChannel=" + initiatingChannel
+				+ ", initatorTransactionNo=" + initatorTransactionNo + ", PostToCBS=" + PostToCBS + ", transactionType="
+				+ transactionType + ", isReversal=" + isReversal + ", transactionNoFromCBS=" + transactionNoFromCBS
+				+ ", customerName=" + customerName + ", fromAccountNo=" + fromAccountNo + ", toAccountNo=" + toAccountNo
+				+ ", transactionAmount=" + transactionAmount + ", transactionDate=" + transactionDate
+				+ ", transactionCurrency=" + transactionCurrency + ", transactionParticularCode="
+				+ transactionParticularCode + ", creditRemarks=" + creditRemarks + ", debitRemarks=" + debitRemarks
+				+ ", reservedField1=" + reservedField1 + ", reservedField2=" + reservedField2 + "]";
 	}
 	
 

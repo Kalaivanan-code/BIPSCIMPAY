@@ -1,6 +1,7 @@
 package com.bornfire.entity;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OutwardTransactionMonitoringTableRep extends JpaRepository<OutwardTransactionMonitoringTable, String> {
 
-	
+	@Query(value = "select * from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where p_id=?1 Union all select * from BIPS_OUTWARD_TRANSACTION_HIST_MONITORING_TABLE where p_id=?1", nativeQuery = true)
+	List<Object[]> existsByPID(String p_id);
 	
 }

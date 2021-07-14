@@ -438,7 +438,7 @@ public class DocumentPacks implements Serializable{
 		 * GenericFinancialIdentification11 genericFinancialIdentification11=new
 		 * GenericFinancialIdentification11();
 		 * genericFinancialIdentification11.setId("ONLINE");
-		 * finInstdId1.setBICFI("BARBMUM0");
+		 * finInstdId1.setBICFI(env.);
 		 * finInstdId1.setOthr(genericFinancialIdentification11);
 		 * instdAgt.setFinInstnId(finInstdId1);
 		 * paymentTransaction1101.setInstdAgt(instdAgt);
