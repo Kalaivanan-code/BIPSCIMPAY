@@ -307,8 +307,10 @@ public class ParamMTmessage {
 	
 	
 	public ParamsMtMsg getRTPParamMTmsgPain001(String msgType,SendT request, String acctName, String acctNumber, String currencyCode,
-			String bank_agent, String bank_agent_account, String benName, String benAcctNumber, String trAmt,
-			String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID, String msgNetMir) {
+			 String benName, String benAcctNumber, String trAmt,
+			String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID, String msgNetMir,String cryptogram,
+			String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,
+			String lclInstr,String ctgyPurp) {
 		ParamsMtMsg paramMtMsg = new ParamsMtMsg();
 		paramMtMsg.setMsgFormat("S");
 		paramMtMsg.setMsgSubFormat("I");
@@ -336,8 +338,10 @@ public class ParamMTmessage {
 				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir)));*/
 		
 		paramMtMsg.setBlock4(dataPDUs.getDataPDUPain001(msgType,request,acctName, acctNumber,  currencyCode,
-				 bank_agent,  bank_agent_account,  benName,  benAcctNumber,  trAmt,
-				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir));
+				  benName,  benAcctNumber,  trAmt,
+				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir,cryptogram,
+				 instgAgent,instdAgent,debtorAgent,
+					debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp));
 
 
 		return paramMtMsg;

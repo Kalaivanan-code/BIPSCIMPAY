@@ -3,6 +3,7 @@ package com.bornfire.entity;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -10,6 +11,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "BIPS_TRANSACTION_HIST_MONITORING_TABLE")
 public class TranMonitoringHist {
+	
+	@Column(name="cim_message_id")
 	private String bob_message_id;
 	private String ipsx_message_id;
 	@Id
@@ -33,6 +36,7 @@ public class TranMonitoringHist {
 	private String	entity_cre_flg;
 	private Date	entry_time;
 	private String	entry_user;
+	@Column(name="cim_account")
 	private String	bob_account;
 	private String	initiator_bank;
 	private String	ips_status;
@@ -58,8 +62,11 @@ public class TranMonitoringHist {
 	private String device_id;
 	private String device_ip;
 	private String nat_id;
+	@Column(name="cim_account_name")
 	private String bob_account_name;
 	private String ipsx_account_name;
+	private String chrg_br;
+
 	
 	
 	@Override
@@ -359,6 +366,12 @@ public class TranMonitoringHist {
 	}
 	public void setIpsx_account_name(String ipsx_account_name) {
 		this.ipsx_account_name = ipsx_account_name;
+	}
+	public String getChrg_br() {
+		return chrg_br;
+	}
+	public void setChrg_br(String chrg_br) {
+		this.chrg_br = chrg_br;
 	}
 	
 	

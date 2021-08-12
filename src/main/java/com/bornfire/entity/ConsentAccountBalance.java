@@ -2,17 +2,27 @@ package com.bornfire.entity;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConsentAccountBalance {
 
+	@JsonProperty("Balances")
 	private ReadConsentBalance Balance;
+	@JsonProperty("Links")
 	private Links links;
+	
+	@JsonProperty("ErrorCode")
+	private Integer ErrorCode;
+	@JsonProperty("Description")
+	private String Description;
 	
 	@JsonProperty("Balances")
 	public ReadConsentBalance getBalance() {
 		return Balance;
 	}
+	@JsonProperty("Balances")
 	public void setBalance(ReadConsentBalance balance) {
 		Balance = balance;
 	}
@@ -21,8 +31,38 @@ public class ConsentAccountBalance {
 	public Links getLinks() {
 		return links;
 	}
+	@JsonProperty("Links")
 	public void setLinks(Links links) {
 		this.links = links;
+	}
+	
+	@JsonProperty("ErrorCode")
+	public Integer getErrorCode() {
+		return ErrorCode;
+	}
+	
+	@JsonProperty("ErrorCode")
+	public void setErrorCode(Integer errorCode) {
+		ErrorCode = errorCode;
+	}
+	
+	@JsonProperty("Description")
+	public String getDescription() {
+		return Description;
+	}
+	
+	@JsonProperty("Description")
+	public void setDescription(String description) {
+		Description = description;
+	}
+	public ConsentAccountBalance() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+	public ConsentAccountBalance(Integer errorCode, String description) {
+		super();
+		ErrorCode = errorCode;
+		Description = description;
 	}
 	
 	

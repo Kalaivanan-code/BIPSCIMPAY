@@ -46,6 +46,12 @@ public class CimCBSresponseStatus {
 	public void setStatusCode(String statusCode) {
 		this.statusCode = statusCode;
 	}
+
+	@Override
+	public String toString() {
+		return "CimCBSresponseStatus [isSuccess=" + isSuccess + ", message=" + message + ", statusCode=" + statusCode
+				+ "]";
+	}
 	
 	
 }

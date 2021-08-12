@@ -8,19 +8,26 @@ import com.bornfire.exception.TranAmount;
 
 public class CIMCreditTransferRequest {
 	
-	@NotNull(message="From Account Required")
+	@NotNull(message="From Account Details Required")
 	@Valid
 	private CIMFromAccount FrAccount;
-	@NotNull(message="To Account Required")
+	
+	@NotNull(message="To Account Details Required")
 	@Valid
 	private CIMToAccount ToAccount;
+	
 	@NotBlank(message="Currency Code Required")
 	private String CurrencyCode;
+	
 	private String Pan;
+	
 	@NotBlank(message="Transaction Amount Required")
 	@TranAmount
 	private String TrAmt;
+	
 	private String TrRmks;
+	
+	@NotBlank(message="Purpose Code Required")
 	private String Purpose;
 	
 	public CIMCreditTransferRequest() {

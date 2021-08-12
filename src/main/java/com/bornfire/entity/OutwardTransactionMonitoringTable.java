@@ -127,6 +127,10 @@ public class OutwardTransactionMonitoringTable {
 	private String cim_cnf_request_uid;
 	private String cim_cnf_status;
 	private String cim_cnf_status_error;
+	
+	private String chrg_br;
+	private String tran_rmks;
+
 
 	
 	public String getP_id() {
@@ -863,6 +867,22 @@ public class OutwardTransactionMonitoringTable {
 
 	public void setCim_cnf_status_error(String cim_cnf_status_error) {
 		this.cim_cnf_status_error = cim_cnf_status_error;
+	}
+
+	public String getChrg_br() {
+		return chrg_br;
+	}
+
+	public void setChrg_br(String chrg_br) {
+		this.chrg_br = chrg_br;
+	}
+
+	public String getTran_rmks() {
+		return tran_rmks;
+	}
+
+	public void setTran_rmks(String tran_rmks) {
+		this.tran_rmks = tran_rmks;
 	}
 	
 	

@@ -8,8 +8,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class McConsentOutwardAccessResponse {
 	private static final long serialVersionUID = 939876431961625127L;
 	
@@ -24,6 +24,7 @@ public class McConsentOutwardAccessResponse {
 	
 	@JsonProperty("Links")
 	private Links Links;
+	
 	
 	@JsonProperty("ConsentId")
 	public String getConsentID() {
@@ -59,6 +60,6 @@ public class McConsentOutwardAccessResponse {
 	public void setLinks(Links links) {
 		Links = links;
 	}
-
+	
 	
 }

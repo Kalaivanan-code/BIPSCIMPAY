@@ -15,5 +15,9 @@ public interface ConsentOutwardAccessTmpTableRep extends JpaRepository<ConsentOu
 
 	@Query(value = "select * from BIPS_CONSENT_OUTWARD_ACCESS_TMP_TABLE where CONSENT_ID=?1", nativeQuery = true)
 	List<ConsentOutwardAccessTmpTable> finByConsentID(String consentID);
+	
+	
+	@Query(value = "select * from BIPS_CONSENT_OUTWARD_ACCESS_TMP_TABLE where X_REQUEST_ID=?1", nativeQuery = true)
+	List<Object[]> existsByX_Request_ID(String x_request_id);
 
 }

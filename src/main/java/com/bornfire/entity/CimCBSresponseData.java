@@ -46,6 +46,12 @@ public class CimCBSresponseData {
 	public void setTransactionDate(Date transactionDate) {
 		this.transactionDate = transactionDate;
 	}
+
+	@Override
+	public String toString() {
+		return "CimCBSresponseData [transactionNo=" + transactionNo + ", transactionNoFromCBS=" + transactionNoFromCBS
+				+ ", transactionDate=" + transactionDate + "]";
+	}
 	
 	
 }

@@ -5,10 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Links {
+	@JsonProperty("AuthoriseTransaction")
 	private String AuthoriseTransaction;
 
+	@JsonProperty("Self")
 	private String Self;
 	
+	@JsonProperty("SCAStatus")
 	private String SCAStatus;
 
 	@JsonProperty("AuthoriseTransaction")
@@ -16,6 +19,7 @@ public class Links {
 		return AuthoriseTransaction;
 	}
 
+	@JsonProperty("AuthoriseTransaction")
 	public void setAuthoriseTransaction(String AuthoriseTransaction) {
 		this.AuthoriseTransaction = AuthoriseTransaction;
 	}
@@ -24,7 +28,7 @@ public class Links {
 		return Self;
 	}
 
-
+	@JsonProperty("Self")
 	public void setSelf(String Self) {
 		this.Self = Self;
 	}
@@ -34,6 +38,7 @@ public class Links {
 		return SCAStatus;
 	}
 
+	@JsonProperty("SCAStatus")
 	public void setSCAStatus(String sCAStatus) {
 		SCAStatus = sCAStatus;
 	}

@@ -5,8 +5,10 @@ import javax.validation.constraints.NotBlank;
 public class CIMFromAccount {
 
 	private String SchmType;
+	
 	@NotBlank(message="From Account Name Required")
 	private String AcctName;
+	
 	@NotBlank(message="From Account Number Required")
 	private String AcctNumber;
 	

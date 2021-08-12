@@ -37,12 +37,17 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "GenericAccountIdentification1__1", propOrder = {
-    "id"
+    "id",
+    "schmeNm"
 })
 public class GenericAccountIdentification11 {
 
     @XmlElement(name = "Id", required = true)
     protected String id;
+    
+    @XmlElement(name = "SchmeNm")
+    protected FinancialIdentificationSchemeName1Choice schmeNm;
+
 
     /**
      * Gets the value of the id property.
@@ -68,4 +73,19 @@ public class GenericAccountIdentification11 {
         this.id = value;
     }
 
+    public FinancialIdentificationSchemeName1Choice getSchmeNm() {
+        return schmeNm;
+    }
+
+    /**
+     * Sets the value of the schmeNm property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link FinancialIdentificationSchemeName1Choice }
+     *     
+     */
+    public void setSchmeNm(FinancialIdentificationSchemeName1Choice value) {
+        this.schmeNm = value;
+    }
 }

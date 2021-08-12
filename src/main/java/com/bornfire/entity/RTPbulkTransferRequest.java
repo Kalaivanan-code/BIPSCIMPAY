@@ -12,11 +12,11 @@ import com.bornfire.jaxb.block4.DataPDU.Header.Message;
 import io.micrometer.core.lang.NonNull;
 
 public class RTPbulkTransferRequest {
-	@NotNull(message="Remitter Account Required")
+	@NotNull(message="Remitter Account Details Required")
 	@Valid
 	private RemitterAccount RemitterAccount;
 	
-	@NotNull(message="Beneficiary Account Required")
+	@NotNull(message="Beneficiary Account Details Required")
 	@Valid
 	private List<BenAccount> BenAccount;
 	

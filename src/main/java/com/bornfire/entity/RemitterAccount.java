@@ -14,9 +14,7 @@ public class RemitterAccount {
 	
 	@NotBlank(message="Remitter Account Number Required")
 	private String AcctNumber;
-	
-	@NotBlank(message="Remitter Bank Code Required")
-	private String BankCode;
+
 	
 	@NotBlank(message="Remitter Currency Code Required")
 	private String CurrencyCode;
@@ -33,12 +31,7 @@ public class RemitterAccount {
 	public void setAcctNumber(String acctNumber) {
 		AcctNumber = acctNumber;
 	}
-	public String getBankCode() {
-		return BankCode;
-	}
-	public void setBankCode(String bankCode) {
-		BankCode = bankCode;
-	}
+	
 	public String getCurrencyCode() {
 		return CurrencyCode;
 	}
@@ -47,9 +40,10 @@ public class RemitterAccount {
 	}
 	@Override
 	public String toString() {
-		return "RemitterAccount [AcctName=" + AcctName + ", AcctNumber=" + AcctNumber + ", BankCode=" + BankCode
-				+ ", CurrencyCode=" + CurrencyCode + "]";
+		return "RemitterAccount [AcctName=" + AcctName + ", AcctNumber=" + AcctNumber + ", CurrencyCode=" + CurrencyCode
+				+ "]";
 	}
+	
 	
 	
 }

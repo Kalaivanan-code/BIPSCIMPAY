@@ -76,6 +76,7 @@ import com.bornfire.jaxb.pacs_008_001_08.ClearingSystemMemberIdentification21;
 import com.bornfire.jaxb.pacs_008_001_08.CreditTransferTransaction391;
 import com.bornfire.jaxb.pacs_008_001_08.Document;
 import com.bornfire.jaxb.pacs_008_001_08.FIToFICustomerCreditTransferV08;
+import com.bornfire.jaxb.pacs_008_001_08.FinancialIdentificationSchemeName1Choice;
 import com.bornfire.jaxb.pacs_008_001_08.FinancialInstitutionIdentification181;
 import com.bornfire.jaxb.pacs_008_001_08.GenericAccountIdentification11;
 import com.bornfire.jaxb.pacs_008_001_08.GroupHeader931;
@@ -170,7 +171,7 @@ public class DocumentPacks implements Serializable{
 		PaymentTypeInformation281 pmtTpInf = new PaymentTypeInformation281();
 		pmtTpInf.setClrChanl(ClearingChannel2Code1.RTGS);/// Clearing Channel like(RTGS,RTNS,MPNS)
 		CategoryPurpose1Choice1 ctgyPurp = new CategoryPurpose1Choice1();
-		ctgyPurp.setPrtry("100");
+		ctgyPurp.setPrtry(mcCreditTransferRequest.getPurpose());
 		pmtTpInf.setCtgyPurp(ctgyPurp);/// Category Purpose
 		///CSDC-Customer direct Credit Payment
 		///BPDC-Bill Payments(Direct Credit)
@@ -212,6 +213,13 @@ public class DocumentPacks implements Serializable{
 		 AccountIdentification4Choice1 acc1 = new AccountIdentification4Choice1();
 		 GenericAccountIdentification11 id = new GenericAccountIdentification11();
 		 id.setId((mcCreditTransferRequest.getFrAccount().getAcctNumber()));
+		/* id.setSchmeNm("OBAN");*/
+		 
+		/* FinancialIdentificationSchemeName1Choice finId=new FinancialIdentificationSchemeName1Choice();
+		 finId.setCd("OAB");
+		 finId.setPrtry("Office");
+		 id.setSchmeNm(finId);*/
+		 
 		 acc1.setOthr(id); 
 		 dbtrAcct.setId(acc1);
 		 creditTransferTransaction391.setDbtrAcct(dbtrAcct);
@@ -258,6 +266,12 @@ public class DocumentPacks implements Serializable{
 		id4.setOthr(gen4);
 		cdtrAcct.setId(id4);
 		creditTransferTransaction391.setCdtrAcct(cdtrAcct);
+		
+		////Remitter Information
+		RemittanceInformation161 rmtInf=new RemittanceInformation161();
+		rmtInf.setUstrd(Arrays.asList("Credit Transfer"));
+		creditTransferTransaction391.setRmtInf(rmtInf);
+		
 		cdtTrfTxInf.add(creditTransferTransaction391);
 		
 		
@@ -1583,9 +1597,10 @@ public class DocumentPacks implements Serializable{
 	
 	
 	public Object getPain_001_001_09Doc(String msgType, SendT request, String acctName, String acctNumber,
-			String currencyCode, String bank_agent, String bank_agent_account, String benName, String benAcctNumber,
+			String currencyCode ,String benName, String benAcctNumber,
 			String trAmt, String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID,
-			String msgNetMir) {
+			String msgNetMir,String cryptogram,String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,
+			String lclInstrData,String ctgyPurpData) {
 		///Group Header
 		GroupHeader851 grpHdr = new GroupHeader851();
 		String msg_seq_id = seqUniqueID;
@@ -1598,7 +1613,7 @@ public class DocumentPacks implements Serializable{
 		
 		///Authorisation Cryptogram
 		Authorisation1Choice1 Authstn=new Authorisation1Choice1();
-		Authstn.setPrtry("");
+		Authstn.setPrtry(cryptogram);
 		List<Authorisation1Choice1> authstn=Arrays.asList(Authstn);
 		grpHdr.setAuthstn(authstn);
 		
@@ -1607,7 +1622,7 @@ public class DocumentPacks implements Serializable{
 		
 		com.bornfire.jaxb.pain_001_001_09.Party38Choice1 id=new com.bornfire.jaxb.pain_001_001_09.Party38Choice1();
 		com.bornfire.jaxb.pain_001_001_09.OrganisationIdentification291 orgId=new com.bornfire.jaxb.pain_001_001_09.OrganisationIdentification291();
-		orgId.setAnyBIC(env.getProperty("ipsx.bicfi"));
+		orgId.setAnyBIC(instgAgent);
 		id.setOrgId(orgId);
 		initgPty.setId(id);
 		grpHdr.setInitgPty(initgPty);
@@ -1615,7 +1630,7 @@ public class DocumentPacks implements Serializable{
 		////Forwarding Agent
 		com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61 fwdgAgt=new com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61();
 		com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181 finInstnId=new com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181();
-		finInstnId.setBICFI(bank_agent);
+		finInstnId.setBICFI(instdAgent);
 		fwdgAgt.setFinInstnId(finInstnId);
 		grpHdr.setFwdgAgt(fwdgAgt);
 		
@@ -1630,9 +1645,9 @@ public class DocumentPacks implements Serializable{
 		
 		com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351 dbtr=new com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351();
 		dbtr.setNm(acctName);
-		com.bornfire.jaxb.pain_001_001_09.PostalAddress241 pstlAdr=new com.bornfire.jaxb.pain_001_001_09.PostalAddress241();
+		/*com.bornfire.jaxb.pain_001_001_09.PostalAddress241 pstlAdr=new com.bornfire.jaxb.pain_001_001_09.PostalAddress241();
 		pstlAdr.setAdrLine(Arrays.asList(""));
-		dbtr.setPstlAdr(pstlAdr);
+		dbtr.setPstlAdr(pstlAdr);*/
 		pmtInf.setDbtr(dbtr);
 		
 		com.bornfire.jaxb.pain_001_001_09.CashAccount381 dbtrAcct=new com.bornfire.jaxb.pain_001_001_09.CashAccount381();
@@ -1645,9 +1660,17 @@ public class DocumentPacks implements Serializable{
 		
 		com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61 dbtrAgt=new com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61();
 		com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181 finInstnId1=new com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181();
-		finInstnId1.setBICFI(bank_agent);
+		finInstnId1.setBICFI(debtorAgent);
 		dbtrAgt.setFinInstnId(finInstnId1);
 		pmtInf.setDbtrAgt(dbtrAgt);
+		
+		com.bornfire.jaxb.pain_001_001_09.CashAccount381 dbtrAgtAcct=new com.bornfire.jaxb.pain_001_001_09.CashAccount381();
+		com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1 finInstnId3=new com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1();
+		com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11 other1=new com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11();
+		other1.setId(debtorAgentAcct);
+		finInstnId3.setOthr(other1);
+		dbtrAgtAcct.setId(finInstnId3);
+		pmtInf.setDbtrAgtAcct(dbtrAgtAcct);
 		
 		pmtInf.setChrgBr(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.SLEV);
 		
@@ -1665,10 +1688,10 @@ public class DocumentPacks implements Serializable{
 		svclvl.setPrtry("0100");
 		pmtTpInf.setSvcLvl(Arrays.asList(svclvl));
 		com.bornfire.jaxb.pain_001_001_09.LocalInstrument2Choice1 lclInstrm=new com.bornfire.jaxb.pain_001_001_09.LocalInstrument2Choice1();
-		lclInstrm.setPrtry("CSDC");
+		lclInstrm.setPrtry(lclInstrData);
 		pmtTpInf.setLclInstrm(lclInstrm);
 		com.bornfire.jaxb.pain_001_001_09.CategoryPurpose1Choice1 ctgyPurp=new com.bornfire.jaxb.pain_001_001_09.CategoryPurpose1Choice1();
-		ctgyPurp.setPrtry("101");
+		ctgyPurp.setPrtry(ctgyPurpData);
 		pmtTpInf.setCtgyPurp(ctgyPurp);
 		cdtTrfTxInf.setPmtTpInf(pmtTpInf);
 		
@@ -1681,9 +1704,17 @@ public class DocumentPacks implements Serializable{
 		
 		com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61 cdtrAgt=new com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61();
 		com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181 finInstnId2=new com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181();
-		finInstnId2.setBICFI(env.getProperty("ipsx.dbtragt"));
+		finInstnId2.setBICFI(CreditorAgent);
 		cdtrAgt.setFinInstnId(finInstnId2);
 		cdtTrfTxInf.setCdtrAgt(cdtrAgt);
+		
+		com.bornfire.jaxb.pain_001_001_09.CashAccount381 cdtrAgtAcct=new com.bornfire.jaxb.pain_001_001_09.CashAccount381();
+		com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1 finInstnId4=new com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1();
+		com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11 other2=new com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11();
+		other2.setId(CreditorAgentAcct);
+		finInstnId4.setOthr(other2);
+		cdtrAgtAcct.setId(finInstnId4);
+		cdtTrfTxInf.setCdtrAgtAcct(cdtrAgtAcct);
 		
 		com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351 cdtr=new com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351();
 		cdtr.setNm(benName);
@@ -1702,12 +1733,12 @@ public class DocumentPacks implements Serializable{
 		
 		com.bornfire.jaxb.pain_001_001_09.RegulatoryReporting31 rgltryRptgList=new com.bornfire.jaxb.pain_001_001_09.RegulatoryReporting31();
 		com.bornfire.jaxb.pain_001_001_09.StructuredRegulatoryReporting31 dtls=new com.bornfire.jaxb.pain_001_001_09.StructuredRegulatoryReporting31();
-		dtls.setInf(Arrays.asList(""));
+		dtls.setInf(Arrays.asList("Transfer"));
 		rgltryRptgList.setDtls(dtls);
 		cdtTrfTxInf.setRgltryRptg(Arrays.asList(rgltryRptgList));
 		
 		com.bornfire.jaxb.pain_001_001_09.RemittanceInformation161 rmtInf=new com.bornfire.jaxb.pain_001_001_09.RemittanceInformation161();
-		rmtInf.setUstrd(Arrays.asList(""));
+		rmtInf.setUstrd(Arrays.asList("Transfer"));
 		cdtTrfTxInf.setRmtInf(rmtInf);
 		pmtInf.setCdtTrfTxInf(Arrays.asList(cdtTrfTxInf));
 		

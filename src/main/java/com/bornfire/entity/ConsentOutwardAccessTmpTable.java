@@ -44,8 +44,9 @@ public class ConsentOutwardAccessTmpTable {
 	private Date del_time;
 	private String del_flg;
 	private String account_status;
-	
-	
+	private String private_key;
+	private String custom_device_id;
+
 	
 	
 	public ConsentOutwardAccessTmpTable() {
@@ -249,6 +250,18 @@ public class ConsentOutwardAccessTmpTable {
 	}
 	public void setAccount_status(String account_status) {
 		this.account_status = account_status;
+	}
+	public String getPrivate_key() {
+		return private_key;
+	}
+	public void setPrivate_key(String private_key) {
+		this.private_key = private_key;
+	}
+	public String getCustom_device_id() {
+		return custom_device_id;
+	}
+	public void setCustom_device_id(String custom_device_id) {
+		this.custom_device_id = custom_device_id;
 	}
 	
 	

@@ -5,100 +5,73 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConsentAccessRequest {
 	@JsonProperty("PhoneNumber")
-	private String phoneNumber;
+	private String PhoneNumber;
 	
 	@JsonProperty("PublicKey")
-	private String publicKey;
+	private String PublicKey;
 	
-	@JsonProperty("ExpirationDateTime")
-	private XMLGregorianCalendar expirationDateTime;
 	
-	@JsonProperty("TransactionFromDateTime")
-	private XMLGregorianCalendar transactionFromDateTime;
-	
-	@JsonProperty("TransactionToDateTime")
-	private XMLGregorianCalendar transactionToDateTime;
 	
 	@JsonProperty("Accounts")
-	private List<Account> account;
+	private List<Account> Accounts;
 	
 	@JsonProperty("Permissions")
-	private List<String> permissions;
+	private List<String> Permissions;
 
 	@JsonProperty("PhoneNumber")
 	public String getPhoneNumber() {
-		return phoneNumber;
+		return PhoneNumber;
 	}
 
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber = phoneNumber;
+	@JsonProperty("PhoneNumber")
+	public void setPhoneNumber(String PhoneNumber) {
+		this.PhoneNumber = PhoneNumber;
 	}
 
 	@JsonProperty("PublicKey")
 	public String getPublicKey() {
-		return publicKey;
+		return PublicKey;
 	}
 
-	public void setPublicKey(String publicKey) {
-		this.publicKey = publicKey;
+	@JsonProperty("PublicKey")
+	public void setPublicKey(String PublicKey) {
+		this.PublicKey = PublicKey;
 	}
 
-	@JsonProperty("ExpirationDateTime")
-	public XMLGregorianCalendar getExpirationDateTime() {
-		return expirationDateTime;
-	}
 
-	public void setExpirationDateTime(XMLGregorianCalendar expirationDateTime) {
-		this.expirationDateTime = expirationDateTime;
-	}
-
-	@JsonProperty("TransactionFromDateTime")
-	public XMLGregorianCalendar getTransactionFromDateTime() {
-		return transactionFromDateTime;
-	}
-
-	public void setTransactionFromDateTime(XMLGregorianCalendar transactionFromDateTime) {
-		this.transactionFromDateTime = transactionFromDateTime;
-	}
-
-	@JsonProperty("TransactionToDateTime")
-	public XMLGregorianCalendar getTransactionToDateTime() {
-		return transactionToDateTime;
-	}
-
-	public void setTransactionToDateTime(XMLGregorianCalendar transactionToDateTime) {
-		this.transactionToDateTime = transactionToDateTime;
-	}
 
 	@JsonProperty("Accounts")
-	public List<Account> getAccount() {
-		return account;
+	public List<Account> getAccounts() {
+		return Accounts;
 	}
-
-	public void setAccount(List<Account> account) {
-		this.account = account;
+	@JsonProperty("Accounts")
+	public void setAccount(List<Account> Accounts) {
+		this.Accounts = Accounts;
 	}
 
 	@JsonProperty("Permissions")
 	public List<String> getPermissions() {
-		return permissions;
+		return Permissions;
 	}
-
-	public void setPermissions(List<String> permissions) {
-		this.permissions = permissions;
+	@JsonProperty("Permissions")
+	public void setPermissions(List<String> Permissions) {
+		this.Permissions = Permissions;
 	}
 
 	@Override
 	public String toString() {
-		return "ConsentAccessRequest [phoneNumber=" + phoneNumber + ", publicKey=" + publicKey + ", expirationDateTime="
-				+ expirationDateTime + ", transactionFromDateTime=" + transactionFromDateTime
-				+ ", transactionToDateTime=" + transactionToDateTime + ", account=" + account + ", permissions="
-				+ permissions + "]";
+		return "ConsentAccessRequest [PhoneNumber=" + PhoneNumber + ", PublicKey=" + PublicKey + ", Accounts="
+				+ Accounts + ", Permissions=" + Permissions + "]";
 	}
+
+
+	
 
 
 	

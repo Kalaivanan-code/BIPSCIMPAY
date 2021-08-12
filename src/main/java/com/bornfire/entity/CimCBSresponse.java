@@ -32,6 +32,11 @@ public class CimCBSresponse {
 	public void setStatus(CimCBSresponseStatus status) {
 		this.status = status;
 	}
+
+	@Override
+	public String toString() {
+		return "CimCBSresponse [data=" + data + ", status=" + status + "]";
+	}
 	
 	
 

@@ -28,6 +28,8 @@ CBS_CREDIT_REVERSE_INITIATED,
 CBS_CREDIT_REVERSE_OK,
 CBS_CREDIT_REVERSE_ERROR,
 CBS_SERVER_NOT_CONNECTED,
+WAITING_FOR_DEBIT_REVERSE,
+WAITING_FOR_CREDIT_REVERSE,
 
 ///IPSX Status
 IPSX_OUTMSG_INITIATED,
@@ -66,6 +68,9 @@ ReadAccountsDetails,
 ReadBalances,
 ReadTransactionsDetails,
 DebitAccount,
+Consent_creation,
+ConsentAuthorisation,
+ConsentDelete,
 
 ///Credit Debit Indicator
 Credit,
@@ -77,5 +82,8 @@ InterimAvailable,
 ////Bulk RTP Status
 RTP_Initiated,
 
+///Local Instrumentation
+CSDC,
+BPDC,
 
 }

@@ -122,15 +122,19 @@ public class DataPDUs {
 	
 
 	public String getDataPDUPain001(String msgType, SendT request, String acctName, String acctNumber,
-			String currencyCode, String bank_agent, String bank_agent_account, String benName, String benAcctNumber,
+			String currencyCode, String benName, String benAcctNumber,
 			String trAmt, String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID,
-			String msgNetMir) {
+			String msgNetMir,String cryptogram,
+			String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,
+			String lclInstr,String ctgyPurp) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<DataPDU xmlns=\"urn:cma:stp:xsd:stp.1.0\">\r\n" + "<Body>\r\n");
 		sb.append(appHeaders.getAppHeader(msgType,msgSeq));
 		sb.append(documentPacks.getPain_001_001_09Doc(msgType,request,acctName, acctNumber,  currencyCode,
-				 bank_agent,  bank_agent_account,  benName,  benAcctNumber,  trAmt,
-				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir));
+				  benName,  benAcctNumber,  trAmt,
+				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir,cryptogram,
+				 instgAgent,instdAgent,debtorAgent,
+					debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp));
 		sb.append("</Body>\r\n" + "</DataPDU>");
 
 		return sb.toString();

@@ -8,13 +8,22 @@ public class ErrorResponseCode {
 
 		String responseDesc = null;
 
-		if (code.equals("BOB0")) {
+		/*if (code.equals("BOB0")) {
 			responseDesc = "BOB0:Success";
 		} else if (code.equals("BOB114")) {
 			responseDesc = "AC01:Incorrect Account Number";
 		} else if (code.equals("BOB116")) {
 			responseDesc = "AM04:Insufficient Funds";
 		} else if (code.equals("BOB119")) {
+			responseDesc = "AG01:Transaction Forbidden";
+		} */
+		if (code.equals("CIM0")) {
+			responseDesc = "CIM0:Success";
+		} else if (code.equals("AC01")) {
+			responseDesc = "AC01:Incorrect Account Number";
+		} else if (code.equals("AM04")) {
+			responseDesc = "AM04:Insufficient Funds";
+		} else if (code.equals("AG01")) {
 			responseDesc = "AG01:Transaction Forbidden";
 		} else if (code.equals("AC04")) {
 			responseDesc = "AC04:Closed Account Number";
@@ -68,6 +77,12 @@ public class ErrorResponseCode {
 			responseDesc = "BIPS12:Maximum Amount Not Permitted";
 		}else if(code.equals("BIPS13")) {
 			responseDesc = "BIPS13:Unable to Process Request.Dublicate Reference ID:PID";
+		}else if(code.equals("BIPS14")) {
+			responseDesc = "BIPS14:Invalid Response";
+		}else if(code.equals("BIPS15")) {
+			responseDesc = "BIPS15:Invalid Request";
+		}else if(code.equals("BIPS16")) {
+			responseDesc = "BIPS15:Invalid Document Type";
 		}
 		
 		return responseDesc;

@@ -34,6 +34,9 @@ public class BenAccount {
 	
 	@JsonProperty("trRmks")
 	private String TrRmks;
+	
+	@NotBlank(message="Bank Code Required")
+	private String BankCode;
 
 	public String getReqUniqueId() {
 		return ReqUniqueId;
@@ -83,11 +86,22 @@ public class BenAccount {
 		TrRmks = trRmks;
 	}
 
+	public String getBankCode() {
+		return BankCode;
+	}
+
+	public void setBankCode(String bankCode) {
+		BankCode = bankCode;
+	}
+
 	@Override
 	public String toString() {
 		return "BenAccount [ReqUniqueId=" + ReqUniqueId + ", BenName=" + BenName + ", BenAcctNumber=" + BenAcctNumber
-				+ ", TrAmt=" + TrAmt + ", CurrencyCode=" + CurrencyCode + ", TrRmks=" + TrRmks + "]";
+				+ ", TrAmt=" + TrAmt + ", CurrencyCode=" + CurrencyCode + ", TrRmks=" + TrRmks + ", BankCode="
+				+ BankCode + "]";
 	}
+
+	
 	
 	
 }

@@ -6,10 +6,13 @@ public class CIMToAccount {
 	
 	@NotBlank(message="To Account Name Required")
 	private String AcctName;
+	
 	@NotBlank(message="To Account Number Required")
 	private String AcctNumber;
+	
 	@NotBlank(message="Bank Code Required")
 	private String BankCode;
+	
 	public CIMToAccount() {
 		super();
 		// TODO Auto-generated constructor stub

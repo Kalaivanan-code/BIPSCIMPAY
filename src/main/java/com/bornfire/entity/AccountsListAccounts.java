@@ -1,6 +1,9 @@
 package com.bornfire.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 
 public class AccountsListAccounts {
 
@@ -11,6 +14,11 @@ public class AccountsListAccounts {
 	private String NickName;
 	private Account Account;
 	private Links links;
+	
+	@JsonProperty("ErrorCode")
+	private Integer ErrorCode;
+	@JsonProperty("Description")
+	private String Description;
 	
 	
 	@JsonProperty("AccountId")
@@ -61,6 +69,23 @@ public class AccountsListAccounts {
 	}
 	public void setLinks(Links links) {
 		this.links = links;
+	}
+	public Integer getErrorCode() {
+		return ErrorCode;
+	}
+	public void setErrorCode(Integer errorCode) {
+		ErrorCode = errorCode;
+	}
+	public String getDescription() {
+		return Description;
+	}
+	public void setDescription(String description) {
+		Description = description;
+	}
+	public AccountsListAccounts(Integer errorCode, String description) {
+		super();
+		ErrorCode = errorCode;
+		Description = description;
 	}
 	
 	

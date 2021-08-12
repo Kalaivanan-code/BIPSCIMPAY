@@ -43,7 +43,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		System.out.println("Method Not Support");
 		System.out.println(ex.getMessage());
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Method Not Support", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 
@@ -54,7 +54,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		System.out.println("Media Not Support");
 
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Media Not Support", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 
@@ -65,7 +65,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		System.out.println("Missing Path");
 
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Missing Path", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 
@@ -76,7 +76,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		System.out.println("Request binding");
 
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Request Binding", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 		
 	}
@@ -88,7 +88,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		System.out.println("handle");
 
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Request Error", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);	}
 
 	@Override
@@ -97,7 +97,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		// TODO Auto-generated method stub
 		System.out.println("typeMisMatch");
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Type MisMatch", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 
@@ -108,7 +108,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		System.out.println("handleHttpMessageNotWritable");
 
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Http Message Error", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);	}
 
 	@Override
@@ -117,7 +117,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		// TODO Auto-generated method stub
 		System.out.println("handleMissingServletRequestPart");
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Request Error", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 
@@ -128,7 +128,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		System.out.println("handleBindException");
 
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Request Error", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 
@@ -138,7 +138,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		// TODO Auto-generated method stub
 		System.out.println("handleAsyncRequestTimeoutException");
 		List<String> details = Arrays.asList(ex.getMessage());
-		ErrorResponse error = new ErrorResponse("Request Timeout", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 
@@ -186,7 +186,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 
 		List<String> details = ex.getBindingResult().getFieldErrors().stream().map(x -> x.getDefaultMessage())
 				.collect(Collectors.toList());
-		ErrorResponse error = new ErrorResponse("Validation Errors", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 
@@ -197,7 +197,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		List<String> details = new ArrayList<String>();
 		details.add(ex.getMessage());
 
-		ErrorResponse error = new ErrorResponse("Malformed Json Request", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 	
@@ -212,7 +212,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		List<String> details = new ArrayList<String>();
 		details.add(ex.getParameterName() + " parameter is missing");
 
-		ErrorResponse error = new ErrorResponse("Missing Parameter", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error,status);
 	}
 
@@ -229,7 +229,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 
 		details.add(builder.toString());
 
-		ErrorResponse error = new ErrorResponse("Media Type Not Support", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 	}
 
@@ -240,7 +240,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		List<String> details = new ArrayList<String>();
 		details.add(String.format("Could not find the %s method for URL %s", ex.getHttpMethod(), ex.getRequestURL()));
 
-		ErrorResponse error = new ErrorResponse("BAD_REQUEST", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, status);
 
 	}
@@ -252,7 +252,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		List<String> details = new ArrayList<String>();
 		details.add(ex.getMessage());
 
-		ErrorResponse error = new ErrorResponse("Type MisMatch", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 	}
 
@@ -262,7 +262,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
 		List<String> details = new ArrayList<String>();
 		details.add(ex.getMessage());
 
-		ErrorResponse error = new ErrorResponse("Constraint Violation", details);
+		ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 	}
 	
@@ -273,7 +273,7 @@ public class CustomExceptionHandler1 extends ResponseEntityExceptionHandler {
         List<String> details = new ArrayList<String>();
         details.add(ex.getMessage());
         
-        ErrorResponse error = new ErrorResponse("Resource Not Found", details);
+        ErrorResponse error = new ErrorResponse("BIPS15", details);
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         
     }

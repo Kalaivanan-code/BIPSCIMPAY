@@ -12,7 +12,7 @@ import javax.persistence.Table;
 @Table(name="BIPS_TRANSACTION_MONITORING_TABLE")
 public class TransactionMonitor {
 
-	
+	@Column(name="cim_message_id")
 	private String bob_message_id;
 	private String ipsx_message_id;
 	@Id
@@ -38,6 +38,7 @@ public class TransactionMonitor {
 	private String	entity_cre_flg;
 	private Date	entry_time;
 	private String	entry_user;
+	@Column(name="cim_account")
 	private String	bob_account;
 	private String	initiator_bank;
 	private String	ips_status;
@@ -64,6 +65,7 @@ public class TransactionMonitor {
 	private String device_ip;
 	private String nat_id;
 	private String ipsx_status_code;
+	@Column(name="cim_account_name")
 	private String bob_account_name;
 	private String ipsx_account_name;
 	
@@ -117,6 +119,10 @@ public class TransactionMonitor {
 	private Date value_date;
 	
 	private String charge_app_flg;
+	private String chrg_br;
+	private String clr_chennel;
+	private String rmt_info_issuer;
+	private String rmt_info_nb;
 	
 	
 	@Override
@@ -644,6 +650,30 @@ public class TransactionMonitor {
 	}
 	public void setCharge_app_flg(String charge_app_flg) {
 		this.charge_app_flg = charge_app_flg;
+	}
+	public String getChrg_br() {
+		return chrg_br;
+	}
+	public void setChrg_br(String chrg_br) {
+		this.chrg_br = chrg_br;
+	}
+	public String getClr_chennel() {
+		return clr_chennel;
+	}
+	public void setClr_chennel(String clr_chennel) {
+		this.clr_chennel = clr_chennel;
+	}
+	public String getRmt_info_issuer() {
+		return rmt_info_issuer;
+	}
+	public void setRmt_info_issuer(String rmt_info_issuer) {
+		this.rmt_info_issuer = rmt_info_issuer;
+	}
+	public String getRmt_info_nb() {
+		return rmt_info_nb;
+	}
+	public void setRmt_info_nb(String rmt_info_nb) {
+		this.rmt_info_nb = rmt_info_nb;
 	}
 	
 	

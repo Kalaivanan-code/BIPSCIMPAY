@@ -63,11 +63,6 @@ public class CimCBSservice {
 			String sysTraceAuditNumber, String SeqUniqueID,String trRmks) {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-		/*httpHeaders.set("requestUUId", sysTraceAuditNumber);
-		httpHeaders.set("channelId", "BIPS");
-		httpHeaders.set("serviceRequestVersion", "1.0");
-		httpHeaders.set("serviceRequestId", sysTraceAuditNumber);
-		httpHeaders.set("messageDateTime", listener.getxmlGregorianCalender("2").toString());*/
 		
 		
 		TranCimCBSTable data=tranCimCBSTableRep.findById(requestUUID).get();
@@ -137,6 +132,7 @@ public class CimCBSservice {
 
 	}
 	
+	
 	public ResponseEntity<CimCBSresponse> dbtFundRequest(String requestUUID) {
 		
 		////Request Headers
@@ -161,28 +157,33 @@ public class CimCBSservice {
 		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
 		cimCBSrequestData.setTransactionNo(data.getTran_no());
 		cimCBSrequestData.setInitiatingChannel(data.getInit_channel());
-		cimCBSrequestData.setInitatorTransactionNo(data.getInit_tran_no());
-		if(data.getPost_to_cbs()=="True") {
+		cimCBSrequestData.setInitatorTransactionNo((data.getInit_tran_no()==null)?"":data.getInit_tran_no());
+		if(data.getPost_to_cbs().equals("True")) {
 			cimCBSrequestData.setPostToCBS(Boolean.TRUE);
 		}else {
 			cimCBSrequestData.setPostToCBS(Boolean.FALSE);
 		}
 		cimCBSrequestData.setTransactionType(data.getTran_type());
 		cimCBSrequestData.setIsReversal(data.getIsreversal());
-		cimCBSrequestData.setTransactionNoFromCBS(data.getTran_no_from_cbs());
+		cimCBSrequestData.setTransactionNoFromCBS((data.getTran_no_from_cbs()==null)?"":data.getTran_no_from_cbs());
 		cimCBSrequestData.setCustomerName(data.getCustomer_name());
 		cimCBSrequestData.setFromAccountNo(data.getFrom_account_no());
 		cimCBSrequestData.setToAccountNo(data.getTo_account_no());
+	      NumberFormat formatter = new DecimalFormat("0.##");
+
 		cimCBSrequestData.setTransactionAmount(new BigDecimal(data.getTran_amt().toString()));
-		cimCBSrequestData.setTransactionDate(new SimpleDateFormat("yyyy-MM-dd").format(data.getTran_date()));
+			cimCBSrequestData.setTransactionDate(new SimpleDateFormat("dd-MM-yyyy").format(data.getTran_date()));
+		
 		cimCBSrequestData.setTransactionCurrency(data.getTran_currency());
 		cimCBSrequestData.setTransactionParticularCode(data.getTran_particular_code());
-		cimCBSrequestData.setCreditRemarks(data.getCredit_remarks());
-		cimCBSrequestData.setDebitRemarks(data.getDebit_remarks());
-		cimCBSrequestData.setReservedField1(data.getResv_field_1());
-		cimCBSrequestData.setReservedField2(data.getResv_field_2());
+		cimCBSrequestData.setCreditRemarks((data.getCredit_remarks()==null)?"":data.getCredit_remarks());
+		cimCBSrequestData.setDebitRemarks((data.getDebit_remarks()==null)?"":data.getDebit_remarks());
+		cimCBSrequestData.setReservedField1((data.getResv_field_1()==null)?"":data.getResv_field_1());
+		cimCBSrequestData.setReservedField2((data.getResv_field_2()==null)?"":data.getResv_field_2());
 		cimCBSrequest.setData(cimCBSrequestData);
-		///////////////////////////////////////////////////
+		
+		logger.debug(cimCBSrequest.toString());
+	///////////////////////////////////////////////////
 	
 		HttpEntity<CimCBSrequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
 		
@@ -274,15 +275,11 @@ public class CimCBSservice {
 	public ResponseEntity<CimCBSresponse> cbsResponseFailure(String requestUUID) {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-		/*httpHeaders.set("requestUUId", sysTraceAuditNumber);
-		httpHeaders.set("channelId", "BIPS");
-		httpHeaders.set("serviceRequestVersion", "1.0");
-		httpHeaders.set("serviceRequestId", sysTraceAuditNumber);
-		httpHeaders.set("messageDateTime", listener.getxmlGregorianCalender("2").toString());*/
 		
-		
+		////Get Data from Table
 		TranCimCBSTable data=tranCimCBSTableRep.findById(requestUUID).get();
 		
+		/////////////////////Request Body Creation/////////////////////////////
 		CimCBSrequest cimCBSrequest=new CimCBSrequest();
 		
 		CimCBSrequestHeader cimCBSrequestHeader=new CimCBSrequestHeader();
@@ -296,47 +293,56 @@ public class CimCBSservice {
 		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
 		cimCBSrequestData.setTransactionNo(data.getTran_no());
 		cimCBSrequestData.setInitiatingChannel(data.getInit_channel());
-		cimCBSrequestData.setInitatorTransactionNo(data.getInit_tran_no());
-		if(data.getPost_to_cbs()=="True") {
+		cimCBSrequestData.setInitatorTransactionNo((data.getInit_tran_no()==null)?"":data.getInit_tran_no());
+		if(data.getPost_to_cbs().equals("True")) {
 			cimCBSrequestData.setPostToCBS(Boolean.TRUE);
 		}else {
 			cimCBSrequestData.setPostToCBS(Boolean.FALSE);
 		}
 		cimCBSrequestData.setTransactionType(data.getTran_type());
 		cimCBSrequestData.setIsReversal(data.getIsreversal());
-		cimCBSrequestData.setTransactionNoFromCBS(data.getTran_no_from_cbs());
+		cimCBSrequestData.setTransactionNoFromCBS((data.getTran_no_from_cbs()==null)?"":data.getTran_no_from_cbs());
 		cimCBSrequestData.setCustomerName(data.getCustomer_name());
 		cimCBSrequestData.setFromAccountNo(data.getFrom_account_no());
 		cimCBSrequestData.setToAccountNo(data.getTo_account_no());
+	      NumberFormat formatter = new DecimalFormat("0.##");
+
 		cimCBSrequestData.setTransactionAmount(new BigDecimal(data.getTran_amt().toString()));
-		cimCBSrequestData.setTransactionDate(new SimpleDateFormat("yyyy-MM-dd").format(data.getTran_date()));
+			cimCBSrequestData.setTransactionDate(new SimpleDateFormat("dd-MM-yyyy").format(data.getTran_date()));
+		
 		cimCBSrequestData.setTransactionCurrency(data.getTran_currency());
 		cimCBSrequestData.setTransactionParticularCode(data.getTran_particular_code());
-		cimCBSrequestData.setCreditRemarks(data.getCredit_remarks());
-		cimCBSrequestData.setDebitRemarks(data.getDebit_remarks());
-		cimCBSrequestData.setReservedField1(data.getResv_field_1());
-		cimCBSrequestData.setReservedField2(data.getResv_field_2());
+		cimCBSrequestData.setCreditRemarks((data.getCredit_remarks()==null)?"":data.getCredit_remarks());
+		cimCBSrequestData.setDebitRemarks((data.getDebit_remarks()==null)?"":data.getDebit_remarks());
+		cimCBSrequestData.setReservedField1((data.getResv_field_1()==null)?"":data.getResv_field_1());
+		cimCBSrequestData.setReservedField2((data.getResv_field_2()==null)?"":data.getResv_field_2());
 		cimCBSrequest.setData(cimCBSrequestData);
 		
+		logger.debug(cimCBSrequest.toString());
+		logger.debug(listener.generateJsonFormat(cimCBSrequest.toString()));
+	///////////////////////////////////////////////////
 	
 		HttpEntity<CimCBSrequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
-				
+		
+		/////Call REST API
 		ResponseEntity<CimCBSresponse> response = null;
 		try {
-			logger.info("Sending message to CBS credit using restTemplate Failure");
+			logger.info("Sending Failure message to ESB Cable ");
 			response = restTemplate.postForEntity(env.getProperty("cimESB.url")+"appname="+env.getProperty("cimESB.appname")+"&prgname="+env.getProperty("cimESB.prgname")+"&arguments="+env.getProperty("cimESB.arguments"),
 					entity, CimCBSresponse.class);
-
-			
 			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
-
 		} catch (HttpClientErrorException ex) {
+			logger.debug("HttpClient"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
 		} catch (HttpServerErrorException ex) {
+			logger.debug("HttpServerErrorException"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 		}catch (Exception ex) {
+			logger.debug("Exception"+ex.getLocalizedMessage());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
 		}

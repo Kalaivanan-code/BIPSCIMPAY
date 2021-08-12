@@ -62,13 +62,23 @@ import com.bornfire.jaxb.pacs_002_001_010.StatusReasonInformation121;
 import com.bornfire.jaxb.pacs_008_001_08.AccountIdentification4Choice1;
 import com.bornfire.jaxb.pacs_008_001_08.BranchAndFinancialInstitutionIdentification61;
 import com.bornfire.jaxb.pacs_008_001_08.CashAccount381;
+import com.bornfire.jaxb.pacs_008_001_08.ChargeBearerType1Code;
+import com.bornfire.jaxb.pacs_008_001_08.ClearingChannel2Code1;
+import com.bornfire.jaxb.pacs_008_001_08.ClearingSystemMemberIdentification21;
 import com.bornfire.jaxb.pacs_008_001_08.CreditTransferTransaction391;
 import com.bornfire.jaxb.pacs_008_001_08.Document;
 import com.bornfire.jaxb.pacs_008_001_08.FIToFICustomerCreditTransferV08;
 import com.bornfire.jaxb.pacs_008_001_08.FinancialInstitutionIdentification181;
 import com.bornfire.jaxb.pacs_008_001_08.GenericAccountIdentification11;
 import com.bornfire.jaxb.pacs_008_001_08.PartyIdentification1351;
+import com.bornfire.jaxb.pacs_008_001_08.PaymentTypeInformation281;
+import com.bornfire.jaxb.pacs_008_001_08.ReferredDocumentInformation71;
+import com.bornfire.jaxb.pacs_008_001_08.ReferredDocumentType41;
+import com.bornfire.jaxb.pacs_008_001_08.RegulatoryReporting31;
+import com.bornfire.jaxb.pacs_008_001_08.RemittanceInformation161;
+import com.bornfire.jaxb.pacs_008_001_08.StructuredRemittanceInformation161;
 import com.bornfire.jaxb.pain_001_001_09.CustomerCreditTransferInitiationV09;
+import com.bornfire.jaxb.pain_001_001_09.GenericOrganisationIdentification11;
 import com.bornfire.jaxb.pain_001_001_09.PaymentInstruction301;
 import com.bornfire.jaxb.pain_001_001_09.StructuredRegulatoryReporting31;
 import com.bornfire.jaxb.pain_002_001_10.CustomerPaymentStatusReportV10;
@@ -132,7 +142,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 		///// update IPS TranIPS Table
 		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "OUTGOING", "", "", "", "O",
-				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "");
+				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndIDt);
 
 		logger.info("Update IPSX OutMessage Initiated Status ");
 		ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
@@ -140,7 +150,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 		///// Create Pacs.008
 		logger.info("Creating pacs.008.001.01 message");
-		/*SendT sendRequest = new SendT();
+		SendT sendRequest = new SendT();
 		sendRequest.setMessage(paramMTMsgs.getParamMTmsg(DocType.pacs_008_001_08.getDocs(), sendRequest, bobMsgID,
 				mcCreditTransferRequest, othBankAgent, msgSeq, endToEndIDt));
 
@@ -163,12 +173,16 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 					/////Update IPSX Status to Tran Table
 					ipsDao.updateIPSXStatusResponseRJCT(seqUniqueID, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
-							"", TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_ERROR.toString(), "",
+							"", TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_ERROR.toString(), "",
 							SERVER_ERROR_CODE,"pacs.008.001.08");
+					
+					ipsDao.updateIPSXStatusResponseRJCTBulkRTP(seqUniqueID, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
+							"", TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_ERROR.toString(), "",
+							SERVER_ERROR_CODE);
 
 				    ////Send Failure Message to CIM
-					ipsDao.ReturnCIMcnfResponseRJCT(seqUniqueID,"","",TranMonitorStatus.FAILURE.toString(),"","","",SERVER_ERROR_CODE,
-							TranMonitorStatus.IPSX_NOT_CONNECTED.toString());
+					//ipsDao.ReturnCIMcnfResponseRJCT(seqUniqueID,"","",TranMonitorStatus.FAILURE.toString(),"","","",SERVER_ERROR_CODE,
+							//TranMonitorStatus.IPSX_NOT_CONNECTED.toString());
 				}
 			});
 
@@ -184,6 +198,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			logger.info("update Out Message ACK to Table");
 			ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_ACK_RECEIVED.toString(),
 					TranMonitorStatus.IN_PROGRESS.toString());
+			
+			ipsDao.updateOutwardIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_ACK_RECEIVED.toString(),
+					TranMonitorStatus.IN_PROGRESS.toString());
 
 			ipsDao.updateTranIPSACK(seqUniqueID, seqUniqueID, "O", "SUCCESS", NetMIR, UserRef);
 
@@ -191,7 +208,10 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			///// Update NAK Message
 			logger.info("update Out Message NAK to Table");
 			ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_NAK_RECEICED.toString(),
-					TranMonitorStatus.IN_PROGRESS.toString());
+					TranMonitorStatus.FAILURE.toString());
+			
+			ipsDao.updateOutwardIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_NAK_RECEICED.toString(),
+					TranMonitorStatus.FAILURE.toString());
 
 			String NetMIR = response.getValue().getData().getMir();
 			String UserRef = response.getValue().getData().getRef();
@@ -199,7 +219,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 			
 		}
-*/
+/*
 		
 		String NetMIR = "1111";
 		String UserRef ="2222";
@@ -245,7 +265,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 					TranMonitorStatus.RJCT.toString(), "CA102");
 		}
-		
+*/		
 		
 	}
 
@@ -315,20 +335,73 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String trCurrency008 = doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getIntrBkSttlmAmt().getCcy();
 			String endToEndID008 = doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtId().getEndToEndId();
 			
-			String instgAgtPacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId().getBICFI();
+			//String instgAgtPacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId().getBICFI();
 
-			String instdAgtPacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstdAgt().getFinInstnId().getBICFI();
+			String instgAgtPacs008=Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(CreditTransferTransaction391::getInstgAgt)
+					.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
+					.map(FinancialInstitutionIdentification181::getBICFI).orElse("");
+			if(instgAgtPacs008.equals("")) {
+				instgAgtPacs008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+						.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+						.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+						.map(CreditTransferTransaction391::getInstgAgt)
+						.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
+						.map(FinancialInstitutionIdentification181::getClrSysMmbId)
+						.map(ClearingSystemMemberIdentification21::getMmbId).orElse("");
+			}
+			
+			String instdAgtPacs008 ="";
+			
+			instdAgtPacs008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(CreditTransferTransaction391::getInstdAgt)
+					.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
+					.map(FinancialInstitutionIdentification181::getClrSysMmbId)
+					.map(ClearingSystemMemberIdentification21::getMmbId).orElse("");
+			
+			if(instdAgtPacs008.equals("")) {
+				instdAgtPacs008=Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+						.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+						.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+						.map(CreditTransferTransaction391::getInstdAgt)
+						.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
+						.map(FinancialInstitutionIdentification181::getBICFI).orElse("");
+			}
 
 			String tran_type_code008 = doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtTpInf().getCtgyPurp()
 					.getPrtry();
 
-			String debtorAgent008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+			String debtorAgent008 = "";
+			
+			debtorAgent008 =Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
 					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
 					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
 					.map(CreditTransferTransaction391::getDbtrAgt)
 					.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
 					.map(FinancialInstitutionIdentification181::getBICFI).orElse("");
 			
+			if(debtorAgent008.equals("")) {
+				debtorAgent008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+						.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+						.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+						.map(CreditTransferTransaction391::getDbtrAgt)
+						.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
+						.map(FinancialInstitutionIdentification181::getClrSysMmbId)
+						.map(ClearingSystemMemberIdentification21::getMmbId).orElse("");
+				
+			}
+			
+			String chrgBr008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(CreditTransferTransaction391::getChrgBr)
+					.map(ChargeBearerType1Code::value).orElse("");
+			
+			logger.info("ChargeBearer"+chrgBr008);
 			
 			String debtorAgentAcc008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
 					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
@@ -338,12 +411,23 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					.map(AccountIdentification4Choice1::getOthr)
 					.map(GenericAccountIdentification11::getId).orElse("");
 			
+			
 			String creditorAgent008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
 					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
 					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
 					.map(CreditTransferTransaction391::getCdtrAgt)
 					.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
 					.map(FinancialInstitutionIdentification181::getBICFI).orElse("");
+			
+			if(creditorAgent008.equals("")) {
+				creditorAgent008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+						.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+						.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+						.map(CreditTransferTransaction391::getCdtrAgt)
+						.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
+						.map(FinancialInstitutionIdentification181::getClrSysMmbId)
+						.map(ClearingSystemMemberIdentification21::getMmbId).orElse("");
+			}
 			
 			String creditorAgentAcc008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
 					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
@@ -355,6 +439,13 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 			String instr_id_pacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtId().getInstrId();
 			
+			String clr_chnnl_pacs008= Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(CreditTransferTransaction391::getPmtTpInf)
+					.map(PaymentTypeInformation281::getClrChanl)
+					.map(ClearingChannel2Code1::value).orElse("");
+			
 			String svc_lcl_pacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtTpInf().getSvcLvl().get(0)
 					.getPrtry();
 			
@@ -363,6 +454,46 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			
 			String ctgy_purp_pacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtTpInf().getCtgyPurp()
 					.getPrtry();
+			
+			String reg_rep_pacs008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(CreditTransferTransaction391::getRgltryRptg)
+					.map(RegulatoryReporting31::getDtls)
+					.map(com.bornfire.jaxb.pacs_008_001_08.StructuredRegulatoryReporting31::getInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.orElse("");
+			
+			String rmt_info_pacs008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(CreditTransferTransaction391::getRmtInf)
+					.map(RemittanceInformation161::getUstrd)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.orElse("");
+			
+			String rmt_info_issuer_pacs008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(CreditTransferTransaction391::getRmtInf)
+					.map(RemittanceInformation161::getStrd)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(StructuredRemittanceInformation161::getRfrdDocInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(ReferredDocumentInformation71::getTp)
+					.map(ReferredDocumentType41::getIssr)
+					.orElse("");
+
+			String rmt_info_nb_pacs008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(CreditTransferTransaction391::getRmtInf)
+					.map(RemittanceInformation161::getStrd)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(StructuredRemittanceInformation161::getRfrdDocInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(ReferredDocumentInformation71::getNb)
+					.orElse("");
 
 
 			///// Get Bank Code
@@ -376,14 +507,19 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			///// Update Tran IPS Table
 			logger.info(seqUniqueID008 + " :Register Initial Incoming Fund Transfer Record to table");
 			ipsDao.insertTranIPS(seqUniqueID008, seqUniqueID008, "pacs.008.001.08", "INCOMING", "", "", "", "I",
-					msgSender, msgReceiver, msgNetMIR, userReference);
+					msgSender, msgReceiver, msgNetMIR, userReference,endToEndID008);
 			///// Register InComing Message
 			String status = ipsDao.RegisterInMsgRecord(sysTraceNumber008, bobMsgID008, ipsxMsgID008, seqUniqueID008,
 					debtorAccount008, creditorAccount008, trAmount008, trCurrency008,
 					TranMonitorStatus.INITIATED.toString(), endToEndID008, debtorAccountName008, creditorAccountName008,
 					tran_type_code008, othBankCode,instgAgtPacs008,instdAgtPacs008,instr_id_pacs008,svc_lcl_pacs008,lcl_instrm_pacs008,
-					ctgy_purp_pacs008,debtorAgent008,debtorAgentAcc008,creditorAgent008,creditorAgentAcc008);
+					ctgy_purp_pacs008,debtorAgent008,debtorAgentAcc008,creditorAgent008,creditorAgentAcc008,chrgBr008,
+					clr_chnnl_pacs008,reg_rep_pacs008,rmt_info_pacs008,rmt_info_issuer_pacs008,rmt_info_nb_pacs008);
 
+			///Update TranID to Outward tran Table
+			ipsDao.updateAuditTranID(sysTraceNumber008, instr_id_pacs008);
+
+			
 			String CreditStatusType = null;
 			String CreditStatusCode = null;
 			String CreditStatusDesc = null;
@@ -408,9 +544,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			///// Calling Connect 24 and Validation
 				String responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,
 						trAmount008.toString(), trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
-						debtorAccount008,debtorAccountName008,instgAgtPacs008);
+						debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008);
 
-				if (responseIncomeMsg.split(":")[0].equals("BOB0")) {
+				if (responseIncomeMsg.split(":")[0].equals("CIM0")) {
 					logger.info(seqUniqueID008 + " :Connect24 Processed Successfully");
 					logger.info(seqUniqueID008 + " :Update CBS Credit OK Status to Table");
 
@@ -464,7 +600,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 								bobMsgID008, CreditStatusType, CreditStatusCode, CreditStatusDesc, msgSeqPacs002));
 
 						ipsDao.insertTranIPS(seqUniqueID008, bobMsgID008, "pacs.002.001.10", "", "", "", "", "O",
-								env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgOutPacs002NteMIR, "");
+								env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgOutPacs002NteMIR, "",endToEndID008);
 
 						///// Send Pacs.002 Pacs to IPSX
 						com.bornfire.jaxb.wsdl.ObjectFactory obj008 = new com.bornfire.jaxb.wsdl.ObjectFactory();
@@ -602,7 +738,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					+ doc.getFIToFIPmtStsRpt().getOrgnlGrpInfAndSts().getOrgnlMsgId() + " ,Status :"
 					+ doc.getFIToFIPmtStsRpt().getTxInfAndSts().get(0).getTxSts());
 			
-			doc.getFIToFIPmtStsRpt().getGrpHdr().getInstgAgt().getFinInstnId().getBICFI();
+			//doc.getFIToFIPmtStsRpt().getGrpHdr().getInstgAgt().getFinInstnId().getBICFI();
 			
 
 			///// Transaction Status
@@ -611,8 +747,15 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String orglMsgID002 = doc.getFIToFIPmtStsRpt().getOrgnlGrpInfAndSts().getOrgnlMsgId();
 			//// Mesage ID
 			String msgID002 = doc.getFIToFIPmtStsRpt().getGrpHdr().getMsgId();
+			
+			String endToendID002 =Optional.ofNullable(doc)
+					.map(com.bornfire.jaxb.pacs_002_001_010.Document::getFIToFIPmtStsRpt)
+					.map(FIToFIPaymentStatusReportV10::getTxInfAndSts).filter(indAliasList -> !indAliasList.isEmpty())
+					.map(indAliasList -> indAliasList.get(0)).map(PaymentTransaction1101::getOrgnlEndToEndId).orElse("");
 			///// Error Code
-			String errorCode002 = Optional.ofNullable(doc)
+			
+			logger.info("endToEnd"+endToendID002);
+			String errorCode002 =  Optional.ofNullable(doc)
 					.map(com.bornfire.jaxb.pacs_002_001_010.Document::getFIToFIPmtStsRpt)
 					.map(FIToFIPaymentStatusReportV10::getTxInfAndSts).filter(indAliasList -> !indAliasList.isEmpty())
 					.map(indAliasList -> indAliasList.get(0)).map(PaymentTransaction1101::getStsRsnInf)
@@ -644,7 +787,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				}
 
 				ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "", "ACSP", "", "", "I", msgSender,
-						msgReceiver, msgNetMIR, userReference);
+						msgReceiver, msgNetMIR, userReference,endToendID002);
 				
 				ipsDao.updateIPSXStatusResponseACSPBulkRTP(orglMsgID002, msgID002,
 						TranMonitorStatus.SUCCESS.toString(), "pacs.002.001.10");
@@ -681,22 +824,24 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 				if (!userReference.equals("")) {
 					ipsDao.updateIPSXStatusResponseRJCT(orglMsgID002, errorDesc002, msgID002,
-							TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+							TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 							TranMonitorStatus.RJCT.toString(), errorCode002,"pacs.002.001.10");
 				}
 				
 				ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "",tranStatus002, errorCode002, errorDesc002,
-						"I", msgSender, msgReceiver, msgNetMIR, userReference);
+						"I", msgSender, msgReceiver, msgNetMIR, userReference,endToendID002);
 				
+				if (!userReference.equals("")) {
 				ipsDao.updateIPSXStatusResponseRJCTBulkRTP(orglMsgID002, errorDesc002, msgID002,
 							TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 							TranMonitorStatus.RJCT.toString(), errorCode002);
+				}
 				
 
 			}else {
 				logger.info(orglMsgID002 + " :Update IPSX other msg response in table");
 				ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "",tranStatus002, errorCode002, errorDesc002,
-						"I", msgSender, msgReceiver, msgNetMIR, userReference);
+						"I", msgSender, msgReceiver, msgNetMIR, userReference,endToendID002);
 			}
 
 			break;
@@ -726,17 +871,35 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			logger.info(orglMsgIDCamt025 + " :Insert Tran IPS Camt025" + stsCodeCamt025);
 
 			ipsDao.insertTranIPS(orglMsgIDCamt025, msgIDCamt025, "camt.025.001.05", "", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference);
+					msgReceiver, msgNetMIR, userReference,"");
 
 			if (docCamt_025_001_05.getRct().getRctDtls().get(0).getOrgnlMsgId().getMsgNmId().split("/")[0]
 					.equals(DocType.pacs_008_001_08.toString())) {
 
 				if (!userReference.equals("")) {
-					ipsDao.updateIPSXStatusResponseRJCT(orglMsgIDCamt025, stsDescCamt025, msgIDCamt025,
+					if(stsCodeCamt025.equals("ERRC")) {
+					ipsDao.updateIPSXStatusResponseRJCT(orglMsgIDCamt025, stsDescCamt025.replace("\n", "-").replace("\r", "-"), msgIDCamt025,
 							TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 							TranMonitorStatus.RJCT.toString(), stsCodeCamt025,"camt.025.001.05");
+					}
 				}
 
+			}else{
+				
+					if(stsCodeCamt025.equals("ERRC")) {
+
+						ipsDao.updateIPSXStatusResponseRJCT(orglMsgIDCamt025, stsDescCamt025.replace("\n", "-").replace("\r", "-"), msgIDCamt025,
+								TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+								TranMonitorStatus.RJCT.toString(), stsCodeCamt025, "camt.025.001.05");
+
+
+						// if(instgId.equals(env.getProperty("ipsx.bicfi"))) {
+						ipsDao.updateIPSXStatusResponseRJCTBulkRTP(orglMsgIDCamt025, stsDescCamt025.replace("\n", "-").replace("\r", "-"), msgIDCamt025,
+								TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+								TranMonitorStatus.RJCT.toString(), stsCodeCamt025);	
+					}
+				
+				
 			} /*
 				 * else if
 				 * (docCamt_025_001_05.getRct().getRctDtls().get(0).getOrgnlMsgId().getMsgNmId()
@@ -761,12 +924,15 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String descAdmi002=docAdmi002_001_01.getAdmi00200101().getRsn().getRsnDesc();
 
 			ipsDao.insertTranIPS(orglMsgIdAdmi002, orglMsgIdAdmi002, "admi.002.001.01", "", "", codeAdmi002,
-					descAdmi002, "I", msgSender, msgReceiver, msgNetMIR, userReference);
+					descAdmi002, "I", msgSender, msgReceiver, msgNetMIR, userReference,"");
 
 			ipsDao.updateIPSXStatusResponseRJCT(orglMsgIdAdmi002, descAdmi002, orglMsgIdAdmi002,
-					TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+					TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 					TranMonitorStatus.RJCT.toString(), codeAdmi002,"admi.002.001.01");
 
+			ipsDao.updateIPSXStatusResponseRJCTBulkRTP(orglMsgIdAdmi002, descAdmi002, orglMsgIdAdmi002,
+					TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+					TranMonitorStatus.RJCT.toString(), codeAdmi002);
 			break;
 			
 		case "camt.019.001.07":
@@ -778,7 +944,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String orglMsgIdCamt019 = docCamt019_001_07.getRtrBizDayInf().getMsgHdr().getMsgId();
 
 			ipsDao.insertTranIPS(orglMsgIdCamt019, orglMsgIdCamt019, "camt.019.001.07", "", "", "",
-					"", "I", msgSender, msgReceiver, msgNetMIR, userReference);
+					"", "I", msgSender, msgReceiver, msgNetMIR, userReference,"");
 
 
 			break;
@@ -795,7 +961,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String msgIDCamt052 = docCamt052_001_08.getBkToCstmrAcctRpt().getGrpHdr().getMsgId();
 
 			ipsDao.insertTranIPS(orglMsgIDCamt052, msgIDCamt052, "camt.052.001.08", "", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference);
+					msgReceiver, msgNetMIR, userReference,"");
 
 			ipsDao.registerNetStatRecord(docCamt052_001_08);
 
@@ -812,7 +978,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String msgIDCamt053 = docCamt053_001_08.getBkToCstmrStmt().getGrpHdr().getMsgId();
 
 			ipsDao.insertTranIPS(orglMsgIDCamt053, msgIDCamt053, "camt.053.001.08", "", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference);
+					msgReceiver, msgNetMIR, userReference,"");
 
 			ipsDao.registerCamt53Record(docCamt053_001_08);
 			// ipsDao.registerNetStatRecord(docCamt052_001_08);
@@ -826,7 +992,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String ipsxMsgID11 = docsCamt010_001_08.getRtrLmt().getMsgHdr().getMsgId();
 
 			ipsDao.insertTranIPS(ipsxMsgID11, ipsxMsgID11, "camt.010.001.08", "", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference);
+					msgReceiver, msgNetMIR, userReference,"");
 
 			if (docsCamt010_001_08.getRtrLmt().getMsgHdr().getOrgnlBizQry().getMsgNmId().equals("camt.009.001.07")) {
 				ipsDao.updateSettlementLimitReportStatus(docsCamt010_001_08);
@@ -870,6 +1036,16 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					.map(com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61::getFinInstnId)
 					.map(com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181::getBICFI).orElse("");
 			
+			if(debtorAgentPain001.equals("")) {
+				debtorAgentPain001 = Optional.ofNullable(docPain001_001_09)
+						.map(com.bornfire.jaxb.pain_001_001_09.Document::getCstmrCdtTrfInitn)
+						.map(com.bornfire.jaxb.pain_001_001_09.CustomerCreditTransferInitiationV09::getPmtInf)
+						.map(com.bornfire.jaxb.pain_001_001_09.PaymentInstruction301::getDbtrAgt)
+						.map(com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61::getFinInstnId)
+						.map(com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181::getClrSysMmbId)
+						.map(com.bornfire.jaxb.pain_001_001_09.ClearingSystemMemberIdentification21::getMmbId).orElse("");
+				
+			}
 			String debtorAgentAccPain001 = Optional.ofNullable(docPain001_001_09)
 					.map(com.bornfire.jaxb.pain_001_001_09.Document::getCstmrCdtTrfInitn)
 					.map(com.bornfire.jaxb.pain_001_001_09.CustomerCreditTransferInitiationV09::getPmtInf)
@@ -886,6 +1062,18 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					.map(com.bornfire.jaxb.pain_001_001_09.CreditTransferTransaction341::getCdtrAgt)
 					.map(com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61::getFinInstnId)
 					.map(com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181::getBICFI).orElse("");
+			
+			if(creditorAgentPain001.equals("")) {
+				creditorAgentPain001 = Optional.ofNullable(docPain001_001_09)
+						.map(com.bornfire.jaxb.pain_001_001_09.Document::getCstmrCdtTrfInitn)
+						.map(com.bornfire.jaxb.pain_001_001_09.CustomerCreditTransferInitiationV09::getPmtInf)
+						.map(com.bornfire.jaxb.pain_001_001_09.PaymentInstruction301::getCdtTrfTxInf)
+						.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+						.map(com.bornfire.jaxb.pain_001_001_09.CreditTransferTransaction341::getCdtrAgt)
+						.map(com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61::getFinInstnId)
+						.map(com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181::getClrSysMmbId)
+						.map(com.bornfire.jaxb.pain_001_001_09.ClearingSystemMemberIdentification21::getMmbId).orElse("");
+			}
 			
 			String creditorAgentAccPain001 = Optional.ofNullable(docPain001_001_09)
 					.map(com.bornfire.jaxb.pain_001_001_09.Document::getCstmrCdtTrfInitn)
@@ -906,6 +1094,18 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					.map(com.bornfire.jaxb.pain_001_001_09.Party38Choice1::getOrgId)
 					.map(com.bornfire.jaxb.pain_001_001_09.OrganisationIdentification291::getAnyBIC).orElse("");
 			
+//			if (instgAgtPain001.equals("")) {
+//				instgAgtPain001 = Optional.ofNullable(docPain001_001_09)
+//						.map(com.bornfire.jaxb.pain_001_001_09.Document::getCstmrCdtTrfInitn)
+//						.map(com.bornfire.jaxb.pain_001_001_09.CustomerCreditTransferInitiationV09::getGrpHdr)
+//						.map(com.bornfire.jaxb.pain_001_001_09.GroupHeader851::getInitgPty)
+//						.map(com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351::getId)
+//						.map(com.bornfire.jaxb.pain_001_001_09.Party38Choice1::getOrgId)
+//						.map(com.bornfire.jaxb.pain_001_001_09.OrganisationIdentification291::getOthr)
+//						.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+//						.map(com.bornfire.jaxb.pain_001_001_09.GenericOrganisationIdentification11::getId).orElse("");
+//
+//			}
 		
 			String instdAgtPain001 = Optional.ofNullable(docPain001_001_09)
 					.map(com.bornfire.jaxb.pain_001_001_09.Document::getCstmrCdtTrfInitn)
@@ -914,6 +1114,16 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					.map(com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61::getFinInstnId)
 					.map(com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181::getBICFI).orElse("");
 			
+			if(instdAgtPain001.equals("")) {
+				instdAgtPain001 = Optional.ofNullable(docPain001_001_09)
+						.map(com.bornfire.jaxb.pain_001_001_09.Document::getCstmrCdtTrfInitn)
+						.map(com.bornfire.jaxb.pain_001_001_09.CustomerCreditTransferInitiationV09::getGrpHdr)
+						.map(com.bornfire.jaxb.pain_001_001_09.GroupHeader851::getFwdgAgt)
+						.map(com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61::getFinInstnId)
+						.map(com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181::getClrSysMmbId)
+						.map(com.bornfire.jaxb.pain_001_001_09.ClearingSystemMemberIdentification21::getMmbId).orElse("");
+				
+			}
 
 			String currency = docPain001_001_09.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getAmt()
 					.getInstdAmt().getCcy();
@@ -990,7 +1200,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 			////// Register Pain001 RTP Message
 			ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pain.001.001.09", "RTP", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference);
+					msgReceiver, msgNetMIR, userReference,endToEndID);
 			logger.info(seqUniqueID + ": Register RTP Message to table");
 
 			String stat = ipsDao.RegisterRTPMsgRecord(sysTraceNumber, bobMsgID, ipsxMsgID, seqUniqueID, creditorAccount,
@@ -1019,7 +1229,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						endToEndID, debtorAccountName,"RTP/"+othBankCode1+"/"+creditorAccount+"/"+creditorAccountName,request);
 				logger.info(seqUniqueID + ": Status Of rtp Whole " + rtpFundResponse);
 
-				if (rtpFundResponse.split(":")[0].equals("BOB0")) {
+				if (rtpFundResponse.split(":")[0].equals("CIM0")) {
 
 					ipsDao.updateCBSStatus(seqUniqueID, TranMonitorStatus.CBS_DEBIT_OK.toString(),
 							TranMonitorStatus.IN_PROGRESS.toString());
@@ -1044,7 +1254,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 								+ env.getProperty("ipsx.user") + "0001" + msgSeqPain001Pain008;
 						ipsDao.insertTranIPS(seqUniqueID, bobMsgID, "pacs.008.001.08", "", "", "", "", "O",
 								env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMirPain001Pain008,
-								"");
+								"",endToEndID);
 
 						///// Create Pacs008 Package
 						logger.info(seqUniqueID + ": Create Pacs008 package");
@@ -1155,7 +1365,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						logger.info(seqUniqueID + ": Insert Tran IPS Table pain.002.001.10");
 						ipsDao.insertTranIPS(seqUniqueID, bobMsgID, "pain.002.001.10", "", "", CreditStatusCode,
 								CreditStatusDesc, "O", env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"),
-								msgNetMirPain001Pain002, "");
+								msgNetMirPain001Pain002, "",endToEndID);
 						logger.info(seqUniqueID + ": Create  pain.002.001.10 Package");
 
 						///// Create Pain 002 Pacs
@@ -1231,30 +1441,24 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			//// Transaction Status
 			String tranStatus = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
 					.getTxSts();
-			//// Error Code
-			String tranErrorCode = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
-					.getStsRsnInf().get(0).getRsn().getPrtry();
-			//// Error Desc
-			String tranErrorDesc = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
-					.getStsRsnInf().get(0).getAddtlInf().get(0);
 			
-			String instgId=Optional.ofNullable(docPain002)
+			String endToEndIDPain002 = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
+					.getOrgnlEndToEndId();
+			
+			
+			/*String instgId=Optional.ofNullable(docPain002)
 			.map(com.bornfire.jaxb.pain_002_001_10.Document::getCstmrPmtStsRpt)
 			.map(com.bornfire.jaxb.pain_002_001_10.CustomerPaymentStatusReportV10::getGrpHdr)
 			.map(com.bornfire.jaxb.pain_002_001_10.GroupHeader861::getInitgPty)
 			.map(com.bornfire.jaxb.pain_002_001_10.PartyIdentification1351::getId)
 			.map(com.bornfire.jaxb.pain_002_001_10.Party38Choice1::getOrgId)
 			.map(com.bornfire.jaxb.pain_002_001_10.OrganisationIdentification291::getAnyBIC).orElse("");
-
+*/
 			logger.info(orglMsgID + " : Get Pain002 from IPSX");
-
 			logger.info("Transaction Status from Pain002 ,ID"
-					+ docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0).getTxSts()
-					+ " ,Status :"
-					+ docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
-							.getStsRsnInf().get(0).getAddtlInf().get(0)
-					+ " ," + docPain002.getCstmrPmtStsRpt().getGrpHdr().getMsgId());
+					+ docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0).getTxSts());
 
+			
 			
 			if (tranStatus.equals(TranMonitorStatus.ACSP.toString())) {
 
@@ -1269,16 +1473,31 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				
 				logger.info(orglMsgID + " : Insert Tran IPS Table Pain002.001.10");
 				ipsDao.insertTranIPS(orglMsgID, msgID, "pain.002.001.10", "", "ACSP", "", "", "I", msgSender,
-						msgReceiver, msgNetMIR, userReference);
+						msgReceiver, msgNetMIR, userReference,endToEndIDPain002);
 				
-				if(instgId.equals(env.getProperty("ipsx.bicfi"))) {
+				//if(instgId.equals(env.getProperty("ipsx.bicfi"))) {
 					ipsDao.updateIPSXStatusResponseACSPBulkRTP(orglMsgID, msgID,
 							TranMonitorStatus.SUCCESS.toString(), "pain.002.001.10");
-				}
+				//}
 				
 
 			} else {
+				
+				logger.info("Transaction Status from Pain002 ,ID"
+						+ docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0).getTxSts()
+						+ " ,Status :"
+						+ docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
+								.getStsRsnInf().get(0).getAddtlInf().get(0)
+						+ " ," + docPain002.getCstmrPmtStsRpt().getGrpHdr().getMsgId());
 
+				
+
+			//// Error Code
+				String tranErrorCode = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
+						.getStsRsnInf().get(0).getRsn().getPrtry();
+				//// Error Desc
+				String tranErrorDesc = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
+						.getStsRsnInf().get(0).getAddtlInf().get(0);
 				
 				logger.info(orglMsgID + " : Update IPSX response RJCT to Table");
 				//if (!userReference.equals("")) {
@@ -1289,13 +1508,13 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				
 				logger.info(orglMsgID + " : Insert Tran IPS Table Pain002.001.10");
 				ipsDao.insertTranIPS(orglMsgID, msgID, "pain.002.001.10", "", "RJCT", tranErrorCode, tranErrorDesc, "I",
-						msgSender, msgReceiver, msgNetMIR, userReference);
+						msgSender, msgReceiver, msgNetMIR, userReference,endToEndIDPain002);
 				
-				if(instgId.equals(env.getProperty("ipsx.bicfi"))) {
+				//if(instgId.equals(env.getProperty("ipsx.bicfi"))) {
 					ipsDao.updateIPSXStatusResponseRJCTBulkRTP(orglMsgID, tranErrorDesc, msgID,
 							TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 							TranMonitorStatus.RJCT.toString(), tranErrorCode);
-				}
+				//}
 
 
 			}
@@ -1404,7 +1623,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 		logger.info("Update IPSX OutMessage Initiated Status ");
 
 		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "BULK_CREDIT", "", "", "", "O",
-				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), netMsgMIR, "");
+				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), netMsgMIR, "",endToEndID);
 		ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 				TranMonitorStatus.IN_PROGRESS.toString());
 
@@ -1490,7 +1709,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 		
 		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "MANUAL", "", "", "", "O",
-				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "");
+				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndIDt);
 
 		ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 				TranMonitorStatus.IN_PROGRESS.toString());
@@ -1581,7 +1800,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 		logger.info("Update IPSX OutMessage Initiated Status ");
 
 		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "BULK_DEBIT", "", "", "", "O",
-				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "");
+				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndID);
 		ipsDao.updateBulkDebitIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 				TranMonitorStatus.IN_PROGRESS.toString());
 
@@ -1647,13 +1866,14 @@ public class IPSXClient extends WebServiceGatewaySupport {
 	}
 
 
-	/*public MCCreditTransferResponse sendBulkRTPRequst(String acctName, String acctNumber, String currencyCode,
-			String bank_agent, String bank_agent_account, String benName, String benAcctNumber, String trAmt,
-			String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID, String msgNetMir) {
+	public MCCreditTransferResponse sendBulkRTPRequst(String acctName, String acctNumber, String currencyCode,
+			String benName, String benAcctNumber, String trAmt,
+			String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID, String msgNetMir,String cryptogram,
+			String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,String lclInstr,String ctgyPurp) {
 		
 	        ///// update IPS TranIPS Table
 			ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pain.001.001.09", "BULK_RTP", "", "", "", "O",
-					env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "");
+					env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endTOEndID);
 
 			logger.info("Update IPSX OutMessage Initiated Status ");
 			ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
@@ -1664,8 +1884,10 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			logger.info("Creating pain.001.001.09 message");
 			SendT sendRequest = new SendT();
 			sendRequest.setMessage(paramMTMsgs.getRTPParamMTmsgPain001(DocType.pain_001_001_09.getDocs(),sendRequest, acctName, acctNumber,  currencyCode,
-					 bank_agent,  bank_agent_account,  benName,  benAcctNumber,  trAmt,
-					 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir));
+					 benName,  benAcctNumber,  trAmt,
+					 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir,cryptogram,
+					 instgAgent,instdAgent,debtorAgent,
+						debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp));
 
 			com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
 			JAXBElement<SendT> jaxbElement = obj.createSend(sendRequest);
@@ -1726,10 +1948,10 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			}
 
 		return null;
-	}*/
+	}
 	
 	
-	public MCCreditTransferResponse sendBulkRTPRequst(String acctName, String acctNumber, String currencyCode,
+	/*public MCCreditTransferResponse sendBulkRTPRequst(String acctName, String acctNumber, String currencyCode,
 			String bank_agent, String bank_agent_account, String benName, String benAcctNumber, String trAmt,
 			String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID, String msgNetMir) {
 		
@@ -1780,356 +2002,6 @@ public class IPSXClient extends WebServiceGatewaySupport {
 		return null;
 	}
 	
-	
-	public void Sample(SendT request,String seqUniqueID) {
-		logger.info("Start processing Incoming messages from IPSX" + request.getMessage().getMsgType());
-		//// Get Message Sender from IPSX
-		String msgSender = request.getMessage().getMsgSender();
-		//// Get Message Receiver from IPSX
-		String msgReceiver = request.getMessage().getMsgReceiver();
+*/	
 
-		String msgNetMIR = request.getMessage().getMsgNetMir();
-		String userReference = request.getMessage().getMsgUserReference();
-		
-			logger.info("Processing  pacs.008.001.08 received from IPSX");
-
-			///// Pacs.008 document from IPSX
-			Document doc008 = docPacs.getPacs_008_001_01UnMarshalDoc(request);
-
-			///// Generate System Trace Audit Number
-			String sysTraceNumber008 = sequence.generateSystemTraceAuditNumber();
-			///// Generate Bob Msg ID
-			String bobMsgID008 = sequence.generateSeqUniqueID();
-
-			///// Get Orgl Msg ID from IPSX
-			String ipsxMsgID008 = doc008.getFIToFICstmrCdtTrf().getGrpHdr().getMsgId();
-			String seqUniqueID008 = ipsxMsgID008;
-
-			List<CreditTransferTransaction391> cdtTrfTxInf = Optional.ofNullable(doc008)
-					.map(Document::getFIToFICstmrCdtTrf).map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf).get();
-
-			String debtorAccount008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
-					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
-					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
-					.map(CreditTransferTransaction391::getDbtrAcct).map(CashAccount381::getId)
-					.map(AccountIdentification4Choice1::getOthr).map(GenericAccountIdentification11::getId).orElse("");
-
-			String debtorAccountName008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
-					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
-					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
-					.map(CreditTransferTransaction391::getDbtr).map(PartyIdentification1351::getNm).orElse("");
-
-			String creditorAccount008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
-					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
-					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
-					.map(CreditTransferTransaction391::getCdtrAcct).map(CashAccount381::getId)
-					.map(AccountIdentification4Choice1::getOthr).map(GenericAccountIdentification11::getId).orElse("");
-
-			String creditorAccountName008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
-					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
-					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
-					.map(CreditTransferTransaction391::getCdtr).map(PartyIdentification1351::getNm).orElse("");
-
-			BigDecimal trAmount008 = doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getIntrBkSttlmAmt()
-					.getValue();
-			String trCurrency008 = doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getIntrBkSttlmAmt().getCcy();
-			String endToEndID008 = doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtId().getEndToEndId();
-			
-			String instgAgtPacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId().getBICFI();
-
-			String instdAgtPacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstdAgt().getFinInstnId().getBICFI();
-
-			String tran_type_code008 = doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtTpInf().getCtgyPurp()
-					.getPrtry();
-
-			String debtorAgent008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
-					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
-					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
-					.map(CreditTransferTransaction391::getDbtrAgt)
-					.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
-					.map(FinancialInstitutionIdentification181::getBICFI).orElse("");
-			
-			
-			String debtorAgentAcc008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
-					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
-					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
-					.map(CreditTransferTransaction391::getDbtrAgtAcct)
-					.map(CashAccount381::getId)
-					.map(AccountIdentification4Choice1::getOthr)
-					.map(GenericAccountIdentification11::getId).orElse("");
-			
-			String creditorAgent008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
-					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
-					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
-					.map(CreditTransferTransaction391::getCdtrAgt)
-					.map(BranchAndFinancialInstitutionIdentification61::getFinInstnId)
-					.map(FinancialInstitutionIdentification181::getBICFI).orElse("");
-			
-			String creditorAgentAcc008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
-					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
-					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
-					.map(CreditTransferTransaction391::getCdtrAgtAcct)
-					.map(CashAccount381::getId)
-					.map(AccountIdentification4Choice1::getOthr)
-					.map(GenericAccountIdentification11::getId).orElse("");
-
-			String instr_id_pacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtId().getInstrId();
-			
-			String svc_lcl_pacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtTpInf().getSvcLvl().get(0)
-					.getPrtry();
-			
-			String lcl_instrm_pacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtTpInf().getLclInstrm()
-					.getPrtry();
-			
-			String ctgy_purp_pacs008=doc008.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getPmtTpInf().getCtgyPurp()
-					.getPrtry();
-
-
-			///// Get Bank Code
-			String othBankCode = ipsDao.getOtherBankCode(instgAgtPacs008);
-
-			logger.info("System Trace Audit Number" + sysTraceNumber008);
-			logger.info("Sequence Unique ID" + seqUniqueID008);
-			logger.info("BOB Message ID" + bobMsgID008);
-			logger.info("IPS Message ID" + ipsxMsgID008);
-
-			///// Update Tran IPS Table
-			logger.info(seqUniqueID008 + " :Register Initial Incoming Fund Transfer Record to table");
-			ipsDao.insertTranIPS(seqUniqueID008, seqUniqueID008, "pacs.008.001.08", "INCOMING", "", "", "", "I",
-					msgSender, msgReceiver, msgNetMIR, userReference);
-			///// Register InComing Message
-			String status = ipsDao.RegisterInMsgRecord(sysTraceNumber008, bobMsgID008, ipsxMsgID008, seqUniqueID008,
-					debtorAccount008, creditorAccount008, trAmount008, trCurrency008,
-					TranMonitorStatus.INITIATED.toString(), endToEndID008, debtorAccountName008, creditorAccountName008,
-					tran_type_code008, othBankCode,instgAgtPacs008,instdAgtPacs008,instr_id_pacs008,svc_lcl_pacs008,lcl_instrm_pacs008,
-					ctgy_purp_pacs008,debtorAgent008,debtorAgentAcc008,creditorAgent008,creditorAgentAcc008);
-
-			String CreditStatusType = null;
-			String CreditStatusCode = null;
-			String CreditStatusDesc = null;
-
-			logger.info(seqUniqueID008 + " :Table Update Status" + status);
-			
-			List<TranIPSTable> listTranTR = tranIPSTableRep.getCustomResult(seqUniqueID008);
-
-
-			///// Calling Connect 24 and Validation
-				String responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,
-						trAmount008.toString(), trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
-						debtorAccount008,debtorAccountName008,instgAgtPacs008);
-
-				if (responseIncomeMsg.split(":")[0].equals("BOB0")) {
-					logger.info(seqUniqueID008 + " :Connect24 Processed Successfully");
-					logger.info(seqUniqueID008 + " :Update CBS Credit OK Status to Table");
-
-					CreditStatusType = TranMonitorStatus.ACSP.toString();
-					ipsDao.updateCBSStatus(seqUniqueID008, TranMonitorStatus.CBS_CREDIT_OK.toString(),
-							TranMonitorStatus.IN_PROGRESS.toString());
-
-				} else {
-
-					logger.info(seqUniqueID008 + " :Connect24 Process Failed");
-					logger.info(seqUniqueID008 + " :Update CBS Credit Error Status to Table");
-
-					CreditStatusType = TranMonitorStatus.RJCT.toString();
-
-					CreditStatusDesc = responseIncomeMsg.split(":")[1];
-					CreditStatusCode = responseIncomeMsg.split(":")[0];
-					
-					ipsDao.updateCBSStatusError(seqUniqueID008,
-							TranMonitorStatus.CBS_CREDIT_ERROR.toString(),
-							CreditStatusDesc,
-							TranMonitorStatus.FAILURE.toString());
-
-				}
-
-				
-				try {
-					
-					List<TranIPSTable> list = tranIPSTableRep.getCustomResult(seqUniqueID008);
-
-					if (list.size() > 0) {
-						if (list.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
-							ipsDao.updateIPSXStatusResponseRJCT(list.get(0).getSequence_unique_id(),
-									list.get(0).getResponse_error_desc(), list.get(0).getMsg_id(),
-									TranMonitorStatus.IN_PROGRESS.toString(),
-									TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
-									list.get(0).getResponse_status(), list.get(0).getResponse_error_code(),"pacs.008.001.08");
-						}
-
-					}else {
-						
-					    //// Out Message Sequence
-						String msgSeqPacs002 = sequence.generateMsgSequence();
-						//// Out MsgNetMir
-						String msgOutPacs002NteMIR = new SimpleDateFormat("yyMMdd").format(new Date())
-								+ env.getProperty("ipsx.user") + "0001" + msgSeqPacs002;
-
-						///// Create Pacs.002 Package
-						//SendT sendRequest008 = new SendT();
-						logger.info(seqUniqueID008 + " :Creating pacs.002.001.10 msg from response pacs.008.001.08");
-						
-						
-						//sendRequest008.setMessage(paramMTMsgs.getParamMTmsgPacs002(DocType.pacs_002_001_10.getDocs(), request,
-						//		bobMsgID008, CreditStatusType, CreditStatusCode, CreditStatusDesc, msgSeqPacs002));
-
-						logger.info(seqUniqueID008 + " :Creating pacs.002.001.10 msg from response pacs.008.001.08");
-						logger.info(seqUniqueID008 + " OKKK");
-
-						ipsDao.insertTranIPS(seqUniqueID008, bobMsgID008, "pacs.002.001.10", "", "", "", "", "O",
-								env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgOutPacs002NteMIR, "");
-						logger.info(seqUniqueID008 + " OKKK");
-
-						///// Send Pacs.002 Pacs to IPSX
-					//	com.bornfire.jaxb.wsdl.ObjectFactory obj008 = new com.bornfire.jaxb.wsdl.ObjectFactory();
-					//	JAXBElement<SendT> jaxbElement008 = obj008.createSend(sendRequest008);
-						logger.info(seqUniqueID008 + " OKKK1");
-						JAXBElement<SendResponse> response008 = null;
-						
-						List<TranIPSTable> listNex = tranIPSTableRep.getCustomResult(seqUniqueID008);
-						logger.info(seqUniqueID008 + " OKKK3");
-						if (listNex.size() > 0) {
-							if (listNex.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
-								ipsDao.updateIPSXStatusResponseRJCT(listNex.get(0).getSequence_unique_id(),
-										listNex.get(0).getResponse_error_desc(), listNex.get(0).getMsg_id(),
-										TranMonitorStatus.IN_PROGRESS.toString(),
-										TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
-										listNex.get(0).getResponse_status(), listNex.get(0).getResponse_error_code(),"pacs.008.001.08");
-							}
-
-						}else {
-							//response008 = (JAXBElement<SendResponse>) getWebServiceTemplate().marshalSendAndReceive(jaxbElement008);
-
-							/*logger.info(
-									seqUniqueID008 + " :Getting ACK/NAK" + response008.getValue().getData().getType().toString());
-							*/
-							logger.info(seqUniqueID008 + " OKKK5");
-							ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_ACK_RECEIVED.toString(),
-									TranMonitorStatus.IN_PROGRESS.toString());
-							
-							String NetMIR = endToEndID008;
-							String UserRef = endToEndID008;
-							logger.info(seqUniqueID008 + " OKKK5");
-
-							ipsDao.updateTranIPSACK(seqUniqueID008, bobMsgID008, "O", "SUCCESS", NetMIR, UserRef);
-
-							logger.info(seqUniqueID008 + " :update IN Message ACK to Table");
-
-//ipsDao.updateIPSXStatusResponseACSP(orglMsgID, msgID, TranMonitorStatus.SUCCESS.toString(),"pain.002.001.10");
-							
-							
-							//ipsDao.insertTranIPS(orglMsgID, msgID, "pain.002.001.10", "", "ACSP", "", "", "I", msgSender,
-								//	msgReceiver, msgNetMIR, userReference);
-							
-								ipsDao.updateIPSXStatusResponseACSPBulkRTP(seqUniqueID, bobMsgID008,
-										TranMonitorStatus.SUCCESS.toString(), "pain.002.001.10");
-							
-							
-
-							///// Get ACK,NAK Msg from IPSX
-							/*if (response008.getValue().getData().getType().toString().equals("ACK")) {
-
-								ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_ACK_RECEIVED.toString(),
-										TranMonitorStatus.IN_PROGRESS.toString());
-								
-								String NetMIR = response008.getValue().getData().getMir();
-								String UserRef = response008.getValue().getData().getRef();
-
-								ipsDao.updateTranIPSACK(seqUniqueID008, bobMsgID008, "O", "SUCCESS", NetMIR, UserRef);
-
-								logger.info(seqUniqueID008 + " :update IN Message ACK to Table");
-
-								if (CreditStatusType.equals(TranMonitorStatus.ACSP.toString())) {
-								
-									
-									List<TranIPSTable> listtyp = tranIPSTableRep.getCustomResult(seqUniqueID008);
-
-									if (listtyp.size() > 0) {
-										if (listtyp.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
-											ipsDao.updateIPSXStatusResponseRJCT(listtyp.get(0).getSequence_unique_id(),
-													listtyp.get(0).getResponse_error_desc(), listtyp.get(0).getMsg_id(),
-													TranMonitorStatus.IN_PROGRESS.toString(),
-													TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
-													listtyp.get(0).getResponse_status(), listtyp.get(0).getResponse_error_code(),"pacs.008.001.08");
-										}
-
-									}
-
-									
-								} else {
-									ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_ACK_RECEIVED.toString(),
-											TranMonitorStatus.FAILURE.toString());
-
-								}
-
-								// ipsDao.reverseCreditOKAccount(seqUniqueID008);
-							} else {
-								String NetMIR = response008.getValue().getData().getMir();
-								String UserRef = response008.getValue().getData().getRef();
-								String error=response008.getValue().getData().getDescription();
-
-								ipsDao.updateTranIPSACK(seqUniqueID008, bobMsgID008, "O", "FAILURE", NetMIR, UserRef);
-
-								logger.info(seqUniqueID008 + " :update IN Message NAK to Table");
-
-								if (CreditStatusType.equals(TranMonitorStatus.ACSP.toString())) {
-									ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_NAK_RECEICED.toString(),
-											TranMonitorStatus.IN_PROGRESS.toString());
-
-									taskExecutor.execute(new Runnable() {
-										@Override
-										public void run() {
-											logger.info(seqUniqueID008 + " :update CBS credit reverse to Table");
-
-											logger.info(seqUniqueID008 + " :Calling Connect24 For Reverse Fund Transfer");
-											connect24Service.cdtReverseFundRequest(creditorAccount008, trAmount008.toString(),
-													trCurrency008, sequence.generateSystemTraceAuditNumber(), seqUniqueID008,"RT/"+error);
-										}
-									});
-
-								} else {
-									ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_NAK_RECEICED.toString(),
-											TranMonitorStatus.FAILURE.toString());
-								}
-
-							}*/
-							
-							
-							
-							
-							
-							
-						}
-					
-					}
-					
-				} catch (Exception e) {
-
-					if (CreditStatusType.equals(TranMonitorStatus.ACSP.toString())) {
-
-						ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
-								TranMonitorStatus.IN_PROGRESS.toString());
-
-						taskExecutor.execute(new Runnable() {
-							@Override
-							public void run() {
-								ipsDao.updateIPSXStatusResponseRJCT(seqUniqueID008,
-										TranMonitorStatus.IPSX_NOT_CONNECTED.toString(), ipsxMsgID008,
-										TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_ERROR.toString(),
-										"", SERVER_ERROR_CODE,"pacs.008.001.08");
-
-							}
-						});
-
-					} else {
-						ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
-								TranMonitorStatus.FAILURE.toString());
-					}
-
-					logger.info(e.getLocalizedMessage());
-				}
-			
-			
-
-	}
 }

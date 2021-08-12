@@ -46,6 +46,8 @@ public class ConsentOutwardAccessTable {
 	private String del_user;
 	private Date del_time;
 	private String del_flg;
+	private String private_key;
+	private String custom_device_id;
 	
 	
 	
@@ -245,6 +247,18 @@ public class ConsentOutwardAccessTable {
 	}
 	public void setDel_flg(String del_flg) {
 		this.del_flg = del_flg;
+	}
+	public String getPrivate_key() {
+		return private_key;
+	}
+	public void setPrivate_key(String private_key) {
+		this.private_key = private_key;
+	}
+	public String getCustom_device_id() {
+		return custom_device_id;
+	}
+	public void setCustom_device_id(String custom_device_id) {
+		this.custom_device_id = custom_device_id;
 	}
 	
 	

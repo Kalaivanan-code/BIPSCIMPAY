@@ -28,6 +28,7 @@ public class TranIPSTable  implements Serializable{
 	private String msg_receiver;
 	private String net_mir;
 	private String user_ref;
+	private String end_end_id;
 	
 	public String getSequence_unique_id() {
 		return sequence_unique_id;
@@ -112,6 +113,12 @@ public class TranIPSTable  implements Serializable{
 	}
 	public void setUser_ref(String user_ref) {
 		this.user_ref = user_ref;
+	}
+	public String getEnd_end_id() {
+		return end_end_id;
+	}
+	public void setEnd_end_id(String end_end_id) {
+		this.end_end_id = end_end_id;
 	}
 	
 	

@@ -64,6 +64,8 @@ import com.bornfire.entity.ConsentAccountBalance;
 import com.bornfire.entity.ConsentOutwardAccessAuthRequest;
 import com.bornfire.entity.ConsentOutwardAccessAuthResponse;
 import com.bornfire.entity.ConsentOutwardAccessRequest;
+import com.bornfire.entity.ConsentOutwardAccessTable;
+import com.bornfire.entity.ConsentOutwardAccessTableRep;
 import com.bornfire.entity.ConsentRequest;
 import com.bornfire.entity.ConsentResponse;
 import com.bornfire.entity.IPSChargesAndFeesRep;
@@ -89,6 +91,7 @@ import com.bornfire.entity.WalletBalanceResponse;
 import com.bornfire.entity.WalletFndTransferRequest;
 import com.bornfire.entity.WalletFndTransferResponse;
 import com.bornfire.entity.WalletStatementResponse;
+import com.bornfire.exception.ErrorRestResponse;
 import com.bornfire.exception.FieldValidation;
 import com.bornfire.exception.IPSXException;
 import com.bornfire.jaxb.wsdl.SendT;
@@ -147,6 +150,10 @@ public class IPSRestController {
 	
 	@Autowired
 	AsyncService async;
+	
+
+	@Autowired
+	ConsentOutwardAccessTableRep consentOutwardAccessTableRep;
 
 	/* Credit Fund Transfer Initiated from MConnect Application */
 	/* MConnect Initiate the request */
@@ -159,7 +166,7 @@ public class IPSRestController {
 			@RequestHeader(value = "Participant_BIC", required = false) String senderParticipantBIC,
 			@RequestHeader(value = "Participant_SOL", required = false) String participantSOL,
 			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
-			@RequestHeader(value = "PSU_Resv_Field1", required = true) String resvfield1,
+			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
 			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
 			@Valid @RequestBody CIMCreditTransferRequest mcCreditTransferRequest)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
@@ -462,7 +469,7 @@ public class IPSRestController {
 	}
 
 	///// MYT Consent Registration
-	@PostMapping(path = "/mvc/0/public-service/accounts-consentsexx", produces = "application/json;charset=utf-8", consumes = "application/json")
+	@PostMapping(path = "/mvc/0/public-service/accounts-consents", produces = "application/json;charset=utf-8", consumes = "application/json")
 	public ResponseEntity<ConsentAccessResponse> registerConsentAccess(
 			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
 			@RequestHeader(value = "SenderParticipant-BIC", required = false) String sender_participant_bic,
@@ -922,14 +929,34 @@ public class IPSRestController {
 				@RequestHeader(value = "PSU-ID", required = true) String psuID,
 				@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 				@RequestHeader(value = "PSU-ID-Type", required = true)String psuIDType,
-				@RequestBody ConsentOutwardAccessRequest consentOutwardAccessRequest) throws NoSuchAlgorithmException {
+				@Valid @RequestBody ConsentOutwardAccessRequest consentOutwardAccessRequest) throws Exception {
 
 			logger.debug("Calling Outward Consent Access");
 
-			McConsentOutwardAccessResponse response = ipsConnection.outwardConsentAccess(x_request_id, psuDeviceID,
-					psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessRequest);
+			logger.debug("Calling Credit Transfer Connection flow Starts");
+			if(ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
+				if(!ipsDao.invalidBankCode(consentOutwardAccessRequest.getBankCode())) {
 
-			return new ResponseEntity<McConsentOutwardAccessResponse>(response, HttpStatus.OK);
+					if(!ipsDao.existDocType(psuIDType)) {
+						McConsentOutwardAccessResponse response = ipsConnection.outwardConsentAccess(x_request_id, psuDeviceID,
+								psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessRequest);
+
+						return new ResponseEntity<McConsentOutwardAccessResponse>(response, HttpStatus.OK);
+					}else {
+						String responseStatus = errorCode.validationError("BIPS16");
+						throw new IPSXException(responseStatus);
+					}
+					
+				}else {
+					String responseStatus = errorCode.validationError("BIPS10");
+					throw new IPSXException(responseStatus);
+				}
+			}else{
+				String responseStatus = errorCode.validationError("BIPS13");
+				throw new IPSXException(responseStatus);
+			}
+			
+		
 		}
 		
 	//// Bank Account Authorisation
@@ -943,19 +970,25 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
-			@RequestBody ConsentOutwardAccessAuthRequest consentOutwardAccessAuthRequest) throws NoSuchAlgorithmException {
+			@RequestBody ConsentOutwardAccessAuthRequest consentOutwardAccessAuthRequest) throws NoSuchAlgorithmException, Exception {
 
 		logger.debug("Calling Outward Consent Access Authorisation");
 
-		ConsentOutwardAccessAuthResponse response = ipsConnection.outwardConsentAccessSCAAuth(x_request_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessAuthRequest,consentID,authID);
+		if(ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
+			ConsentOutwardAccessAuthResponse response = ipsConnection.outwardConsentAccessSCAAuth(x_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessAuthRequest,consentID,authID);
 
-		return new ResponseEntity<ConsentOutwardAccessAuthResponse>(response, HttpStatus.OK);
+			return new ResponseEntity<ConsentOutwardAccessAuthResponse>(response, HttpStatus.OK);
+		}else{
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+
 	}
 	
     ////Delete Bank Access
 	@DeleteMapping(path = "/api/ws/accounts-consents/{consentID}", produces = "application/json;charset=utf-8", consumes = "application/json")
-	public ResponseEntity<String> outwardDeleteAccountsConsents(
+	public ResponseEntity<ErrorRestResponse> outwardDeleteAccountsConsents(
 			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
 			@PathVariable(value = "consentID", required = true) String consentID,
 			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
@@ -964,12 +997,17 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType) throws NoSuchAlgorithmException {
 
-		logger.debug("Calling Outward Consent Access Authorisation");
+		logger.debug("Calling Outward Consent Delete");
+		if(ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
+			ErrorRestResponse response = ipsConnection.outwardDeleteConsentAccess(x_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType,consentID);
 
-		String response = ipsConnection.outwardDeleteConsentAccess(x_request_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID);
-
-		return new ResponseEntity<String>(response, HttpStatus.OK);
+			return new ResponseEntity<ErrorRestResponse>(response, HttpStatus.OK);
+		}else{
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+		
 	}
 	
     ////Read Balances
@@ -982,14 +1020,21 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
-			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws NoSuchAlgorithmException {
+			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws Exception {
 
 		logger.debug("Calling Outward Consent Access Balance Inquiry");
 
-		ConsentAccountBalance response = ipsConnection.outwardConsentAccessBalances(x_request_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID,accountID);
+		if(ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
+			ConsentAccountBalance response = ipsConnection.outwardConsentAccessBalances(x_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType,consentID,accountID);
 
-		return new ResponseEntity<ConsentAccountBalance>(response, HttpStatus.OK);
+			
+			return new ResponseEntity<ConsentAccountBalance>(response, HttpStatus.OK);
+		}else{
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+		
 	}
 	
     ////Read Transaction Inquiry
@@ -1004,14 +1049,20 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
 			@RequestHeader(value = "Consent-ID", required = true) String consentID,
 			@RequestParam(value="fromBookingDateTime",required=false)String fromBookingDateTime,
-			@RequestParam(value="toBookingDateTime",required=false)String toBookingDateTime) throws NoSuchAlgorithmException {
+			@RequestParam(value="toBookingDateTime",required=false)String toBookingDateTime) throws Exception {
 
 		logger.debug("Calling Outward Consent Access Transaction Inquiry");
 
-		TransactionListResponse response = ipsConnection.outwardConsentAccessTransactionInc(x_request_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID,accountID,fromBookingDateTime,toBookingDateTime);
+		if(ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
+			TransactionListResponse response = ipsConnection.outwardConsentAccessTransactionInc(x_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType,consentID,accountID,fromBookingDateTime,toBookingDateTime);
 
-		return new ResponseEntity<TransactionListResponse>(response, HttpStatus.OK);
+			return new ResponseEntity<TransactionListResponse>(response, HttpStatus.OK);
+		}else{
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+		
 	}
 	
     ////Read Accounts List Inquiry
@@ -1023,50 +1074,66 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
-			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws NoSuchAlgorithmException {
+			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws Exception {
 
 		logger.debug("Calling Outward Consent Access Account List Inquiry");
 
-		AccountListResponse response = ipsConnection.outwardConsentAccessAccountListInc(x_request_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID);
+		if(ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
+			AccountListResponse response = ipsConnection.outwardConsentAccessAccountListInc(x_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType,consentID);
 
-		return new ResponseEntity<AccountListResponse>(response, HttpStatus.OK);
+			return new ResponseEntity<AccountListResponse>(response, HttpStatus.OK);
+		}else{
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+		
 	}
 	
     ////Read Accounts List Inquiry
 	@GetMapping(path = "/api/ws/accounts/{AccountId}", produces = "application/json;charset=utf-8", consumes = "application/json")
 	public ResponseEntity<AccountsListAccounts> outwardAccountsConsentsAccountsInd(
 			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
-			@PathVariable(value="AcountId",required=true)String accountID,
+			@PathVariable(value="AccountId",required=true)String accountID,
 			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
 			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
-			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws NoSuchAlgorithmException {
+			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws Exception {
 
 		logger.debug("Calling Outward Consent Access Account Inquiry");
 
-		AccountsListAccounts response = ipsConnection.outwardConsentAccessAccountInc(x_request_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType,consentID,accountID);
+		if(ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
+			AccountsListAccounts response = ipsConnection.outwardConsentAccessAccountInc(x_request_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType,consentID,accountID);
 
-		return new ResponseEntity<AccountsListAccounts>(response, HttpStatus.OK);
+			return new ResponseEntity<AccountsListAccounts>(response, HttpStatus.OK);
+		}else{
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+		
 	}
 	
 	/* Credit Fund Transfer Initiated from MConnect Application */
 	/* MConnect Initiate the request */
-	/*@PostMapping(path = "/api/ws/bulkRTPTransfer", produces = "application/json", consumes = "application/json")
+	@PostMapping(path = "/api/ws/bulkRTPTransfer", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<RTPbulkTransferResponse> bulkRTPTransfer(
-			@RequestHeader(value = "P_ID", required = true) String p_id,
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "P_ID", required = true)@NotEmpty(message="Required")String p_id ,
+			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message="Required")String psuDeviceID,
 			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
 			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestBody RTPbulkTransferRequest rtpBulkTransferRequest)
+			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@Valid @RequestBody RTPbulkTransferRequest rtpBulkTransferRequest)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 
-		logger.info("Service Bulk RTP Starts"+p_id);
-
+		
+		logger.info("Service Bulk RTP Starts :"+p_id);
+		
 		RTPbulkTransferResponse response = null;
 
 		logger.info("Calling Bulk RTP Credit Transfer Connection flow Starts");
@@ -1078,11 +1145,27 @@ public class IPSRestController {
 		
 		logger.info("RTP Bulk Request->"+rtpBulkTransferRequest);
 		
-		response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID, rtpBulkTransferRequest,p_id);
-
+		if(ipsDao.invalidP_ID(p_id)) {
+			//if(!ipsDao.invalidBankCode(rtpBulkTransferRequest.getBenAccount().get(0))) {
+				List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
+						.getAccountNumber(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
+				if(regAccList.size()>0) {
+					response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID, rtpBulkTransferRequest,p_id,channelID,resvfield1,resvfield2);
+				}else {
+					String responseStatus = errorCode.validationError("BIPS15");
+					throw new IPSXException(responseStatus);
+				}
+			/*}else {
+				String responseStatus = errorCode.validationError("BIPS10");
+				throw new IPSXException(responseStatus);
+			}*/
+		}else{
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+		
 		return new ResponseEntity<>(response, HttpStatus.OK);
-	}*/
-
+	}
 
 	@RequestMapping(value = "/testAsynch", method = RequestMethod.GET)
 	public String  testAsynch() throws InterruptedException, ExecutionException 
@@ -1105,50 +1188,7 @@ public class IPSRestController {
     }
 	
 	
-	/* Credit Fund Transfer Initiated from MConnect Application */
-	/* MConnect Initiate the request */
-	@PostMapping(path = "/api/ws/bulkRTPTransfer", produces = "application/json", consumes = "application/json")
-	public ResponseEntity<RTPbulkTransferResponse> bulkRTPTransfer1(
-			@RequestHeader(value = "P_ID", required = true)@NotEmpty(message="Required")String p_id ,
-			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message="Required")String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
-			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
-			@RequestHeader(value = "PSU_Resv_Field1", required = true) String resvfield1,
-			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
-			@Valid @RequestBody RTPbulkTransferRequest rtpBulkTransferRequest)
-			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
-			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
-
-		
-		logger.info("Service Bulk RTP Starts :"+p_id);
-		
-		RTPbulkTransferResponse response = null;
-
-		logger.info("Calling Bulk RTP Credit Transfer Connection flow Starts");
-		
-		logger.info("PID:"+p_id);
-		logger.info("PSU_Device_ID:"+psuDeviceID);
-		logger.info("PSU_IP_Address:"+psuIpAddress);
-		logger.info("PSU_ID:"+psuID);
-		
-		logger.info("RTP Bulk Request->"+rtpBulkTransferRequest);
-		
-		if(ipsDao.invalidP_ID(p_id)) {
-			if(!ipsDao.invalidBankCode(rtpBulkTransferRequest.getRemitterAccount().getBankCode())) {
-				response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID, rtpBulkTransferRequest,p_id,channelID,resvfield1,resvfield2);
-			}else {
-				String responseStatus = errorCode.validationError("BIPS10");
-				throw new IPSXException(responseStatus);
-			}
-		}else{
-			String responseStatus = errorCode.validationError("BIPS13");
-			throw new IPSXException(responseStatus);
-		}
-		
-		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
-
+	
 	
 	
 	@GetMapping(path = "/api/ws/TestData", produces = "application/json;charset=utf-8")
@@ -1157,9 +1197,9 @@ public class IPSRestController {
 		logger.debug("Calling Outward Consent Access Account Inquiry");
 
 		
-		 ipsConnection.incomingFundTransferConnection1("GAL2129026", "100.00",
+		/* ipsConnection.incomingFundTransferConnection1("GAL2129026", "100.00",
 				"MUR", sequence.generateSystemTraceAuditNumber(), sequence.generateSeqUniqueID(),
-				"",null,"MPACCNO","CUSTOMER TEST","BARBMUM0");
+				"",null,"MPACCNO","CUSTOMER TEST","BARBMUM0");*/
 
 		return new ResponseEntity<String>("Test", HttpStatus.OK);
 	}

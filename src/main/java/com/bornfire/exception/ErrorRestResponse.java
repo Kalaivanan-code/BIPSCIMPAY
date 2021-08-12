@@ -36,6 +36,10 @@ public class ErrorRestResponse {
 		ErrorCode = errorCode;
 		Description = description;
 	}
+	@Override
+	public String toString() {
+		return "ErrorRestResponse [ErrorCode=" + ErrorCode + ", Description=" + Description + "]";
+	}
 	
 	
 }

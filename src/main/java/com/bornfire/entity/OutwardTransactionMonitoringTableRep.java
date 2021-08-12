@@ -13,5 +13,8 @@ public interface OutwardTransactionMonitoringTableRep extends JpaRepository<Outw
 
 	@Query(value = "select * from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where p_id=?1 Union all select * from BIPS_OUTWARD_TRANSACTION_HIST_MONITORING_TABLE where p_id=?1", nativeQuery = true)
 	List<Object[]> existsByPID(String p_id);
+
+	@Query(value = "select * from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where sequence_unique_id=?1", nativeQuery = true)
+	List<OutwardTransactionMonitoringTable> getExistData(String seqID);
 	
 }
