@@ -81,8 +81,28 @@ public class ErrorResponseCode {
 			responseDesc = "BIPS14:Invalid Response";
 		}else if(code.equals("BIPS15")) {
 			responseDesc = "BIPS15:Invalid Request";
+		}else if(code.equals("BIPS15-2")) {
+			responseDesc = "BIPS15:Convenience Indicator Fee Type Required";
+		}else if(code.equals("BIPS15-3")) {
+			responseDesc = "BIPS15:Convenience Indicator Fee Type Allowed Input(Fixed,Percentage)";
+		}else if(code.equals("BIPS15-4")) {
+			responseDesc = "BIPS15:Convenience Indicator Fee Required";
+		}else if(code.equals("BIPS15-5")) {
+			responseDesc = "BIPS15:Convenience Indicator Fee should not exceed 15 characters";
+		}else if(code.equals("BIPS15-6")) {
+			responseDesc = "BIPS15:Convenience Indicator Fee should not exceed 5 characters";
+		}else if(code.equals("BIPS15-7")) {
+			responseDesc = "BIPS15:Convenience Indicator required";
 		}else if(code.equals("BIPS16")) {
 			responseDesc = "BIPS15:Invalid Document Type";
+		}else if(code.equals("BIPS17")) {
+			responseDesc = "BIPS17:QR Code Format Error";
+		}else if(code.equals("BIPS18")) {
+			responseDesc = "BIPS18:QR Code Not Detected";
+		}else if(code.equals("BIPS19")) {
+			responseDesc = "BIPS19:Invalid Currency Type";
+		}else if(code.equals("BIPS20")) {
+			responseDesc = "BIPS20:Invalid Country Code";
 		}
 		
 		return responseDesc;

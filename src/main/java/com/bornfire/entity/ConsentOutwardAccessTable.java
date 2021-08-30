@@ -48,6 +48,7 @@ public class ConsentOutwardAccessTable {
 	private String del_flg;
 	private String private_key;
 	private String custom_device_id;
+	private String acct_name;
 	
 	
 	
@@ -259,6 +260,12 @@ public class ConsentOutwardAccessTable {
 	}
 	public void setCustom_device_id(String custom_device_id) {
 		this.custom_device_id = custom_device_id;
+	}
+	public String getAcct_name() {
+		return acct_name;
+	}
+	public void setAcct_name(String acct_name) {
+		this.acct_name = acct_name;
 	}
 	
 	

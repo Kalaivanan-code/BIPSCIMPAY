@@ -130,7 +130,26 @@ public class OutwardTransactionMonitoringTable {
 	
 	private String chrg_br;
 	private String tran_rmks;
-
+	
+	private String global_id;
+	private String point_init;
+	private String merchant_id;
+	private String mcc;
+	private String conv_flg;
+	private String conv_fee_type;
+	private String conv_fee;
+	private String merchant_city;
+	private String merchant_cntry;
+	private String merchant_postal_cd;
+	private String merchant_bill_number;
+	private String merchant_mobile;
+	private String merchant_ref_label;
+	private String merchant_purp_tran;
+	private String merchant_store_label;
+	private String merchant_loyalty_number;
+	private String merchant_customer_label;
+	private String merchant_terminal_label;
+	private String merchant_addl_data_request;
 
 	
 	public String getP_id() {
@@ -884,8 +903,157 @@ public class OutwardTransactionMonitoringTable {
 	public void setTran_rmks(String tran_rmks) {
 		this.tran_rmks = tran_rmks;
 	}
-	
-	
-	
+
+	public String getGlobal_id() {
+		return global_id;
+	}
+
+	public void setGlobal_id(String global_id) {
+		this.global_id = global_id;
+	}
+
+	public String getPoint_init() {
+		return point_init;
+	}
+
+	public void setPoint_init(String point_init) {
+		this.point_init = point_init;
+	}
+
+	public String getMerchant_id() {
+		return merchant_id;
+	}
+
+	public void setMerchant_id(String merchant_id) {
+		this.merchant_id = merchant_id;
+	}
+
+	public String getMcc() {
+		return mcc;
+	}
+
+	public void setMcc(String mcc) {
+		this.mcc = mcc;
+	}
+
+	public String getConv_flg() {
+		return conv_flg;
+	}
+
+	public void setConv_flg(String conv_flg) {
+		this.conv_flg = conv_flg;
+	}
+
+	public String getConv_fee_type() {
+		return conv_fee_type;
+	}
+
+	public void setConv_fee_type(String conv_fee_type) {
+		this.conv_fee_type = conv_fee_type;
+	}
+
+	public String getConv_fee() {
+		return conv_fee;
+	}
+
+	public void setConv_fee(String conv_fee) {
+		this.conv_fee = conv_fee;
+	}
+
+	public String getMerchant_city() {
+		return merchant_city;
+	}
+
+	public void setMerchant_city(String merchant_city) {
+		this.merchant_city = merchant_city;
+	}
+
+	public String getMerchant_cntry() {
+		return merchant_cntry;
+	}
+
+	public void setMerchant_cntry(String merchant_cntry) {
+		this.merchant_cntry = merchant_cntry;
+	}
+
+	public String getMerchant_postal_cd() {
+		return merchant_postal_cd;
+	}
+
+	public void setMerchant_postal_cd(String merchant_postal_cd) {
+		this.merchant_postal_cd = merchant_postal_cd;
+	}
+
+	public String getMerchant_bill_number() {
+		return merchant_bill_number;
+	}
+
+	public void setMerchant_bill_number(String merchant_bill_number) {
+		this.merchant_bill_number = merchant_bill_number;
+	}
+
+	public String getMerchant_mobile() {
+		return merchant_mobile;
+	}
+
+	public void setMerchant_mobile(String merchant_mobile) {
+		this.merchant_mobile = merchant_mobile;
+	}
+
+	public String getMerchant_ref_label() {
+		return merchant_ref_label;
+	}
+
+	public void setMerchant_ref_label(String merchant_ref_label) {
+		this.merchant_ref_label = merchant_ref_label;
+	}
+
+	public String getMerchant_purp_tran() {
+		return merchant_purp_tran;
+	}
+
+	public void setMerchant_purp_tran(String merchant_purp_tran) {
+		this.merchant_purp_tran = merchant_purp_tran;
+	}
+
+	public String getMerchant_store_label() {
+		return merchant_store_label;
+	}
+
+	public void setMerchant_store_label(String merchant_store_label) {
+		this.merchant_store_label = merchant_store_label;
+	}
+
+	public String getMerchant_loyalty_number() {
+		return merchant_loyalty_number;
+	}
+
+	public void setMerchant_loyalty_number(String merchant_loyalty_number) {
+		this.merchant_loyalty_number = merchant_loyalty_number;
+	}
+
+	public String getMerchant_customer_label() {
+		return merchant_customer_label;
+	}
+
+	public void setMerchant_customer_label(String merchant_customer_label) {
+		this.merchant_customer_label = merchant_customer_label;
+	}
+
+	public String getMerchant_terminal_label() {
+		return merchant_terminal_label;
+	}
+
+	public void setMerchant_terminal_label(String merchant_terminal_label) {
+		this.merchant_terminal_label = merchant_terminal_label;
+	}
+
+	public String getMerchant_addl_data_request() {
+		return merchant_addl_data_request;
+	}
+
+	public void setMerchant_addl_data_request(String merchant_addl_data_request) {
+		this.merchant_addl_data_request = merchant_addl_data_request;
+	}
 	
 }

@@ -9,11 +9,16 @@ public class TranAmountValidator implements ConstraintValidator<TranAmount, Stri
 	public boolean isValid(String value, ConstraintValidatorContext context) {
 		
 		if(value!=null) {
-			if(Double.parseDouble(value)>=0){
-				return true;
+			if(!value.equals("")) {
+				if(Double.parseDouble(value)>=0){
+					return true;
+				}else{
+					return false;
+				}
 			}else{
 				return false;
 			}
+			
 		}else {
 			return false;
 		}

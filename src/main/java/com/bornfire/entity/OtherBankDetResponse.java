@@ -2,6 +2,7 @@ package com.bornfire.entity;
 
 public class OtherBankDetResponse {
 	private String bankCode;
+	private String bankAgent;
 	private String bankName;
 	
 	
@@ -11,12 +12,25 @@ public class OtherBankDetResponse {
 	}
 	
 	
-	public OtherBankDetResponse(String bankCode, String bankName) {
+	
+
+	public OtherBankDetResponse(String bankCode, String bankAgent, String bankName) {
 		super();
 		this.bankCode = bankCode;
+		this.bankAgent = bankAgent;
 		this.bankName = bankName;
 	}
 
+
+
+
+	public String getBankAgent() {
+		return bankAgent;
+	}
+
+	public void setBankAgent(String bankAgent) {
+		this.bankAgent = bankAgent;
+	}
 
 	public String getBankCode() {
 		return bankCode;

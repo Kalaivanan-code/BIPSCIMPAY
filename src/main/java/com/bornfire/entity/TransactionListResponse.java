@@ -50,6 +50,10 @@ public class TransactionListResponse {
 		ErrorCode = errorCode;
 		Description = description;
 	}
+	public TransactionListResponse() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 	
 	
 }

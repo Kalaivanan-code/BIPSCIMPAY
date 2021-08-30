@@ -11,6 +11,7 @@ import org.springframework.core.env.Environment;
 import com.bornfire.config.SequenceGenerator;
 import com.bornfire.entity.BankAgentTable;
 import com.bornfire.entity.CIMCreditTransferRequest;
+import com.bornfire.entity.CIMMerchantDirectFndRequest;
 import com.bornfire.entity.CreditTransferTransaction;
 import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.jaxb.wsdl.ParamsMtMsg;
@@ -59,6 +60,40 @@ public class ParamMTmessage {
 		return paramMtMsg;
 		
 	}
+	
+
+	public ParamsMtMsg getParamMerchantMTmsg(String msgType,SendT request, String msgId,CIMMerchantDirectFndRequest mcCreditTransferRequest,
+			BankAgentTable othBankAgent,String msgSeq,String endToEndID,
+			String lclInstr,String ctgyPurp,String chrBearer,String rmtInfo,String tot_tran_amount) {
+		ParamsMtMsg paramMtMsg = new ParamsMtMsg();
+		paramMtMsg.setMsgFormat("S");
+		paramMtMsg.setMsgSubFormat("I");
+		paramMtMsg.setMsgSender(env.getProperty("ipsx.sender"));
+		paramMtMsg.setMsgReceiver(env.getProperty("ipsx.msgReceiver"));
+		paramMtMsg.setMsgType(msgType);
+		paramMtMsg.setMsgPriority("N");
+		paramMtMsg.setMsgDelNotifRq("N");
+		paramMtMsg.setMsgUserPriority("0100");
+		paramMtMsg.setMsgUserReference("");
+		paramMtMsg.setMsgCopySrvId("");
+		paramMtMsg.setMsgFinValidation("");
+		paramMtMsg.setMsgPde("N");
+		paramMtMsg.setMsgSession("0001");
+		paramMtMsg.setMsgSequence(msgSeq);
+		paramMtMsg.setMsgNetInputTime(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		paramMtMsg.setMsgNetOutputDate(new SimpleDateFormat("yyMMddHHmm").format(new Date()));
+		paramMtMsg.setMsgNetMir(new SimpleDateFormat("yyMMdd").format(new Date())+env.getProperty("ipsx.user")+"0001"+msgSeq);
+		paramMtMsg.setMsgCopySrvInfo("");
+		paramMtMsg.setMsgPacResult("");
+		paramMtMsg.setMsgPdm("N");
+		paramMtMsg.setFormat("MX");
+		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID)));
+		paramMtMsg.setBlock4(dataPDUs.getMerchantDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID, lclInstr, ctgyPurp, chrBearer, rmtInfo,tot_tran_amount));
+
+		return paramMtMsg;
+		
+	}
+
 
 	public ParamsMtMsg getParamMTmsgPacs002(String msgType, SendT request, String msgId, String creditStatusType,String creditStatusCode,
 			String creditStatusDesc,String msgSeq) {
@@ -310,7 +345,7 @@ public class ParamMTmessage {
 			 String benName, String benAcctNumber, String trAmt,
 			String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID, String msgNetMir,String cryptogram,
 			String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,
-			String lclInstr,String ctgyPurp) {
+			String lclInstr,String ctgyPurp,String chargeBearer) {
 		ParamsMtMsg paramMtMsg = new ParamsMtMsg();
 		paramMtMsg.setMsgFormat("S");
 		paramMtMsg.setMsgSubFormat("I");
@@ -341,11 +376,55 @@ public class ParamMTmessage {
 				  benName,  benAcctNumber,  trAmt,
 				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir,cryptogram,
 				 instgAgent,instdAgent,debtorAgent,
-					debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp));
+					debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp, chargeBearer));
 
 
 		return paramMtMsg;
 	}
+	
+	
+	public ParamsMtMsg getMerchantRTPParamMTmsgPain001(String msgType,SendT request, String acctName, String acctNumber, String currencyCode,
+			 String benName, String benAcctNumber, String trAmt,
+			String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID, String msgNetMir,String cryptogram,
+			String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,
+			String lclInstr,String ctgyPurp,String chargeBearer,CIMMerchantDirectFndRequest cimMerchantRequest,String rmtInfo) {
+		ParamsMtMsg paramMtMsg = new ParamsMtMsg();
+		paramMtMsg.setMsgFormat("S");
+		paramMtMsg.setMsgSubFormat("I");
+		paramMtMsg.setMsgSender(env.getProperty("ipsx.sender"));
+		paramMtMsg.setMsgReceiver(env.getProperty("ipsx.msgReceiver"));
+		paramMtMsg.setMsgType(msgType);
+		paramMtMsg.setMsgPriority("N");
+		paramMtMsg.setMsgDelNotifRq("N");
+		paramMtMsg.setMsgUserPriority("0100");
+		paramMtMsg.setMsgUserReference("");
+		paramMtMsg.setMsgCopySrvId("");
+		paramMtMsg.setMsgFinValidation("");
+		paramMtMsg.setMsgPde("N");
+		paramMtMsg.setMsgSession("0001");
+		paramMtMsg.setMsgSequence(msgSeq);
+		paramMtMsg.setMsgNetInputTime(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		paramMtMsg.setMsgNetOutputDate(new SimpleDateFormat("yyMMddHHmm").format(new Date()));
+		paramMtMsg.setMsgNetMir(msgNetMir);
+		paramMtMsg.setMsgCopySrvInfo("");
+		paramMtMsg.setMsgPacResult("");
+		paramMtMsg.setMsgPdm("N");
+		paramMtMsg.setFormat("MX");
+		/*paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPain001(msgType,request,acctName, acctNumber,  currencyCode,
+				 bank_agent,  bank_agent_account,  benName,  benAcctNumber,  trAmt,
+				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir)));*/
+		
+		paramMtMsg.setBlock4(dataPDUs.getDataPDUMerchantPain001(msgType,request,acctName, acctNumber,  currencyCode,
+				  benName,  benAcctNumber,  trAmt,
+				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir,cryptogram,
+				 instgAgent,instdAgent,debtorAgent,
+					debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp, chargeBearer,cimMerchantRequest,rmtInfo));
+
+
+		return paramMtMsg;
+	}
+
+
 
 	
 }

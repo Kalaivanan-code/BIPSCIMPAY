@@ -131,4 +131,16 @@ public class OrganisationIdentification291 {
         return this.othr;
     }
 
+	public String getLei() {
+		return lei;
+	}
+
+	public void setLei(String lei) {
+		this.lei = lei;
+	}
+
+	public void setOthr(List<GenericOrganisationIdentification11> othr) {
+		this.othr = othr;
+	}
+
 }

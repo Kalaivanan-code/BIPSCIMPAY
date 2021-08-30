@@ -1,6 +1,16 @@
 package com.bornfire.controller;
 
  
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+
 /*CREATED BY	: KALAIVANAN RAJENDRAN.R
 CREATED ON	: 30-DEC-2019
 PURPOSE		: IPS Connection(Connection between BIPS,Connect 24 and IPSx Webservice)
@@ -8,6 +18,7 @@ PURPOSE		: IPS Connection(Connection between BIPS,Connect 24 and IPSx Webservice
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
@@ -29,13 +40,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import javax.imageio.ImageIO;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -67,9 +83,16 @@ import com.bornfire.entity.BulkDebitFndTransferRequest;
 import com.bornfire.entity.C24FTResponse;
 import com.bornfire.entity.C24FTResponseBalance;
 import com.bornfire.entity.CIMCreditTransferRequest;
+import com.bornfire.entity.CIMMerchantDecodeQRFormatResponse;
+import com.bornfire.entity.CIMMerchantDecodeQRMerchantAcctInfo;
+import com.bornfire.entity.CIMMerchantDecodeQRMerchantAddlInfo;
+import com.bornfire.entity.CIMMerchantDirectFndRequest;
+import com.bornfire.entity.CIMMerchantQRRequestFormat;
+import com.bornfire.entity.CIMMerchantQRcodeRequest;
 import com.bornfire.entity.CimCBSrequestData;
 import com.bornfire.entity.CimCBSrequestHeader;
 import com.bornfire.entity.CimCBSresponse;
+import com.bornfire.entity.CimMerchantResponse;
 import com.bornfire.entity.ConsentAccessRequest;
 import com.bornfire.entity.ConsentAccessResponse;
 import com.bornfire.entity.ConsentAccessTable;
@@ -78,6 +101,7 @@ import com.bornfire.entity.ConsentAccountBalance;
 import com.bornfire.entity.ConsentOutwardAccessAuthRequest;
 import com.bornfire.entity.ConsentOutwardAccessAuthResponse;
 import com.bornfire.entity.ConsentOutwardAccessRequest;
+import com.bornfire.entity.ConsentOutwardAccessRequestAccounts;
 import com.bornfire.entity.ConsentOutwardAccessTable;
 import com.bornfire.entity.ConsentOutwardAccessTableRep;
 import com.bornfire.entity.ConsentOutwardAccessTmpTable;
@@ -86,6 +110,7 @@ import com.bornfire.entity.ConsentResponse;
 import com.bornfire.entity.CreditTransferTransaction;
 import com.bornfire.entity.CryptogramResponse;
 import com.bornfire.entity.Data;
+import com.bornfire.entity.EncodeQRFormatResponse;
 import com.bornfire.entity.IPSChargesAndFeesRep;
 import com.bornfire.entity.Links;
 import com.bornfire.entity.MCCreditTransferRequest;
@@ -96,6 +121,7 @@ import com.bornfire.entity.OtherBankDetResponse;
 import com.bornfire.entity.RTPbulkTransferRequest;
 import com.bornfire.entity.RTPbulkTransferResponse;
 import com.bornfire.entity.ReadConsentBalance;
+import com.bornfire.entity.RegConsentAccountList;
 import com.bornfire.entity.RegPublicKey;
 import com.bornfire.entity.RegPublicKeyRep;
 import com.bornfire.entity.SCAAthenticationResponse;
@@ -125,9 +151,32 @@ import com.bornfire.exception.ErrorRestResponse;
 import com.bornfire.exception.IPSXException;
 import com.bornfire.exception.IPSXRestException;
 import com.bornfire.exception.ServerErrorException;
+import com.bornfire.jaxb.pacs_008_001_08.ChargeBearerType1Code;
+import com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1;
 import com.bornfire.jaxb.wsdl.SendT;
 import com.bornfire.messagebuilder.SignDocument;
+import com.bornfire.qrcode.core.isos.Currency;
+import com.bornfire.qrcode.core.model.mpm.TagLengthString;
+import com.bornfire.qrcode.decoder.mpm.DecoderMpm;
+import com.bornfire.qrcode.model.mpm.AdditionalDataField;
+import com.bornfire.qrcode.model.mpm.AdditionalDataFieldTemplate;
+import com.bornfire.qrcode.model.mpm.MerchantAccountInformation;
+import com.bornfire.qrcode.model.mpm.MerchantAccountInformationReserved;
+import com.bornfire.qrcode.model.mpm.MerchantAccountInformationReservedAdditional;
+import com.bornfire.qrcode.model.mpm.MerchantAccountInformationTemplate;
+import com.bornfire.qrcode.model.mpm.MerchantInformationLanguage;
+import com.bornfire.qrcode.model.mpm.MerchantInformationLanguageTemplate;
+import com.bornfire.qrcode.model.mpm.MerchantPresentedMode;
+import com.bornfire.qrcode.model.mpm.Unreserved;
+import com.bornfire.qrcode.model.mpm.UnreservedTemplate;
+import com.bornfire.qrcode.validators.Crc16Validate;
+import com.bornfire.qrcode.validators.MerchantPresentedModeValidate;
+import com.bornfire.valid.context.ValidationResult;
 import com.google.gson.Gson;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -263,14 +312,14 @@ public class IPSConnection {
 				
 				 
 				 
-				///// Register OutGoing Message to Tran Table
+				/*///// Register OutGoing Message to Tran Table
 				ipsDao.RegisterOutMsgRecord(psuDeviceID, psuIpAddress, psuID,
 							senderParticipantBIC, participantSOL, sysTraceNumber,
 							mcCreditTransferRequest, cimMsgID, seqUniqueID, endTOEndID,mcCreditTransferRequest.getPurpose(),msgNetMir,
 							env.getProperty("ipsx.bicfi"),othBankAgent.getBank_agent(),env.getProperty("ipsx.dbtragt"),env.getProperty("ipsx.dbtragtacct"),
 							othBankAgent.getBank_agent(),othBankAgent.getBank_agent_account(),
 							seqUniqueID,"0100","CSDC",mcCreditTransferRequest.getPurpose(),remitterBankCode);
-					
+					*/
 					
 				////Generate RequestUUID
 				String requestUUID=sequence.generateRequestUUId();
@@ -298,10 +347,10 @@ public class IPSConnection {
 									connect24Response.getBody().getStatus().getMessage(),
 									connect24Response.getBody().getData().getTransactionNoFromCBS());
 							
-							////Update CBS Status to Tran Table
+							/*////Update CBS Status to Tran Table
 							ipsDao.updateCBSStatus(seqUniqueID,
 									TranMonitorStatus.CBS_DEBIT_OK.toString(),
-									TranMonitorStatus.IN_PROGRESS.toString());
+									TranMonitorStatus.IN_PROGRESS.toString());*/
 							
 						    ////Update CBS Status to Tran Table
 							ipsDao.updateOutwardCBSStatus(seqUniqueID,
@@ -321,10 +370,10 @@ public class IPSConnection {
 									connect24Response.getBody().getStatus().getMessage(),
 									connect24Response.getBody().getData().getTransactionNoFromCBS());
 	
-							//// Update CBS Status to Tran table
+							/*//// Update CBS Status to Tran table
 							ipsDao.updateCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
 									connect24Response.getBody().getStatus().getMessage(),
-									TranMonitorStatus.FAILURE.toString());
+									TranMonitorStatus.FAILURE.toString());*/
 	
 					      	//// Update ESB Data Error
 							ipsDao.updateOutwardCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
@@ -341,10 +390,10 @@ public class IPSConnection {
 						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
 								"Internal Server Error","");
 	 
-						//// Update ESB Data Error to Transaction Table
+						/*//// Update ESB Data Error to Transaction Table
 						ipsDao.updateCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
 								String.valueOf(connect24Response.getStatusCodeValue())+":Internal Server Error", TranMonitorStatus.FAILURE.toString());
-	
+	*/
 					    //// Update ESB Data to Outward Table
 						ipsDao.updateOutwardCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
 								String.valueOf(connect24Response.getStatusCodeValue())+":Internal Server Error", TranMonitorStatus.FAILURE.toString());
@@ -2807,7 +2856,7 @@ public class IPSConnection {
 			////Generate Custom Device ID
 			String customDeviceID=sequence.generateCustomDeviceID( psuDeviceID.concat(psuID).concat(consentOutwardAccessRequest.getAccounts().getAccountNumber()));
 
-			
+
 			////Generate KeyPair 
 			KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance("RSA");
 			keyGenerator.initialize(1024);
@@ -2816,10 +2865,12 @@ public class IPSConnection {
 			String publicKey=generatePublicKey(kp);
 			/////Generate Private Key
 			String privateKey=generatePrivateKey(kp);
-			
-			
-			//String encryptPublicKey=listener.encrypt(publicKey);
-			//String encryptPrivateKey=listener.encrypt(privateKey);
+
+			///Store KeyPair
+			//listener.storePubKey(kp, customDeviceID);
+			//String encryptPublicKey=listener.encrypt(publicKey,customDeviceID);
+			//String encryptPrivateKey=listener.encrypt(privateKey,customDeviceID);
+			//String encryptCustomDevieID=listener.encryptDid(customDeviceID);
 			
 			String res = ipsDao.consentOutwardDataRegister(x_request_id, psuDeviceID, psuIPAddress, psuID, psuIDCountry,
 					psuIDType, sender_participant_bic, sender_participant_member_id, receiver_participant_bic,
@@ -2872,7 +2923,9 @@ public class IPSConnection {
 						ErrorRestResponse errorRestResponse = new ErrorRestResponse(accountConsentResponse.getBody().getErrorCode(),
 								accountConsentResponse.getBody().getDescription());
 						ipsDao.outwardConsentDataRegisterUpdateErrorResponse(x_request_id,errorRestResponse);
-						throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+
+						throw new IPSXException(errorRestResponse.getErrorCode().toString()
+								+":"+errorRestResponse.getDescription());
 					}else if(accountConsentResponse.getStatusCode() == HttpStatus.UNAUTHORIZED){
 						logger.debug("Response:"+accountConsentResponse.getBody().toString());
 
@@ -2880,7 +2933,7 @@ public class IPSConnection {
 								accountConsentResponse.getBody().getDescription());
 						ipsDao.outwardConsentDataRegisterUpdateErrorResponse(x_request_id,errorRestResponse);
 
-						throw new IPSXRestException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
+						throw new IPSXException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
 					}else {
 						logger.debug("Response:"+accountConsentResponse.getBody().toString());
 
@@ -2888,20 +2941,20 @@ public class IPSConnection {
 								accountConsentResponse.getBody().getDescription());
 						ipsDao.outwardConsentDataRegisterUpdateErrorResponse(x_request_id,errorRestResponse);
 
-						throw new IPSXRestException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
+						throw new IPSXException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
 					}
 
 				} else {
-					throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+					throw new IPSXException(errorCode.ErrorCodeRegistration("0"));
 				}
 			}else {
-				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+				throw new IPSXException(errorCode.ErrorCodeRegistration("0"));
 			}
 
 
 		} catch (HttpClientErrorException e) {
 			logger.error(e.getMessage());
-			throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+			throw new IPSXException(errorCode.ErrorCodeRegistration("0"));
 		}
 		
 	}
@@ -2938,13 +2991,17 @@ public class IPSConnection {
 
 					////Create Cryptogram Data
 					Map<String, Object> claimsData = new HashMap<String, Object>();
+					//claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
 					claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id());
+
 					claimsData.put("endToEndId",x_request_id);
 					claimsData.put("consentId", consentID);
 					claimsData.put("href","/accounts-consents/"+consentID+"/authorisations/"+authID );
 			        
+					//String cryptogram=generateJwtToken(claimsData,listener.decrypt(consentDataList.get(0).getPrivate_key(),listener.decryptDid(consentDataList.get(0).getCustom_device_id())));
+					//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
 					String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
-					
+
 					logger.debug("Calling Outward Consent Access Authorisation IPSXService");
 
 					ResponseEntity<SCAAthenticationResponse> accountConsentResponse = consentIPSXservice
@@ -2994,7 +3051,7 @@ public class IPSConnection {
 								accountConsentResponse.getBody().getDescription());
 
 						ipsDao.outwardConsentDataRegisterUpdateErrorResponse(x_request_id,errorRestResponse);
-						throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+						throw new IPSXException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 					}else if(accountConsentResponse.getStatusCode() == HttpStatus.UNAUTHORIZED){
 						logger.debug("Response:"+accountConsentResponse.getBody().toString());
 
@@ -3004,7 +3061,7 @@ public class IPSConnection {
 						ipsDao.outwardConsentDataRegisterAuthUpdateErrorResponse(x_request_id,accountConsentResponse.getBody().getErrorCode()+":"+
 								accountConsentResponse.getBody().getDescription());
 
-						throw new IPSXRestException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
+						throw new IPSXException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
 					}else {
 						logger.debug("Response:"+accountConsentResponse.getBody().toString());
 
@@ -3014,17 +3071,17 @@ public class IPSConnection {
 						ipsDao.outwardConsentDataRegisterAuthUpdateErrorResponse(x_request_id,accountConsentResponse.getBody().getErrorCode()+":"+
 								accountConsentResponse.getBody().getDescription());
 
-						throw new IPSXRestException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
+						throw new IPSXException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
 					}
 				}else {
-					throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+					throw new IPSXException(errorCode.ErrorCodeRegistration("0"));
 				}
 			}else {
-				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+				throw new IPSXException(errorCode.ErrorCodeRegistration("0"));
 			}
 
 		}else {
-			throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
+			throw new IPSXException(errorCode.ErrorCodeRegistration("13"));
 		}
 		
 	}
@@ -3058,18 +3115,18 @@ public class IPSConnection {
 					return eer;
 				} else if(accountConsentResponse.getStatusCode() == HttpStatus.BAD_REQUEST){
 					ErrorRestResponse errorRestResponse = accountConsentResponse.getBody();
-					throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					throw new IPSXException(errorRestResponse.getErrorCode().toString()+":"+errorRestResponse.getDescription());
 				}else{
 					ErrorRestResponse errorRestResponse = accountConsentResponse.getBody();
-					throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					throw new IPSXException(errorRestResponse.getErrorCode().toString()+":"+errorRestResponse.getDescription());
 				}
 			}else {
-				throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
+				throw new IPSXException(errorCode.ErrorCodeRegistration("13"));
 
 			}
 			
 		}else {
-			throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
+			throw new IPSXException(errorCode.ErrorCodeRegistration("13"));
 		}
 	}
 	
@@ -3096,6 +3153,8 @@ public class IPSConnection {
 			claimsData.put("href","/accounts/"+accountID+"/balances" );
 			
 			String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
+			//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
+
 			
 			
 			String status = ipsDao.outwardConsentDataRegisterBalances(x_request_id, psuDeviceID,
@@ -3106,7 +3165,7 @@ public class IPSConnection {
 
 			if(status.equals("0")) {
 				ResponseEntity<ConsentAccountBalance> accountConsentResponse = consentIPSXservice
-						.accountConsentBalances(x_request_id, psuDeviceID,
+						.accountConsentBalances(x_request_id, consentDataList.get(0).getCustom_device_id(),
 								psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
 								receiver_participant_bic, receiver_participant_member_id,consentID,accountID,cryptogram);
 				
@@ -3122,7 +3181,7 @@ public class IPSConnection {
 							accountConsentResponse.getBody().getDescription());
 					ipsDao.accountConsentBalancesResponse(x_request_id,"FAILURE",errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 
-					throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					throw new IPSXException(errorRestResponse.getErrorCode().toString()+":"+errorRestResponse.getDescription());
 				}else if(accountConsentResponse.getStatusCode() == HttpStatus.UNAUTHORIZED){
 					logger.debug("Response:"+accountConsentResponse.getBody().toString());
 
@@ -3130,7 +3189,7 @@ public class IPSConnection {
 							accountConsentResponse.getBody().getDescription());
 					ipsDao.accountConsentBalancesResponse(x_request_id,"FAILURE",errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 
-					throw new IPSXRestException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
+					throw new IPSXException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
 				}else {
 					logger.debug("Response:"+accountConsentResponse.getBody().toString());
 
@@ -3138,15 +3197,15 @@ public class IPSConnection {
 							accountConsentResponse.getBody().getDescription());
 					ipsDao.accountConsentBalancesResponse(x_request_id,"FAILURE",errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 
-					throw new IPSXRestException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
+					throw new IPSXException(accountConsentResponse.getBody().getErrorCode().toString()+":"+accountConsentResponse.getBody().getDescription());
 				}
 
 			}else {
-				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+				throw new IPSXException(errorCode.ErrorCodeRegistration("0"));
 			}
 	
 		}else {
-			throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
+			throw new IPSXException(errorCode.ErrorCodeRegistration("13"));
 		}
 	}
 	
@@ -3168,14 +3227,17 @@ public class IPSConnection {
 			claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
 			claimsData.put("consentId", consentID);
+			
+			logger.debug(""+"/accounts/"+accountID+"/transactions?fromBookingDateTime="+fromBookingDateTime+"&toBookingDateTime="+toBookingDateTime );
 			if(fromBookingDateTime!=null && toBookingDateTime!=null) {
-				claimsData.put("href","/accounts/"+accountID+"/transactions?fromBookingDateTime="+fromBookingDateTime+"&toBookingDateTime="+toBookingDateTime );
+				claimsData.put("href","/accounts/"+accountID+"/transactions" );
 			}else {
 				claimsData.put("href","/accounts/"+accountID+"/transactions" );
 			}
 			
 			String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
-			
+			//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
+
 			String status = ipsDao.outwardConsentDataRegisterTransactionInc(x_request_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
 					receiver_participant_bic, receiver_participant_member_id,consentID,accountID);
@@ -3184,7 +3246,7 @@ public class IPSConnection {
 
 			if(status.equals("0")) {
 				ResponseEntity<TransactionListResponse> accountConsentResponse = consentIPSXservice
-						.accountConsentTransaction(x_request_id, psuDeviceID,
+						.accountConsentTransaction(x_request_id, consentDataList.get(0).getCustom_device_id(),
 								psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
 								receiver_participant_bic, receiver_participant_member_id,consentID,accountID,cryptogram,fromBookingDateTime,toBookingDateTime);
 				
@@ -3199,20 +3261,20 @@ public class IPSConnection {
 					
 					ipsDao.accountConsentTransactionIncResponse(x_request_id,"FAILURE",errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 
-					throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					throw new IPSXException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 				}else{
 					ErrorRestResponse errorRestResponse = new ErrorRestResponse(accountConsentResponse.getBody().getErrorCode(),
 							accountConsentResponse.getBody().getDescription());
 					
 					ipsDao.accountConsentTransactionIncResponse(x_request_id,"FAILURE",errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
-					throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					throw new IPSXException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 				}
 			}else {
-				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+				throw new IPSXException(errorCode.ErrorCodeRegistration("0"));
 			}
 	
 		}else {
-			throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
+			throw new IPSXException(errorCode.ErrorCodeRegistration("13"));
 		}
 
 	}
@@ -3230,15 +3292,18 @@ public class IPSConnection {
 			String receiver_participant_member_id=consentDataList.get(0).getReceiverparticipant_memberid();
 			
 		////Create Cryptogram Data
+		
+			
 			Map<String, Object> claimsData = new HashMap<String, Object>();
 			claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
 			claimsData.put("consentId", consentID);
-			claimsData.put("href","/accounts" );
+			claimsData.put("href","/accounts/");
 			
 
 			String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
-			
+			//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
+
 			String status = ipsDao.outwardConsentDataRegisterAccountListInc(x_request_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
 					receiver_participant_bic, receiver_participant_member_id,consentID);
@@ -3247,7 +3312,7 @@ public class IPSConnection {
 
 			if(status.equals("0")) {
 				ResponseEntity<AccountListResponse> accountConsentResponse = consentIPSXservice
-						.accountConsentAccountList(x_request_id, psuDeviceID,
+						.accountConsentAccountList(x_request_id, consentDataList.get(0).getCustom_device_id(),
 								psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
 								receiver_participant_bic, receiver_participant_member_id,consentID,cryptogram);
 				
@@ -3262,21 +3327,22 @@ public class IPSConnection {
 							accountConsentResponse.getBody().getDescription());
 					ipsDao.accountConsentTransactionIncResponse(x_request_id,"FAILURE",errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 
-					throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					logger.info(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					throw new IPSXException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 				}else{
 					ErrorRestResponse errorRestResponse = new ErrorRestResponse(accountConsentResponse.getBody().getErrorCode(),
 							accountConsentResponse.getBody().getDescription());	
 					ipsDao.accountConsentTransactionIncResponse(x_request_id,"FAILURE",errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
-					throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					throw new IPSXException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 				}
 
 
 			}else {
-				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+				throw new IPSXException(errorCode.ErrorCodeRegistration("0"));
 			}
 	
 		}else {
-			throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
+			throw new IPSXException(errorCode.ErrorCodeRegistration("13"));
 		}
 
 	}
@@ -3294,14 +3360,18 @@ public class IPSConnection {
 			String receiver_participant_bic=consentDataList.get(0).getReceiverparticipant_bic();
 			String receiver_participant_member_id=consentDataList.get(0).getReceiverparticipant_memberid();
 			
+			logger.info(accountID);
+			
 		////Create Cryptogram Data
 			Map<String, Object> claimsData = new HashMap<String, Object>();
 			claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
 			claimsData.put("consentId", consentID);
-			claimsData.put("href","/accounts" );
+			claimsData.put("href","/accounts/"+accountID);
 
 			String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
+			//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
+
 			
 			String status = ipsDao.outwardConsentDataRegisterAccountInc(x_request_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
@@ -3311,7 +3381,7 @@ public class IPSConnection {
 
 			if(status.equals("0")) {
 				ResponseEntity<AccountsListAccounts> accountConsentResponse = consentIPSXservice
-						.accountConsentAccountInd(x_request_id, psuDeviceID,
+						.accountConsentAccountInd(x_request_id, consentDataList.get(0).getCustom_device_id(),
 								psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
 								receiver_participant_bic, receiver_participant_member_id,consentID,cryptogram,accountID);
 				
@@ -3327,24 +3397,71 @@ public class IPSConnection {
 					
 					ipsDao.accountConsentTransactionIncResponse(x_request_id,"FAILURE",errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 
-					throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					throw new IPSXException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 				}else{
 					ErrorRestResponse errorRestResponse = new ErrorRestResponse(accountConsentResponse.getBody().getErrorCode(),
 							accountConsentResponse.getBody().getDescription());
 					ipsDao.accountConsentTransactionIncResponse(x_request_id,"FAILURE",errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
-					throw new IPSXRestException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
+					throw new IPSXException(errorRestResponse.getErrorCode()+":"+errorRestResponse.getDescription());
 				}
 			}else {
-				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+				throw new IPSXException(errorCode.ErrorCodeRegistration("0"));
 			}
 	
 		}else {
-			throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
+			throw new IPSXException(errorCode.ErrorCodeRegistration("13"));
 		}
 	}
 
 	
-
+	public List<RegConsentAccountList> outwardConsentRegisterAccountList(  String psuDeviceID,
+			String psuIPAddress, String documentID) {
+		
+		
+			List<Object[]> data=ipsDao.getConsentAccounts(documentID);
+			
+			if(data.size()>0) {
+				List<RegConsentAccountList>  listData=new ArrayList<>();
+				for(Object[] obj:data) {
+					RegConsentAccountList regConsentData=new RegConsentAccountList();
+					regConsentData.setConsentID(obj[0].toString());
+					
+					ConsentOutwardAccessRequestAccounts acctInfo=new ConsentOutwardAccessRequestAccounts();
+					acctInfo.setAccountNumber(obj[1].toString());
+					acctInfo.setShemeName(String.valueOf(obj[8]).equals("null")?"":String.valueOf(obj[8]));
+					acctInfo.setAccountName(String.valueOf(obj[2]).equals("null")?"":String.valueOf(obj[2]));
+					regConsentData.setAccounts(acctInfo);
+					
+					regConsentData.setBankName(obj[5].toString()+"-"+obj[3].toString()+"-"+obj[4].toString());
+					
+					regConsentData.setPhoneNumber(obj[7].toString());
+					
+					List<String> listPermi=new ArrayList<>();
+					
+					if(String.valueOf(obj[9]).equals("Y")) {
+						listPermi.add(TranMonitorStatus.ReadBalances.toString());
+					}
+					if(String.valueOf(obj[10]).equals("Y")) {
+						listPermi.add(TranMonitorStatus.ReadTransactionsDetails.toString());
+					}
+					if(String.valueOf(obj[11]).equals("Y")) {
+						listPermi.add(TranMonitorStatus.ReadAccountsDetails.toString());
+					}
+					if(String.valueOf(obj[12]).equals("Y")) {
+						listPermi.add(TranMonitorStatus.DebitAccount.toString());
+					}
+					
+					regConsentData.setPermission(listPermi);
+					
+					listData.add(regConsentData);
+				}
+				return listData;
+			}else {
+				throw new IPSXException(errorCode.validationError("BIPS15"));
+			}
+		
+		
+	}
 
 
 	public String generatePublicKey(KeyPair kp) throws NoSuchAlgorithmException {
@@ -3469,6 +3586,9 @@ public class IPSConnection {
 						///Local Instrumentation
 						String lclInstr=TranMonitorStatus.CSDC.toString();
 						
+						///ChargeBearer
+						String chargeBearer=ChargeBearerType1Code1.SLEV.toString();
+						
 						ipsDao.RegisterBulkRTPRecord(psuDeviceID, psuIpAddress, sysTraceNumber,
 								cimMsgID, seqUniqueID, endTOEndID, master_ref_id,msgNetMir,
 								instgAgent,instdAgent,debtorAgent,
@@ -3479,7 +3599,7 @@ public class IPSConnection {
 								rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber(),rtpBulkTransferRequest.getBenAccount().get(i).getReqUniqueId(),
 								rtpBulkTransferRequest.getBenAccount().get(i).getTrAmt(),rtpBulkTransferRequest.getBenAccount().get(i).getTrRmks(),
 								p_id,rtpBulkTransferRequest.getBenAccount().get(i).getReqUniqueId(),channelID,resvfield1,resvfield2,
-								bankAgentTable.getBank_code());
+								bankAgentTable.getBank_code(),chargeBearer);
 					
 
 						
@@ -3495,9 +3615,13 @@ public class IPSConnection {
 						claimsData.put("endToEndId",endTOEndID);
 						claimsData.put("consentId", regAccList.get(0).getConsent_id());
 				        
+						//String cryptogram="eyJhbGciOiJSUzUxMiJ9.eyJjb25zZW50SWQiOiI4LWh0ZEkyQVR3V1czazRFYzAxQldRIiwiaHJlZiI6Ii9hY2NvdW50cy1jb25zZW50cy84LWh0ZEkyQVR3V1czazRFYzAxQldRL2F1dGhvcmlzYXRpb25zLy1YUmRVb3EwUkxxMDNkdGpWMUhNdUEiLCJlbmRUb0VuZElkIjoiQ0lNMTAwUkVHMDAwMzciLCJkZXZpY2VJZCI6ImE3M2JhN2IyLWMxYTItNTA1Ny1iM2ViLTA5ZGFlOWZlNjBhYyJ9.f6zfIvv70rq1T2HxWq0b5UGS1rZdRp0LZZwHpDAKZGCvuDfhzHRF3xaEL3T3OJ0X1nCg43xPYaJh79OfkMVLsCLn2EtdgSC_j1jBpY7yOckPI9qo8b8hhGID-NLEYoRkBUoVbH0AnX2zhWIkTJyQCwD6RXHctObSt-vozFzKRBM";
+						
 						String cryptogram="";
 						try {
 							cryptogram=generateJwtToken(claimsData,regAccList.get(0).getPrivate_key());
+							// cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(regAccList.get(0).getCustom_device_id()));
+
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -3516,7 +3640,7 @@ public class IPSConnection {
 								rtpBulkTransferRequest.getBenAccount().get(i).getTrRmks(),
 								seqUniqueID,cimMsgID,msgSeq, endTOEndID,msgNetMir,cryptogram,
 								instgAgent,instdAgent,debtorAgent,
-								debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp);
+								debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp,chargeBearer);
 						
 					
 					}
@@ -3533,10 +3657,507 @@ public class IPSConnection {
 		
 	}
 
+/////Fund Transfer Connection
+	////Debit Customer Account Credit Settl Account(Connect 24)
+	////Send Packages to IPSX,Credit to IPSX Account
+	public MCCreditTransferResponse createMerchantFTConnection(String psuDeviceID, String psuIpAddress, String psuID,
+			CIMMerchantDirectFndRequest mcCreditTransferRequest,String p_id,
+			String channelID,String resvField1,String resvField2)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		MCCreditTransferResponse mcCreditTransferResponse = null;
+
+		///// Generate Sequence Unique ID
+		String seqUniqueID = sequence.generateSeqUniqueID();
+		///// Generate Bob Msg ID
+		String cimMsgID = seqUniqueID;
+		///// Generate SystemTraceAuditNumber or CBS Tran Number
+		String sysTraceNumber = sequence.generateSystemTraceAuditNumber();
+		//// Generate Msg Sequence
+		String msgSeq = sequence.generateMsgSequence();
+		///// Generate EndToEnd ID
+		String endTOEndID = env.getProperty("ipsx.bicfi") + new SimpleDateFormat("yyyyMMdd").format(new Date())
+				+ msgSeq;
+		/////Net Mir
+		String msgNetMir=new SimpleDateFormat("yyMMdd").format(new Date())+env.getProperty("ipsx.user")+"0001"+msgSeq;
+
+		logger.info("Transaction cycle starts");
+		logger.info("System Trace Audit Number" + sysTraceNumber);
+		logger.info("System Sequence ID" + cimMsgID);
+		
+		logger.info("Register Initial outgoing Fund Transfer Record");
+		
+		///Purpose Code for Peer to Peer Connection
+		//mcCreditTransferRequest.setPurpose("100");
+		
+		///// Get Other Bank Agent and Agent Account number
+		BankAgentTable othBankAgent = ipsDao.findByBank(
+				mcCreditTransferRequest.getMerchantAccount().getPayeeParticipantCode().replace("XXXX", ""));
+		
+		////Get Remitter Bank Code
+		String remitterBankCode=ipsDao.getOtherBankCode(env.getProperty("ipsx.dbtragt"));
+		
+		
+		logger.info(othBankAgent.getBank_agent(),
+				"" + othBankAgent.getBank_agent_account());
+
+			///// Starting Background Service
+			taskExecutor.execute(new Runnable() {
+				@Override
+				public void run() {
+				
+					
+				String lclInstrm=TranMonitorStatus.CSDC.toString();
+				String ctgyPurp="300";
+				String chrBeearer=ChargeBearerType1Code.SLEV.value();
+				
+				String tot_tran_amount=mcCreditTransferRequest.getMerchantAccount().getTrAmt();
+				
+				
+				////Remarks
+				String remarks="";
+				////Retrieve Remittence  Information
+				StringBuilder remInfo=new StringBuilder();
+				remInfo.append("/QR/"+mcCreditTransferRequest.getMerchantAccount().getGlobalID()+"//");
+				if(!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getPointOfInitiationFormat()).equals("null") && 
+						!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getPointOfInitiationFormat()).equals("")) {
+					remInfo.append("01/"+mcCreditTransferRequest.getMerchantAccount().getPointOfInitiationFormat()+"/");
+				}
+				if(mcCreditTransferRequest.getMerchantAccount().isConvenienceIndicator()) {
+					
+					if(String.valueOf(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFeeType()).equals("Fixed")) {
+						remInfo.append("55/02/56/"+mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
+						
+						Double sumData=Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee())+(Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getTrAmt()));
+						tot_tran_amount=sumData.toString();
+					}else if(String.valueOf(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFeeType()).equals("Percentage")) {
+						remInfo.append("55/03/57/"+mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
+					
+						Double convFee=(((Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getTrAmt()))*(Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee())))/100);
+						Double sumData=convFee+(Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getTrAmt()));
+						tot_tran_amount=sumData.toString();
+					
+					}
+				}
+				
+				
+				if(mcCreditTransferRequest.getAdditionalDataInformation()!=null) {
+					if((!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getBillNumber()).equals("null")&&!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getBillNumber()).equals(""))||
+							(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getMobileNumber()).equals("null")&&!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getMobileNumber()).equals(""))||
+							(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getReferenceLabel()).equals("null")&&!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getReferenceLabel()).equals(""))||
+							(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getStoreLabel()).equals("null")&&!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getStoreLabel()).equals(""))||
+							(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getLoyaltyNumber()).equals("null")&&!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getLoyaltyNumber()).equals(""))||
+							(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getCustomerLabel()).equals("null")&&!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getCustomerLabel()).equals(""))||
+							(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getTerminalLabel()).equals("null")&&!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getTerminalLabel()).equals(""))||
+							(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")&&!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getAddlDataRequest()).equals(""))||
+							(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")&&!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals(""))) {
+						
+						
+						remInfo.append("62//");
+						
+						if(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getBillNumber()).equals("null")&&
+								!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getBillNumber()).equals("")	) {
+							remInfo.append("01/"+mcCreditTransferRequest.getAdditionalDataInformation().getBillNumber()+"/");
+						}
+						if(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getMobileNumber()).equals("null")&&
+								!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getMobileNumber()).equals("")	) {
+							remInfo.append("02/"+mcCreditTransferRequest.getAdditionalDataInformation().getMobileNumber()+"/");
+						}
+						if(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getStoreLabel()).equals("null")&&
+								!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getStoreLabel()).equals("")
+								) {
+							remInfo.append("03/"+mcCreditTransferRequest.getAdditionalDataInformation().getStoreLabel()+"/");
+						}
+						if(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getLoyaltyNumber()).equals("null")&&
+								!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getLoyaltyNumber()).equals("")
+								) {
+							remInfo.append("04/"+mcCreditTransferRequest.getAdditionalDataInformation().getLoyaltyNumber()+"/");
+						}
+						if(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getReferenceLabel()).equals("null")&&
+								!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getReferenceLabel()).equals("")
+								) {
+							remInfo.append("05/"+mcCreditTransferRequest.getAdditionalDataInformation().getReferenceLabel()+"/");
+						}
+						if(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getCustomerLabel()).equals("null")&&
+								!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getCustomerLabel()).equals("")
+								) {
+							remInfo.append("06/"+mcCreditTransferRequest.getAdditionalDataInformation().getCustomerLabel()+"/");
+						}
+						if(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getTerminalLabel()).equals("null")&&
+								!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getTerminalLabel()).equals("")
+								) {
+							remInfo.append("07/"+mcCreditTransferRequest.getAdditionalDataInformation().getTerminalLabel()+"/");
+						}
+						if(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")&&
+								!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")) {
+							remInfo.append("08/"+mcCreditTransferRequest.getAdditionalDataInformation().getPurposeOfTransaction()+"/");
+							remarks=mcCreditTransferRequest.getAdditionalDataInformation().getPurposeOfTransaction();
+						}
+						if(!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")&&
+								!String.valueOf(mcCreditTransferRequest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")) {
+							remInfo.append("09/"+mcCreditTransferRequest.getAdditionalDataInformation().getAddlDataRequest()+"/");
+						}
+					}
+					
+					remInfo.append("//RQ/");
+					
+				}
+				
+				
+				logger.debug("RemitterInfo->"+remInfo.toString());
+				//////Register Data to Master Table
+				ipsDao.RegisterMerchantOutgoingMasterRecord(psuDeviceID, psuIpAddress, sysTraceNumber, cimMsgID,
+						seqUniqueID, endTOEndID, seqUniqueID, msgNetMir, env.getProperty("ipsx.bicfi"),
+						othBankAgent.getBank_agent(), env.getProperty("ipsx.dbtragt"),
+						env.getProperty("ipsx.dbtragtacct"), othBankAgent.getBank_agent(),
+						othBankAgent.getBank_agent_account(), seqUniqueID, "0100", lclInstrm, ctgyPurp, ctgyPurp,
+						mcCreditTransferRequest.getRemitterAccount().getAcctName(),
+						mcCreditTransferRequest.getRemitterAccount().getAcctNumber(),
+						mcCreditTransferRequest.getMerchantAccount().getPayeeParticipantCode(),
+						remitterBankCode,
+						mcCreditTransferRequest.getMerchantAccount().getCurrency(),
+						mcCreditTransferRequest.getMerchantAccount().getMerchantName(),
+						mcCreditTransferRequest.getMerchantAccount().getMerchantAcctNumber(),
+						p_id,tot_tran_amount,remarks, p_id,
+						p_id, channelID, resvField1,resvField2,chrBeearer,remInfo.toString(),
+						mcCreditTransferRequest);
+				
+				 
+				/* 
+				///// Register OutGoing Message to Tran Table
+				ipsDao.RegisterMerchantOutMsgRecord(psuDeviceID, psuIpAddress, psuID,
+							sysTraceNumber,
+							mcCreditTransferRequest, cimMsgID, seqUniqueID, endTOEndID,"300",msgNetMir,
+							env.getProperty("ipsx.bicfi"),othBankAgent.getBank_agent(),env.getProperty("ipsx.dbtragt"),env.getProperty("ipsx.dbtragtacct"),
+							othBankAgent.getBank_agent(),othBankAgent.getBank_agent_account(),
+							seqUniqueID,"0100",lclInstrm,ctgyPurp,remitterBankCode,chrBeearer,remInfo.toString(),tot_tran_amount);
+					*/
+					
+				////Generate RequestUUID
+				String requestUUID=sequence.generateRequestUUId();
+					
+				/**********ESB*********/
+				////Store ESB Registration Data
+				////Register ESB Data
+			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), "", "True", "DR", "N", "", mcCreditTransferRequest.getMerchantAccount().getMerchantAcctNumber(), tot_tran_amount, mcCreditTransferRequest.getMerchantAccount().getCurrency(),
+						seqUniqueID, mcCreditTransferRequest.getRemitterAccount().getAcctNumber(), mcCreditTransferRequest.getRemitterAccount().getAcctName(), "NRT/RTP",remarks, "", "", "");
+				
+			    /////Call ESB Connection
+					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
+
+					logger.debug("CBS Data:"+connect24Response.toString());
+					if (connect24Response.getStatusCode() == HttpStatus.OK) {
+						logger.info(seqUniqueID + ": success"+connect24Response.getBody().getStatus().getIsSuccess()+":"+connect24Response.getBody().getStatus().getMessage());
+
+						if (connect24Response.getBody().getStatus().getIsSuccess()) {
+							
+							////Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+							
+							/*////Update CBS Status to Tran Table
+							ipsDao.updateCBSStatus(seqUniqueID,
+									TranMonitorStatus.CBS_DEBIT_OK.toString(),
+									TranMonitorStatus.IN_PROGRESS.toString());*/
+							
+						    ////Update CBS Status to Tran Table
+							ipsDao.updateOutwardCBSStatus(seqUniqueID,
+									TranMonitorStatus.CBS_DEBIT_OK.toString(),
+									TranMonitorStatus.IN_PROGRESS.toString());
+							
+							/////Calling IPSX
+							ipsxClient.sendMerchantftRequst( mcCreditTransferRequest,
+									sysTraceNumber, cimMsgID, seqUniqueID, othBankAgent, msgSeq, endTOEndID, msgNetMir,
+									lclInstrm,ctgyPurp,chrBeearer,remInfo.toString(),tot_tran_amount);
+
+
+						} else {
+							
+							//// Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+	/*
+							//// Update CBS Status to Tran table
+							ipsDao.updateCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
+									connect24Response.getBody().getStatus().getMessage(),
+									TranMonitorStatus.FAILURE.toString());*/
+	
+					      	//// Update ESB Data Error
+							ipsDao.updateOutwardCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
+									connect24Response.getBody().getStatus().getMessage(), TranMonitorStatus.FAILURE.toString());
+		
+							//// Send Failure Message to CIM
+							/*ipsDao.updateIPSXStatusResponseRJCTBulkRTP(seqUniqueID, connect24Response.getBody().getStatus().getMessage(), seqUniqueID,
+									TranMonitorStatus.FAILURE.toString(), "",
+									"",  connect24Response.getBody().getStatus().getStatusCode());*/
+							
+						}
+					} else {
+						//// Update ESB Data to CIM Table
+						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
+								"Internal Server Error","");
+	 
+						/*//// Update ESB Data Error to Transaction Table
+						ipsDao.updateCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
+								String.valueOf(connect24Response.getStatusCodeValue())+":Internal Server Error", TranMonitorStatus.FAILURE.toString());
+	*/
+					    //// Update ESB Data to Outward Table
+						ipsDao.updateOutwardCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
+								String.valueOf(connect24Response.getStatusCodeValue())+":Internal Server Error", TranMonitorStatus.FAILURE.toString());
+	
+					    //// Send Failure Message to CIM
+						/*ipsDao.updateIPSXStatusResponseRJCTBulkRTP(seqUniqueID, connect24Response.getBody().getStatus().getMessage(), seqUniqueID,
+								TranMonitorStatus.FAILURE.toString(), "",
+								"",  connect24Response.getBody().getStatus().getStatusCode());
+						*/
+						
+					}
+
+				}
+			});
+			
+		    ///// Return Sequence ID to CIM
+			mcCreditTransferResponse = new MCCreditTransferResponse(seqUniqueID,
+					new SimpleDateFormat("YYYY-MM-dd HH:mm:ss ").format(new Date()));
+			return mcCreditTransferResponse;
+		
+
+
+		
+	}
+
+
+	public RTPbulkTransferResponse createMerchantRTPconnection(String psuDeviceID, String psuIpAddress, String psuID,
+			CIMMerchantDirectFndRequest cimMerchantRequest,String p_id,String channelID,String resvfield1,String resvfield2) {
+		
+		String master_ref_id = env.getProperty("ipsx.userS") + sequence.generateSystemTraceAuditNumber();
+
+		
+		RTPbulkTransferResponse rtpbulkTransferResponse = null;
+		
+		
+			///// Starting Background Service
+			taskExecutor.execute(new Runnable() {
+				@Override
+				public void run() {
+
+						////// Generate System Trace Audit Number
+						String sysTraceNumber = "";
+						////// Generate Sequence Unique ID
+						String seqUniqueID = sequence.generateSeqUniqueID();
+						///// Generate CIM Message ID
+						String cimMsgID = seqUniqueID;
+						///// Generate Msg Sequence
+						String msgSeq = sequence.generateMsgSequence();
+						///// Generate End To End ID
+						String endTOEndID = env.getProperty("ipsx.bicfi")
+								+ new SimpleDateFormat("YYYYMMdd").format(new Date()) + msgSeq;
+						
+					    /////Net Mir
+						String msgNetMir=new SimpleDateFormat("YYMMdd").format(new Date())+env.getProperty("ipsx.user")+"0001"+msgSeq;
+
+						///// Register Manual Record
+						logger.info("Register Initial outgoing Fund Transfer Record");
+						
+						
+					    ////// Get Bank Agent Account and Agent Account
+						BankAgentTable creditorAgent = ipsDao
+													.findByBank(cimMerchantRequest.getMerchantAccount().getPayeeParticipantCode().replace("XXXX", ""));
+						
+						logger.info("Register Initial outgoing Fund Transfer Record"+creditorAgent.getBank_agent());
+
+						////Get Consent Data
+						List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
+								.getAccountNumber(cimMerchantRequest.getRemitterAccount().getAcctNumber());
+						
+						BankAgentTable bankAgentTable=ipsDao.findByBank(regAccList.get(0).getReceiverparticipant_bic());
+						
+						String instgAgent=env.getProperty("ipsx.bicfi");
+						String instdAgent=bankAgentTable.getBank_agent();
+						String debtorAgent=bankAgentTable.getBank_agent();
+						String debtorAgentAcct=bankAgentTable.getBank_agent_account();
+						String CreditorAgent=creditorAgent.getBank_agent();
+						String CreditorAgentAcct=creditorAgent.getBank_agent_account();
+						
+						////Category Purpose
+						//String ctgyPurp=listener.getCtgyPurp(instgAgent,debtorAgent,CreditorAgent);
+						String ctgyPurp="300";
+						///Local Instrumentation
+						String lclInstr=TranMonitorStatus.CSDC.toString();
+						
+						///Remarks
+						String remarks="";
+						///ChargeBearer
+						String chargeBearer=ChargeBearerType1Code1.SLEV.toString();
+						
+						String tot_tran_amount=cimMerchantRequest.getMerchantAccount().getTrAmt();
+					////Retrieve Remittence  Information
+						StringBuilder remInfo=new StringBuilder();
+						remInfo.append("/QR/"+cimMerchantRequest.getMerchantAccount().getGlobalID()+"//");
+						if(!String.valueOf(cimMerchantRequest.getMerchantAccount().getPointOfInitiationFormat()).equals("null") && 
+								!String.valueOf(cimMerchantRequest.getMerchantAccount().getPointOfInitiationFormat()).equals("")) {
+							remInfo.append("01/"+cimMerchantRequest.getMerchantAccount().getPointOfInitiationFormat()+"/");
+						}
+						if(cimMerchantRequest.getMerchantAccount().isConvenienceIndicator()) {
+							
+							if(String.valueOf(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee()).equals("Fixed")) {
+								remInfo.append("55/02/56/"+cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
+								
+								Double sumData=Double.parseDouble(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee())+(Double.parseDouble(cimMerchantRequest.getMerchantAccount().getTrAmt()));
+								tot_tran_amount=sumData.toString();
+							}else if(String.valueOf(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee()).equals("Percentage")) {
+								remInfo.append("55/03/57/"+cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
+							
+								Double convFee=(((Double.parseDouble(cimMerchantRequest.getMerchantAccount().getTrAmt()))*(Double.parseDouble(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee())))/100);
+								Double sumData=convFee+(Double.parseDouble(cimMerchantRequest.getMerchantAccount().getTrAmt()));
+								tot_tran_amount=sumData.toString();
+							
+							}
+						}
+						
+						if(cimMerchantRequest.getAdditionalDataInformation()!=null) {
+							if((!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getBillNumber()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getBillNumber()).equals(""))||
+									(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getMobileNumber()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getMobileNumber()).equals(""))||
+									(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getReferenceLabel()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getReferenceLabel()).equals(""))||
+									(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getStoreLabel()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getStoreLabel()).equals(""))||
+									(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getLoyaltyNumber()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getLoyaltyNumber()).equals(""))||
+									(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getCustomerLabel()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getCustomerLabel()).equals(""))||
+									(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getTerminalLabel()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getTerminalLabel()).equals(""))||
+									(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getAddlDataRequest()).equals(""))||
+									(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals(""))) {
+								
+								
+								remInfo.append("62//");
+								
+								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getBillNumber()).equals("null")&&
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getBillNumber()).equals("")	) {
+									remInfo.append("01/"+cimMerchantRequest.getAdditionalDataInformation().getBillNumber()+"/");
+								}
+								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getMobileNumber()).equals("null")&&
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getMobileNumber()).equals("")	) {
+									remInfo.append("02/"+cimMerchantRequest.getAdditionalDataInformation().getMobileNumber()+"/");
+								}
+								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getStoreLabel()).equals("null")&&
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getStoreLabel()).equals("")
+										) {
+									remInfo.append("03/"+cimMerchantRequest.getAdditionalDataInformation().getStoreLabel()+"/");
+								}
+								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getLoyaltyNumber()).equals("null")&&
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getLoyaltyNumber()).equals("")
+										) {
+									remInfo.append("04/"+cimMerchantRequest.getAdditionalDataInformation().getLoyaltyNumber()+"/");
+								}
+								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getReferenceLabel()).equals("null")&&
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getReferenceLabel()).equals("")
+										) {
+									remInfo.append("05/"+cimMerchantRequest.getAdditionalDataInformation().getReferenceLabel()+"/");
+								}
+								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getCustomerLabel()).equals("null")&&
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getCustomerLabel()).equals("")
+										) {
+									remInfo.append("06/"+cimMerchantRequest.getAdditionalDataInformation().getCustomerLabel()+"/");
+								}
+								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getTerminalLabel()).equals("null")&&
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getTerminalLabel()).equals("")
+										) {
+									remInfo.append("07/"+cimMerchantRequest.getAdditionalDataInformation().getTerminalLabel()+"/");
+								}
+								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")&&
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")) {
+									remInfo.append("08/"+cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction()+"/");
+									remarks=cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction();
+								}
+								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")&&
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")) {
+									remInfo.append("09/"+cimMerchantRequest.getAdditionalDataInformation().getAddlDataRequest()+"/");
+								}
+							}
+							
+							remInfo.append("//RQ/");
+							
+							logger.debug("RemitterInfo->"+remInfo.toString());
+						
+						}
+							
+						
+						ipsDao.RegisterMerchantRTPRecord(psuDeviceID, psuIpAddress, sysTraceNumber,
+								cimMsgID, seqUniqueID, endTOEndID, master_ref_id,msgNetMir,
+								instgAgent,instdAgent,debtorAgent,
+								debtorAgentAcct,CreditorAgent,CreditorAgentAcct,
+								seqUniqueID,"0100",lclInstr,ctgyPurp,ctgyPurp,cimMerchantRequest.getRemitterAccount().getAcctName(),
+								cimMerchantRequest.getRemitterAccount().getAcctNumber(),cimMerchantRequest.getMerchantAccount().getPayeeParticipantCode(),
+								cimMerchantRequest.getMerchantAccount().getCurrency(),cimMerchantRequest.getMerchantAccount().getMerchantName(),
+								cimMerchantRequest.getMerchantAccount().getMerchantAcctNumber(),p_id,
+								tot_tran_amount,remarks,
+								p_id,p_id,channelID,resvfield1,resvfield2,
+								bankAgentTable.getBank_code(),chargeBearer,
+								cimMerchantRequest,remInfo.toString());
+					
+
+						
+					
+						////Generate JWT Token
+					    ////Create Cryptogram Data
+						Map<String, Object> claimsData = new HashMap<String, Object>();
+						claimsData.put("deviceId",regAccList.get(0).getCustom_device_id());
+						claimsData.put("amount",cimMerchantRequest.getMerchantAccount().getTrAmt());
+						claimsData.put("currency",cimMerchantRequest.getMerchantAccount().getCurrency());
+						claimsData.put("debtorAccount",cimMerchantRequest.getRemitterAccount().getAcctNumber());
+						claimsData.put("creditorAccount",cimMerchantRequest.getMerchantAccount().getMerchantAcctNumber());
+						claimsData.put("endToEndId",endTOEndID);
+						claimsData.put("consentId", regAccList.get(0).getConsent_id());
+				        
+						
+						String cryptogram="";
+						try {
+							cryptogram=generateJwtToken(claimsData,regAccList.get(0).getPrivate_key());
+							// cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(regAccList.get(0).getCustom_device_id()));
+
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+												
+						
+						////// Calling IPSX
+						logger.info("Calling IPSX");
+						ipsxClient.sendMerchantRTPRequst(
+								cimMerchantRequest.getRemitterAccount().getAcctName(),
+								cimMerchantRequest.getRemitterAccount().getAcctNumber(),
+								cimMerchantRequest.getMerchantAccount().getCurrency(),
+								cimMerchantRequest.getMerchantAccount().getMerchantName(),
+								cimMerchantRequest.getMerchantAccount().getMerchantAcctNumber(),
+								tot_tran_amount,
+								remarks,
+								seqUniqueID,cimMsgID,msgSeq, endTOEndID,msgNetMir,cryptogram,
+								instgAgent,instdAgent,debtorAgent,
+								debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp,chargeBearer,
+								cimMerchantRequest,remInfo.toString());
+
+				}
+			});
+
+			///// Return Master Ref ID
+			rtpbulkTransferResponse = new RTPbulkTransferResponse(master_ref_id,
+					new SimpleDateFormat("YYYY-MM-dd HH:mm:ss ").format(new Date()));
+			return rtpbulkTransferResponse;
+	
+		
+		
+	}
+
+
 	
 	public String incomingFundTransferConnection1(String acctNumber, String trAmt, String currency,
 			String sysTraceAuditNumber, String SeqUniqueID,String trRmks,SendT request,
-			String debrAcctNumber,String debtAcctName,String instgAcct,String ctgyPurp) {
+			String debrAcctNumber,String debtAcctName,String instgAcct,String ctgyPurp,String rmtInfo) {
 
 		String tranResponse = "";
 		logger.info(SeqUniqueID + ": Calling Connect 24 for Account Status");
@@ -3559,13 +4180,13 @@ public class IPSConnection {
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 								sysTraceAuditNumber,env.getProperty("cimCBS.incCRChannel"),"","True","CR","N","",
 								acctNumber, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","","","","");
+								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","");
 					}else {
 						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 								sysTraceAuditNumber,env.getProperty("cimCBS.rtpCRChannel"),"","True","CR","N","",
 								acctNumber, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","","","","");
+								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","");
 					}
 					
 					
@@ -3632,6 +4253,587 @@ public class IPSConnection {
 			
 
 		return tranResponse;
+	}
+
+	
+
+	
+	
+	public CimMerchantResponse createMerchantQRConnection(String psuDeviceID, String psuIpAddress, String psuID,
+			CIMMerchantQRcodeRequest qrrequest,String p_id,
+			String channelID,String resvField1,String resvField2)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		CimMerchantResponse response=new CimMerchantResponse();
+
+		EncodeQRFormatResponse encodeQRresponse=encodeQRCodeFormat(qrrequest);
+							
+		if(encodeQRresponse.isSuccess()) {
+			String[] displayText= {qrrequest.getMerchantName(),""};
+			String[] titletextDesc= {"Scan here to pay"};
+			String qrImageCode=generateQRCode(encodeQRresponse.getQrMsg(),displayText,titletextDesc,350,350);
+			response.setBase64QR(qrImageCode);
+			return response;
+		}else {
+			//String responseStatus = errorCode.validationError("BIPS17");
+			
+			System.out.println("QR Code Error:"+encodeQRresponse.getError_desc().get(0).toString());
+			throw new IPSXException("BIPS17:"+encodeQRresponse.getError_desc().get(0));
+		}
+		
+	}
+
+	private String generateQRCode(String qrMsg,String[] displayTextQR,String[] titleText,Integer width,Integer height) {
+		
+		String encodedQRImage="0";
+		try {
+			QRCodeWriter qrCodeWriter = new QRCodeWriter();
+			BitMatrix bitMatrix = qrCodeWriter.encode(qrMsg, BarcodeFormat.QR_CODE, width, height);
+
+			ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+			MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+			byte[] pngData = pngOutputStream.toByteArray();
+			int totalTextLineToadd = displayTextQR.length;
+			InputStream in = new ByteArrayInputStream(pngData);
+			BufferedImage image = ImageIO.read(in);
+
+			BufferedImage outputImage = new BufferedImage(image.getWidth(), image.getHeight() + 15 * totalTextLineToadd,
+					BufferedImage.TYPE_INT_ARGB);
+			// If text is needed to display
+			if (displayTextQR.length > 0) {
+				Graphics g = outputImage.getGraphics();
+				g.setColor(Color.WHITE);
+				g.fillRect(0, 0, outputImage.getWidth(), outputImage.getHeight());
+				g.drawImage(image, 0, 0, null);
+				g.setFont(new Font("Arial Black", Font.ITALIC, 14));
+				Color textColor = Color.BLACK;
+				g.setColor(textColor);
+				FontMetrics fm = g.getFontMetrics();
+				int startingYposition = height + 5;
+				for (String displayText : displayTextQR) {
+					g.drawString(displayText, (outputImage.getWidth() / 2) - (fm.stringWidth(displayText) / 2),
+							startingYposition);
+					startingYposition += 20;
+				}
+
+				ByteArrayOutputStream outputbytestream1 = new ByteArrayOutputStream();
+				ImageIO.write(outputImage, "PNG", outputbytestream1);
+
+				int totalTextLineToadd2 = titleText.length;
+
+				BufferedImage outputImage2 = new BufferedImage(outputImage.getWidth(),
+						outputImage.getHeight() + 15 * totalTextLineToadd2, BufferedImage.TYPE_INT_ARGB);
+				Graphics gq = outputImage2.getGraphics();
+				gq.setColor(Color.WHITE);
+				gq.drawImage(outputImage, 0, 0, null);
+				gq.setFont(new Font("Arial Black", Font.ITALIC, 16));
+				Color textColor2 = Color.BLACK;
+				gq.setColor(textColor2);
+				FontMetrics fm2 = gq.getFontMetrics();
+				int startingYposition2 = height - 330;
+				for (String displayText : titleText) {
+					gq.drawString(displayText, (outputImage2.getWidth() / 2) - (fm2.stringWidth(displayText) / 2),
+							startingYposition2);
+					startingYposition2 += 20;
+				}
+
+				ByteArrayOutputStream outputbytestream2 = new ByteArrayOutputStream();
+
+				//File outputnew = new File("E:\\log3.png");
+				ImageIO.write(outputImage2, "PNG", outputbytestream2);
+
+				BufferedImage outputImage3 = new BufferedImage(800, 800, BufferedImage.TYPE_INT_ARGB);
+				Graphics g2 = outputImage3.getGraphics();
+				g2.setColor(Color.BLACK);
+				g2.drawRect(0, 0, 800, 800);
+
+				g2.dispose();
+				
+				
+				
+				Image picture = ImageIO.read(this.getClass().getResourceAsStream(
+						"/static/Image/MauCAS_logo.png"));
+				//BufferedImage logo = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+				Graphics gn = outputImage3.getGraphics();
+				gn.setColor(Color.BLACK);
+
+				//gn.drawImage(picture, 300, 5, 180, 180, null);
+				gn.drawImage(picture, 200, 3, 400, 180, null);
+				
+				gn.dispose();
+
+				Graphics g3 = outputImage3.getGraphics();
+
+				g3.setColor(Color.black);
+
+				g3.drawRoundRect(130, 170, 550, 550, 20, 20);
+
+
+				g3.drawImage(outputImage2, 230, 250, outputImage2.getWidth(), outputImage2.getHeight(), null);
+				g3.dispose();
+
+				ByteArrayOutputStream outputByteStreamDataImage = new ByteArrayOutputStream();
+
+				//File output = new File("E:\\logofinal.png");
+				ImageIO.write(outputImage3, "PNG", outputByteStreamDataImage);
+				encodedQRImage = Base64.getEncoder().encodeToString(outputByteStreamDataImage.toByteArray());
+				
+				return encodedQRImage;
+
+			}
+		} catch (Exception ex) {
+			logger.info(ex.getMessage());
+			return encodedQRImage;
+		}
+		return encodedQRImage;
+
+	}
+
+	private EncodeQRFormatResponse encodeQRCodeFormat(CIMMerchantQRcodeRequest qrReuest) {
+
+		EncodeQRFormatResponse response=new EncodeQRFormatResponse();
+
+		final MerchantPresentedMode merchantPresentMode = new MerchantPresentedMode();
+		
+		///Payload Format Indicator(00)
+		merchantPresentMode.setPayloadFormatIndicator(qrReuest.getPayloadFormatIndiator());
+		//Point Of Initiation Method(01)
+		if(!String.valueOf(qrReuest.getPointOfInitiationFormat()).equals("null")&&
+				!String.valueOf(qrReuest.getPointOfInitiationFormat()).equals("")) {
+			merchantPresentMode.setPointOfInitiationMethod(qrReuest.getPointOfInitiationFormat());
+		}
+		///02-25///
+		///	final MerchantAccountInformationTemplate merchanAccountInformationReserved = getMerchanAccountInformationReserved();
+		///merchantPresentMode.addMerchantAccountInformation(merchanAccountInformationReserved);
+		
+		///Maucas Merchant Account Information(26)
+		final MerchantAccountInformationReservedAdditional merchantAccountInformationValue = new MerchantAccountInformationReservedAdditional();
+		merchantAccountInformationValue.setGloballyUniqueIdentifier(qrReuest.getMerchantAcctInformation().getGlobalID());
+		merchantAccountInformationValue.setPayeeParticipantCode(qrReuest.getMerchantAcctInformation().getPayeeParticipantCode());
+		merchantAccountInformationValue.setMerchantAccountNumber(qrReuest.getMerchantAcctInformation().getMerchantAcctNumber());
+		merchantAccountInformationValue.setMerchantID(qrReuest.getMerchantAcctInformation().getMerchantID());
+		final MerchantAccountInformationTemplate merchanAccountInformationReservedAdditional =new MerchantAccountInformationTemplate("26", merchantAccountInformationValue);
+		// merchantAccountInformationValue.addPaymentNetworkSpecific(paymentNetworkSpecific);
+		merchantPresentMode.addMerchantAccountInformation(merchanAccountInformationReservedAdditional);
+
+		  
+		////Merchant Category Code(52)
+		merchantPresentMode.setMerchantCategoryCode(qrReuest.getMCC());
+		
+		
+		merchantPresentMode.setTransactionCurrency(Currency.entryOf(qrReuest.getCurrency()).getNumber());
+
+		////Transaction Amount(optional)(54)
+		if(!String.valueOf(qrReuest.getTrAmt()).equals("null")&&
+				!String.valueOf(qrReuest.getTrAmt()).equals("")	) {
+			merchantPresentMode.setTransactionAmount(qrReuest.getTrAmt());
+		}
+
+		
+		if(qrReuest.isConvenienceIndicator()) {
+			if(String.valueOf(qrReuest.getConvenienceIndicatorFeeType()).equals("Fixed")) {
+
+				////Tip or Convenience Indicator(55)
+				merchantPresentMode.setTipOrConvenienceIndicator("02");
+
+				///Convenience Indicator Fee Fixed(56)
+				merchantPresentMode.setValueOfConvenienceFeeFixed(qrReuest.getConvenienceIndicatorFee());
+
+			}else if(String.valueOf(qrReuest.getConvenienceIndicatorFeeType()).equals("Percentage")) {			
+
+				//// Tip or Convenience Indicator(55)
+				merchantPresentMode.setTipOrConvenienceIndicator("03");
+
+				//// Convenience Indicator Fee Percentage(57)
+				 merchantPresentMode.setValueOfConvenienceFeePercentage(qrReuest.getConvenienceIndicatorFee());
+			}
+		}
+		
+		////Country Code (58)
+		merchantPresentMode.setCountryCode(qrReuest.getCountryCode());
+		
+		////Merchant Name(59)
+		merchantPresentMode.setMerchantName(qrReuest.getMerchantName());
+
+		////Merchant City(60)
+		merchantPresentMode.setMerchantCity(qrReuest.getCity());
+
+		////Postal Code (61)
+		if(!String.valueOf(qrReuest.getPostalCode()).equals("null")&&
+				!String.valueOf(qrReuest.getPostalCode()).equals("")	) {
+			merchantPresentMode.setPostalCode(qrReuest.getPostalCode());
+		}
+		
+
+		if(qrReuest.getAdditionalDataInformation()!=null) {
+
+			if((!String.valueOf(qrReuest.getAdditionalDataInformation().getBillNumber()).equals("null")&&!String.valueOf(qrReuest.getAdditionalDataInformation().getBillNumber()).equals(""))||
+					(!String.valueOf(qrReuest.getAdditionalDataInformation().getMobileNumber()).equals("null")&&!String.valueOf(qrReuest.getAdditionalDataInformation().getMobileNumber()).equals(""))||
+					(!String.valueOf(qrReuest.getAdditionalDataInformation().getStoreLabel()).equals("null")&&!String.valueOf(qrReuest.getAdditionalDataInformation().getStoreLabel()).equals(""))||
+					(!String.valueOf(qrReuest.getAdditionalDataInformation().getLoyaltyNumber()).equals("null")&&!String.valueOf(qrReuest.getAdditionalDataInformation().getLoyaltyNumber()).equals(""))||
+					(!String.valueOf(qrReuest.getAdditionalDataInformation().getCustomerLabel()).equals("null")&&!String.valueOf(qrReuest.getAdditionalDataInformation().getCustomerLabel()).equals(""))||
+					(!String.valueOf(qrReuest.getAdditionalDataInformation().getTerminalLabel()).equals("null")&&!String.valueOf(qrReuest.getAdditionalDataInformation().getTerminalLabel()).equals(""))||
+					(!String.valueOf(qrReuest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")&&!String.valueOf(qrReuest.getAdditionalDataInformation().getAddlDataRequest()).equals(""))||
+					(!String.valueOf(qrReuest.getAdditionalDataInformation().getReferenceLabel()).equals("null")&&!String.valueOf(qrReuest.getAdditionalDataInformation().getReferenceLabel()).equals(""))||
+					(!String.valueOf(qrReuest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")&&!String.valueOf(qrReuest.getAdditionalDataInformation().getPurposeOfTransaction()).equals(""))) {
+				
+			////Additional Data Information(62)
+				final AdditionalDataField additionalDataFieldValue = new AdditionalDataField();
+				
+				if(!String.valueOf(qrReuest.getAdditionalDataInformation().getBillNumber()).equals("null")&&
+						!String.valueOf(qrReuest.getAdditionalDataInformation().getBillNumber()).equals("")	) {
+					additionalDataFieldValue.setBillNumber(qrReuest.getAdditionalDataInformation().getBillNumber());
+				}
+				if(!String.valueOf(qrReuest.getAdditionalDataInformation().getMobileNumber()).equals("null")&&
+						!String.valueOf(qrReuest.getAdditionalDataInformation().getMobileNumber()).equals("")	) {
+					additionalDataFieldValue.setMobileNumber(qrReuest.getAdditionalDataInformation().getMobileNumber());
+				}
+				if (!String.valueOf(qrReuest.getAdditionalDataInformation().getReferenceLabel()).equals("null")
+						&& !String.valueOf(qrReuest.getAdditionalDataInformation().getReferenceLabel()).equals("")) {
+					additionalDataFieldValue
+							.setReferenceLabel(qrReuest.getAdditionalDataInformation().getReferenceLabel());
+
+				}
+
+				if (!String.valueOf(qrReuest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")
+						&& !String.valueOf(qrReuest.getAdditionalDataInformation().getPurposeOfTransaction())
+								.equals("null")) {
+					additionalDataFieldValue
+							.setPurposeTransaction(qrReuest.getAdditionalDataInformation().getPurposeOfTransaction());
+
+				}
+				
+				if(!String.valueOf(qrReuest.getAdditionalDataInformation().getStoreLabel()).equals("null")&&
+						!String.valueOf(qrReuest.getAdditionalDataInformation().getStoreLabel()).equals("")
+						) {
+					additionalDataFieldValue.setReferenceLabel(qrReuest.getAdditionalDataInformation().getStoreLabel());
+
+				}
+				
+				if(!String.valueOf(qrReuest.getAdditionalDataInformation().getLoyaltyNumber()).equals("null")&&
+						!String.valueOf(qrReuest.getAdditionalDataInformation().getLoyaltyNumber()).equals("")
+						) {
+					additionalDataFieldValue.setReferenceLabel(qrReuest.getAdditionalDataInformation().getLoyaltyNumber());
+
+				}
+				
+				if(!String.valueOf(qrReuest.getAdditionalDataInformation().getCustomerLabel()).equals("null")&&
+						!String.valueOf(qrReuest.getAdditionalDataInformation().getCustomerLabel()).equals("")
+						) {
+					additionalDataFieldValue.setReferenceLabel(qrReuest.getAdditionalDataInformation().getCustomerLabel());
+
+				}
+				
+				if(!String.valueOf(qrReuest.getAdditionalDataInformation().getTerminalLabel()).equals("null")&&
+						!String.valueOf(qrReuest.getAdditionalDataInformation().getTerminalLabel()).equals("")
+						) {
+					additionalDataFieldValue.setReferenceLabel(qrReuest.getAdditionalDataInformation().getTerminalLabel());
+
+				}
+				
+				if(!String.valueOf(qrReuest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")&&
+						!String.valueOf(qrReuest.getAdditionalDataInformation().getAddlDataRequest()).equals("")
+						) {
+					additionalDataFieldValue.setReferenceLabel(qrReuest.getAdditionalDataInformation().getAddlDataRequest());
+
+				}
+
+				
+				final AdditionalDataFieldTemplate additionalDataField = new AdditionalDataFieldTemplate();
+				additionalDataField.setValue(additionalDataFieldValue);
+				
+				merchantPresentMode.setAdditionalDataField(additionalDataField);
+
+			}
+
+		}
+
+		
+		
+
+		//final MerchantInformationLanguageTemplate merchantInformationLanguage = getMerchantInformationLanguage();
+		//final UnreservedTemplate unreserved = getUnreserved();
+		//final TagLengthString rFUforEMVCo = new TagLengthString("65", "00");
+
+		//merchantPresentMode.setMerchantInformationLanguage(merchantInformationLanguage);
+		
+		
+		//merchantPresentMode.addRFUforEMVCo(rFUforEMVCo);
+		//merchantPresentMode.addUnreserved(unreserved);
+
+		final ValidationResult validationResult = MerchantPresentedModeValidate.validate(merchantPresentMode);
+		System.out.println(validationResult.getErrors().toString());
+
+		if (validationResult.isValid()) {
+			response.setSuccess(true);
+			response.setQrMsg(merchantPresentMode.toString());
+		} else {
+			response.setSuccess(false);
+			List<String> desc=new ArrayList<>();
+			Collection<com.bornfire.valid.context.Error> error=validationResult.getErrors();
+					for (com.bornfire.valid.context.Error elem : error) {
+						desc.add(elem.getMessage());
+						break;
+					}
+			response.setError_desc(desc);
+		}
+		System.out.println(merchantPresentMode.toString());
+
+
+		return response;
+
+	}
+	
+
+	private static MerchantAccountInformationTemplate getMerchanAccountInformationReserved() {
+	  final MerchantAccountInformationReserved merchantAccountInformationValue = new MerchantAccountInformationReserved("0004");
+
+	  return new MerchantAccountInformationTemplate("02", merchantAccountInformationValue);
+	}
+
+	// Merchant Account Information Template (IDs "26" to "51")
+	private static MerchantAccountInformationTemplate getMerchanAccountInformationReservedAdditional() {
+	  /*final TagLengthString paymentNetworkSpecific = new TagLengthString();
+	  paymentNetworkSpecific.setTag("01");
+	  paymentNetworkSpecific.setValue("abcd");*/
+
+	  final MerchantAccountInformationReservedAdditional merchantAccountInformationValue = new MerchantAccountInformationReservedAdditional();
+	  merchantAccountInformationValue.setGloballyUniqueIdentifier("mu.maucas");
+	  merchantAccountInformationValue.setPayeeParticipantCode("TSTBMUMUXXXX");
+	  merchantAccountInformationValue.setMerchantAccountNumber("01234123412");
+	  merchantAccountInformationValue.setMerchantID("000000000000020");
+	  
+	 // merchantAccountInformationValue.addPaymentNetworkSpecific(paymentNetworkSpecific);
+
+	  return new MerchantAccountInformationTemplate("26", merchantAccountInformationValue);
+	}
+
+	private static UnreservedTemplate getUnreserved() {
+	  final TagLengthString contextSpecificData = new TagLengthString();
+	  contextSpecificData.setTag("07");
+	  contextSpecificData.setValue("12345678");
+
+	  final Unreserved value = new Unreserved();
+	  value.setGloballyUniqueIdentifier("A011223344998877");
+	  value.addContextSpecificData(contextSpecificData);
+
+	  final UnreservedTemplate unreserved = new UnreservedTemplate();
+	  unreserved.setValue(value);
+	  unreserved.setTag("80");
+
+	  return unreserved;
+	}
+
+	private static MerchantInformationLanguageTemplate getMerchantInformationLanguage() {
+
+	  final TagLengthString rFUforEMVCo = new TagLengthString();
+	  rFUforEMVCo.setTag("03");
+	  rFUforEMVCo.setValue("abcd");
+
+	  final MerchantInformationLanguage merchantInformationLanguageValue = new MerchantInformationLanguage();
+	  merchantInformationLanguageValue.setLanguagePreference("");
+	  merchantInformationLanguageValue.setMerchantName("");
+	  merchantInformationLanguageValue.setMerchantCity("");
+	  merchantInformationLanguageValue.addRFUforEMVCo(rFUforEMVCo);
+
+	  final MerchantInformationLanguageTemplate merchantInformationLanguage = new MerchantInformationLanguageTemplate();
+	  merchantInformationLanguage.setValue(merchantInformationLanguageValue);
+
+	  return merchantInformationLanguage;
+	}
+
+	private static AdditionalDataFieldTemplate getAddtionalDataField() {
+	  /*final PaymentSystemSpecific paymentSystemSpecific = new PaymentSystemSpecific();
+	  paymentSystemSpecific.setGloballyUniqueIdentifier("1");
+	  paymentSystemSpecific.addPaymentSystemSpecific(new TagLengthString("01", "i"));
+
+	  final PaymentSystemSpecificTemplate paymentSystemSpecificTemplate = new PaymentSystemSpecificTemplate();
+	  paymentSystemSpecificTemplate.setTag("50");
+	  paymentSystemSpecificTemplate.setValue(paymentSystemSpecific);*/
+
+	  final AdditionalDataField additionalDataFieldValue = new AdditionalDataField();
+	  //Bill Number (01)
+	  additionalDataFieldValue.setBillNumber("BCQ456789");
+	  
+	  //MobileNumber(02)
+	  additionalDataFieldValue.setMobileNumber("52516314");
+	  
+	  //StoreLabel(03)
+	  //additionalDataFieldValue.setStoreLabel("09876");
+	  
+	  //Loyalty Number(04)
+	  //additionalDataFieldValue.setLoyaltyNumber("54321");
+	  
+	  ///Reference Label(05)
+	  additionalDataFieldValue.setReferenceLabel("BOM123");
+	  
+	  //Custom Label (06)
+	  //additionalDataFieldValue.setCustomerLabel("52516314");
+	  
+	  //Terminal Label(07)
+	  //additionalDataFieldValue.setTerminalLabel("klmno");
+	 
+	  //Purpose Transaction(08)
+	  additionalDataFieldValue.setPurposeTransaction("Payment of network fees");
+	 
+	 //Additional data request
+	 // additionalDataFieldValue.setAdditionalConsumerDataRequest("tuvxy");
+
+	 //additionalDataFieldValue.addPaymentSystemSpecific(paymentSystemSpecificTemplate);
+	  final AdditionalDataFieldTemplate additionalDataField = new AdditionalDataFieldTemplate();
+	  additionalDataField.setValue(additionalDataFieldValue);
+
+	  return additionalDataField;
+	}
+
+	public CIMMerchantDecodeQRFormatResponse getMerchantQRdata(String psuDeviceID, String psuIpAddress,
+			String psuID,CIMMerchantQRRequestFormat cimQRFormatData,
+			String p_id, String channelID, String resvfield1, String resvfield2) {
+
+		  final ValidationResult validationResult = Crc16Validate.validate(cimQRFormatData.getQrCode());
+
+		if (validationResult.isValid()) {
+			final MerchantPresentedMode merchantPresentedMode = DecoderMpm.decode(cimQRFormatData.getQrCode(), MerchantPresentedMode.class);
+
+			CIMMerchantDecodeQRFormatResponse response=new CIMMerchantDecodeQRFormatResponse();
+			
+			response.setPayloadFormatIndiator(merchantPresentedMode.getPayloadFormatIndicator().getValue());
+			
+			/*if(!String.valueOf(merchantPresentedMode.getPointOfInitiationMethod()).equals("null")) {
+				response.setPointOfInitiationFormat(merchantPresentedMode.getPointOfInitiationMethod().getValue());
+			}
+			*/
+
+			if(!String.valueOf(merchantPresentedMode.getPointOfInitiationMethod()).equals("null")&&
+					!String.valueOf(merchantPresentedMode.getPointOfInitiationMethod()).equals("")){
+						response.setPointOfInitiationFormat(merchantPresentedMode.getPointOfInitiationMethod().getValue());
+					}
+			
+			Map<String, MerchantAccountInformationTemplate> merTemplate = merchantPresentedMode.getMerchantAccountInformation();
+
+			CIMMerchantDecodeQRMerchantAcctInfo acctInfo=new CIMMerchantDecodeQRMerchantAcctInfo();
+
+			 for (final Entry<String, MerchantAccountInformationTemplate> entry : merTemplate.entrySet()) {
+				  System.out.println(entry.getValue().getValue());
+				  MerchantAccountInformationReservedAdditional ss=(MerchantAccountInformationReservedAdditional) entry.getValue().getValue();
+				  
+				  if(!String.valueOf(ss.getGloballyUniqueIdentifier()).equals("null")&&
+							!String.valueOf(ss.getGloballyUniqueIdentifier()).equals("")){
+					  acctInfo.setGlobalID(ss.getGloballyUniqueIdentifier().getValue());
+				  }
+				  
+				  if(!String.valueOf(ss.getPayeeParticipantCode()).equals("null")&&
+							!String.valueOf(ss.getPayeeParticipantCode()).equals("")){
+					  acctInfo.setPayeeParticipantCode(ss.getPayeeParticipantCode().getValue());
+				  }
+				  
+				  if(!String.valueOf(ss.getMerchantAccountNumber()).equals("null")&&
+							!String.valueOf(ss.getMerchantAccountNumber()).equals("")){
+					  acctInfo.setMerchantAcctNumber(ss.getMerchantAccountNumber().getValue());
+				  }
+
+				  if(!String.valueOf(ss.getMerchantID()).equals("null")&&
+							!String.valueOf(ss.getMerchantID()).equals("")){
+					  acctInfo.setMerchantID(ss.getMerchantID().getValue());
+				  }
+				  
+				  response.setMerchantAcctInformation(acctInfo);
+
+			  }
+			
+			if(!String.valueOf(merchantPresentedMode.getMerchantCategoryCode()).equals("null")&&
+					!String.valueOf(merchantPresentedMode.getMerchantCategoryCode()).equals("")){
+						response.setMCC(merchantPresentedMode.getMerchantCategoryCode().getValue());
+					}
+			
+			if(!String.valueOf(merchantPresentedMode.getTransactionCurrency()).equals("null")&&
+					!String.valueOf(merchantPresentedMode.getTransactionCurrency()).equals("")){
+
+						response.setCurrency(Currency.entryOf1(merchantPresentedMode.getTransactionCurrency().getValue()).getCode());
+					}
+			
+			if(!String.valueOf(merchantPresentedMode.getTransactionAmount()).equals("null")&&
+			!String.valueOf(merchantPresentedMode.getTransactionAmount()).equals("")){
+				response.setTrAmt(merchantPresentedMode.getTransactionAmount().getValue());
+			}
+			if(!String.valueOf(merchantPresentedMode.getTipOrConvenienceIndicator()).equals("null")&&
+			!String.valueOf(merchantPresentedMode.getTipOrConvenienceIndicator()).equals(""))
+			{
+				if(merchantPresentedMode.getTipOrConvenienceIndicator().getValue().equals("02")) {
+					response.setConvenienceIndicator(true);
+					response.setConvenienceIndicatorFeeType("Fixed");
+					response.setConvenienceIndicatorFee(merchantPresentedMode.getValueOfConvenienceFeeFixed().getValue());
+				}else if(merchantPresentedMode.getTipOrConvenienceIndicator().getValue().equals("03")) {
+					response.setConvenienceIndicator(true);
+					response.setConvenienceIndicatorFeeType("Percentage");
+					response.setConvenienceIndicatorFee(merchantPresentedMode.getValueOfConvenienceFeePercentage().getValue());
+
+				}else {
+					response.setConvenienceIndicator(false);
+				}
+			}
+			
+			
+			response.setCountryCode(merchantPresentedMode.getCountryCode().getValue());
+			response.setMerchantName(merchantPresentedMode.getMerchantName().getValue());
+			response.setCity(merchantPresentedMode.getMerchantCity().getValue());
+			if(!String.valueOf(merchantPresentedMode.getPostalCode()).equals("null")&&
+					!String.valueOf(merchantPresentedMode.getPostalCode()).equals("")){
+						response.setPostalCode(merchantPresentedMode.getPostalCode().getValue());
+					}
+			
+			if(merchantPresentedMode.getAdditionalDataField()!=null) {
+				CIMMerchantDecodeQRMerchantAddlInfo addInfo=new CIMMerchantDecodeQRMerchantAddlInfo();
+				AdditionalDataFieldTemplate merAddTemplate = merchantPresentedMode.getAdditionalDataField();
+
+				if(!String.valueOf(merAddTemplate.getValue().getBillNumber()).equals("null")&&
+						!String.valueOf(merAddTemplate.getValue().getBillNumber()).equals("")) {
+					addInfo.setBillNumber(merAddTemplate.getValue().getBillNumber().getValue());	
+				}
+				if(!String.valueOf(merAddTemplate.getValue().getMobileNumber()).equals("null")&&
+						!String.valueOf(merAddTemplate.getValue().getMobileNumber()).equals("")) {
+					addInfo.setMobileNumber(merAddTemplate.getValue().getMobileNumber().getValue());	
+				}
+				if(!String.valueOf(merAddTemplate.getValue().getStoreLabel()).equals("null")&&
+						!String.valueOf(merAddTemplate.getValue().getStoreLabel()).equals("")) {
+					addInfo.setStoreLabel(merAddTemplate.getValue().getStoreLabel().getValue());	
+				}
+				if(!String.valueOf(merAddTemplate.getValue().getLoyaltyNumber()).equals("null")&&
+						!String.valueOf(merAddTemplate.getValue().getLoyaltyNumber()).equals("")) {
+					addInfo.setLoyaltyNumber(merAddTemplate.getValue().getLoyaltyNumber().getValue());	
+				}
+				if(!String.valueOf(merAddTemplate.getValue().getReferenceLabel()).equals("null")&&
+						!String.valueOf(merAddTemplate.getValue().getReferenceLabel()).equals("")) {
+					addInfo.setReferenceLabel(merAddTemplate.getValue().getReferenceLabel().getValue());	
+				}
+				if(!String.valueOf(merAddTemplate.getValue().getCustomerLabel()).equals("null")&&
+						!String.valueOf(merAddTemplate.getValue().getCustomerLabel()).equals("")) {
+					addInfo.setCustomerLabel(merAddTemplate.getValue().getCustomerLabel().getValue());	
+				}
+				if(!String.valueOf(merAddTemplate.getValue().getTerminalLabel()).equals("null")&&
+						!String.valueOf(merAddTemplate.getValue().getTerminalLabel()).equals("")) {
+					addInfo.setTerminalLabel(merAddTemplate.getValue().getTerminalLabel().getValue());	
+				}
+				if(!String.valueOf(merAddTemplate.getValue().getPurposeTransaction()).equals("null")&&
+						!String.valueOf(merAddTemplate.getValue().getPurposeTransaction()).equals("")) {
+					addInfo.setPurposeOfTransaction(merAddTemplate.getValue().getPurposeTransaction().getValue());	
+				}
+				if(!String.valueOf(merAddTemplate.getValue().getAdditionalConsumerDataRequest()).equals("null")&&
+						!String.valueOf(merAddTemplate.getValue().getAdditionalConsumerDataRequest()).equals("")) {
+					addInfo.setAddlDataRequest(merAddTemplate.getValue().getAdditionalConsumerDataRequest().getValue());	
+				}
+				
+				response.setAdditionalDataInformation(addInfo);
+			}
+			
+			return response;
+					 
+		} else {
+			System.out.println(validationResult.getErrors().toString());
+			throw new IPSXException(errorCode.validationError("BIPS18"));
+		}
+		
 	}
 
 	

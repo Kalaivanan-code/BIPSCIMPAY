@@ -84,7 +84,7 @@ public class ConsentIPSXservice {
 		logger.debug("X-Request-ID:"+x_request_id);
 		logger.debug("SenderParticipant-BIC:"+sender_participant_bic);
 		logger.debug("ReceiverParticipant-BIC:"+receiver_participant_bic);
-		logger.debug("PSU-Device-ID:"+psuDeviceID);
+		logger.debug("PSU-Device-ID:"+customDeviceID);
 		logger.debug("PSU-IP-Address:"+psuIPAddress);
 		logger.debug("PSU-ID:"+psuID);
 		logger.debug("PSU-ID-Country:"+psuIDCountry);
@@ -180,7 +180,7 @@ public class ConsentIPSXservice {
 		logger.debug("X-Request-ID:"+w_request_id);
 		logger.debug("SenderParticipant-BIC:"+sender_participant_bic);
 		logger.debug("ReceiverParticipant-BIC:"+receiver_participant_bic);
-		logger.debug("PSU-Device-ID:"+psuDeviceID);
+		logger.debug("PSU-Device-ID:"+customDeviceID);
 		logger.debug("PSU-IP-Address:"+psuIPAddress);
 		logger.debug("PSU-ID:"+psuID);
 		logger.debug("PSU-ID-Country:"+psuIDCountry);
@@ -269,7 +269,7 @@ public class ConsentIPSXservice {
 		logger.debug("X-Request-ID:"+x_request_id);
 		logger.debug("SenderParticipant-BIC:"+sender_participant_bic);
 		logger.debug("ReceiverParticipant-BIC:"+receiver_participant_bic);
-		logger.debug("PSU-Device-ID:"+psuDeviceID);
+		logger.debug("PSU-Device-ID:"+customDeviceID);
 		logger.debug("PSU-IP-Address:"+psuIPAddress);
 		logger.debug("PSU-ID:"+psuID);
 		logger.debug("PSU-ID-Country:"+psuIDCountry);
@@ -434,11 +434,13 @@ public class ConsentIPSXservice {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 		
+
+
 		httpHeaders.set("X-Request-ID",x_request_id );
 		httpHeaders.set("SenderParticipant-BIC", sender_participant_bic);
-		httpHeaders.set("SenderParticipant-MemberID", sender_participant_member_id);
+		//httpHeaders.set("SenderParticipant-MemberID", sender_participant_member_id);
 		httpHeaders.set("ReceiverParticipant-BIC", receiver_participant_bic);
-		httpHeaders.set("ReceiverParticipant-MemberID", receiver_participant_member_id);
+		//httpHeaders.set("ReceiverParticipant-MemberID", receiver_participant_member_id);
 		httpHeaders.set("PSU-Device-ID", psuDeviceID);
 		httpHeaders.set("PSU-IP-Address", psuIPAddress);
 		httpHeaders.set("PSU-ID", psuID);
@@ -526,13 +528,6 @@ public class ConsentIPSXservice {
 			TransactionListResponse c24ftResponse = new TransactionListResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("23").split(":")[0]),
 					errorCode.ErrorCodeRegistration("23").split(":")[1]);
 			return new ResponseEntity<TransactionListResponse>(c24ftResponse, ex.getStatusCode());	
-			
-		}catch (Exception ex) {
-			logger.info("HttpException --------->");
-			
-			TransactionListResponse c24ftResponse = new TransactionListResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("25").split(":")[0]),
-					errorCode.ErrorCodeRegistration("25").split(":")[1]);
-			return new ResponseEntity<TransactionListResponse>(c24ftResponse,HttpStatus.INTERNAL_SERVER_ERROR);
 			
 		}
 
@@ -635,9 +630,9 @@ public class ConsentIPSXservice {
 		
 		httpHeaders.set("X-Request-ID",x_request_id );
 		httpHeaders.set("SenderParticipant-BIC", sender_participant_bic);
-		httpHeaders.set("SenderParticipant-MemberID", sender_participant_member_id);
+		//httpHeaders.set("SenderParticipant-MemberID", sender_participant_member_id);
 		httpHeaders.set("ReceiverParticipant-BIC", receiver_participant_bic);
-		httpHeaders.set("ReceiverParticipant-MemberID", receiver_participant_member_id);
+		//httpHeaders.set("ReceiverParticipant-MemberID", receiver_participant_member_id);
 		httpHeaders.set("PSU-Device-ID", psuDeviceID);
 		httpHeaders.set("PSU-IP-Address", psuIPAddress);
 		httpHeaders.set("PSU-ID", psuID);
@@ -673,6 +668,7 @@ public class ConsentIPSXservice {
 			
 		   response = restTemplate.exchange(env.getProperty("ipsxconsent.url")+"/accounts/"+accountID, HttpMethod.GET, entity, AccountsListAccounts.class);
 
+		   logger.debug(listener.generateJsonFormat(response.getBody().toString()));
 			/*response = restTemplate.post("/api/ws/dbtActfndTransfer?",
 					entity, String.class);*/
 			
@@ -717,13 +713,6 @@ public class ConsentIPSXservice {
 			AccountsListAccounts c24ftResponse = new AccountsListAccounts(Integer.parseInt(errorCode.ErrorCodeRegistration("23").split(":")[0]),
 					errorCode.ErrorCodeRegistration("23").split(":")[1]);
 			return new ResponseEntity<>(c24ftResponse, ex.getStatusCode());	
-			
-		}catch (Exception ex) {
-			logger.info("HttpException --------->");
-			
-			AccountsListAccounts c24ftResponse = new AccountsListAccounts(Integer.parseInt(errorCode.ErrorCodeRegistration("25").split(":")[0]),
-					errorCode.ErrorCodeRegistration("25").split(":")[1]);
-			return new ResponseEntity<>(c24ftResponse,HttpStatus.INTERNAL_SERVER_ERROR);
 			
 		}
 	}

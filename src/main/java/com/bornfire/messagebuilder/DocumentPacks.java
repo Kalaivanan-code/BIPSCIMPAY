@@ -31,6 +31,7 @@ import com.bornfire.config.Listener;
 import com.bornfire.config.SequenceGenerator;
 import com.bornfire.entity.BankAgentTable;
 import com.bornfire.entity.CIMCreditTransferRequest;
+import com.bornfire.entity.CIMMerchantDirectFndRequest;
 import com.bornfire.entity.CreditTransferTransaction;
 import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.entity.TranMonitorStatus;
@@ -106,8 +107,10 @@ import com.bornfire.jaxb.pain_001_001_09.PaymentInstruction301;
 import com.bornfire.jaxb.pain_001_001_09.PaymentTypeInformation261;
 import com.bornfire.jaxb.pain_002_001_10.CustomerPaymentStatusReportV10;
 import com.bornfire.jaxb.pain_002_001_10.DateAndDateTime2Choice1;
+import com.bornfire.jaxb.pain_002_001_10.GenericOrganisationIdentification11;
 import com.bornfire.jaxb.pain_002_001_10.GroupHeader861;
 import com.bornfire.jaxb.pain_002_001_10.OrganisationIdentification291;
+import com.bornfire.jaxb.pain_002_001_10.OrganisationIdentificationSchemeName1Choice;
 import com.bornfire.jaxb.pain_002_001_10.OriginalPaymentInstruction321;
 import com.bornfire.jaxb.pain_002_001_10.Party38Choice1;
 import com.bornfire.jaxb.pain_002_001_10.PaymentMethod4Code1;
@@ -269,7 +272,237 @@ public class DocumentPacks implements Serializable{
 		
 		////Remitter Information
 		RemittanceInformation161 rmtInf=new RemittanceInformation161();
-		rmtInf.setUstrd(Arrays.asList("Credit Transfer"));
+		
+		if(String.valueOf(mcCreditTransferRequest.getTrRmks()).equals("null")&&
+				String.valueOf(mcCreditTransferRequest.getTrRmks()).equals("")) {
+			rmtInf.setUstrd(Arrays.asList("Credit Transfer"));
+		}else {
+			rmtInf.setUstrd(Arrays.asList(mcCreditTransferRequest.getTrRmks()));
+		}
+		creditTransferTransaction391.setRmtInf(rmtInf);
+		
+		cdtTrfTxInf.add(creditTransferTransaction391);
+		
+		
+
+///Financial Customer Credit Transfer		
+		FIToFICustomerCreditTransferV08 fiToFICstmrCdtTrf = new FIToFICustomerCreditTransferV08();
+		fiToFICstmrCdtTrf.setGrpHdr(grpHdr);
+		fiToFICstmrCdtTrf.setCdtTrfTxInf(cdtTrfTxInf);
+
+///Document
+		Document document = new Document();
+		document.setFIToFICstmrCdtTrf(fiToFICstmrCdtTrf);
+
+///Convert Document XMl element to String
+		JAXBContext jaxbContext;
+		Marshaller jaxbMarshaller;
+		StringWriter sw = null;
+		try {
+			jaxbContext = JAXBContext.newInstance(Document.class);
+			jaxbMarshaller = jaxbContext.createMarshaller();
+			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
+			jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+			JaxbCharacterEscapeHandler jaxbCharHandler = new JaxbCharacterEscapeHandler();
+			jaxbMarshaller.setProperty("com.sun.xml.bind.characterEscapeHandler", jaxbCharHandler);
+
+			com.bornfire.jaxb.pacs_008_001_08.ObjectFactory obj = new com.bornfire.jaxb.pacs_008_001_08.ObjectFactory();
+			JAXBElement<Document> jaxbElement = obj.createDocument(document);
+			sw = new StringWriter();
+			jaxbMarshaller.marshal(jaxbElement, sw);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+///return document 
+		return sw.toString();
+
+	}
+
+	/**** Create Document of Pacs.008.001.08 ****/
+	public String getMerchantPacs_008_001_01Doc(String msgId, CIMMerchantDirectFndRequest mcCreditTransferRequest,
+			BankAgentTable othBankAgent,String msgSeq,String endToEndID,String lclInstr,String ctgyPurpData,String chrBearer,String rmtInfo,String tot_tran_amount) {
+
+///Group Header
+		GroupHeader931 grpHdr = new GroupHeader931();
+		String msg_seq_id = msgId;
+		/// Message Identification ID
+		grpHdr.setMsgId(msg_seq_id);
+		/// Credit Date Time
+		grpHdr.setCreDtTm(listener.getxmlGregorianCalender("0"));
+		/// Number Of Transaction
+		grpHdr.setNbOfTxs("1");
+		/// Total Inter Bank Settlement Amount
+		ActiveCurrencyAndAmount activeCurrencyAndAmount = new ActiveCurrencyAndAmount();
+		activeCurrencyAndAmount.setCcy(mcCreditTransferRequest.getMerchantAccount().getCurrency());/// Currency
+		activeCurrencyAndAmount.setValue(new BigDecimal(tot_tran_amount));/// Amount
+		grpHdr.setTtlIntrBkSttlmAmt(activeCurrencyAndAmount);
+		/// Inter Bank settlement Date
+		grpHdr.setIntrBkSttlmDt(listener.getxmlGregorianCalender("1"));
+		/// Settlement Instruction
+		SettlementInstruction71 sttlmInf = new SettlementInstruction71();
+		sttlmInf.setSttlmMtd(SettlementMethod1Code1.CLRG);/// Settlement method (CLRG)
+		grpHdr.setSttlmInf(sttlmInf);
+
+///// creditTransaction Information
+		List<CreditTransferTransaction391> cdtTrfTxInf = new ArrayList<CreditTransferTransaction391>();
+		CreditTransferTransaction391 creditTransferTransaction391 = new CreditTransferTransaction391();
+		/// Payment Identification
+		PaymentIdentification71 pmtId = new PaymentIdentification71();
+		pmtId.setInstrId(msg_seq_id);/// Instruction ID
+		
+		//String EntToEndID=env.getProperty("ipsx.bicfi")+new SimpleDateFormat("YYYYMMdd").format(new Date())+msgSeq;
+		pmtId.setEndToEndId(endToEndID);/// End to End ID
+		pmtId.setTxId(msg_seq_id);/// Transaction ID
+		creditTransferTransaction391.setPmtId(pmtId);
+		/// Payment Type Information
+		PaymentTypeInformation281 pmtTpInf = new PaymentTypeInformation281();
+		pmtTpInf.setClrChanl(ClearingChannel2Code1.RTGS);/// Clearing Channel like(RTGS,RTNS,MPNS)
+		CategoryPurpose1Choice1 ctgyPurp = new CategoryPurpose1Choice1();
+		ctgyPurp.setPrtry(ctgyPurpData);
+		pmtTpInf.setCtgyPurp(ctgyPurp);/// Category Purpose
+		///CSDC-Customer direct Credit Payment
+		///BPDC-Bill Payments(Direct Credit)
+		LocalInstrument2Choice1 lclInstrm = new LocalInstrument2Choice1();
+		lclInstrm.setPrtry(lclInstr);
+		pmtTpInf.setLclInstrm(lclInstrm);/// Local Instrument
+		List<ServiceLevel8Choice1> svcLvl = new ArrayList<ServiceLevel8Choice1>();
+		ServiceLevel8Choice1 serlc = new ServiceLevel8Choice1();
+		serlc.setPrtry("0100");
+		svcLvl.add(serlc);
+		pmtTpInf.setSvcLvl(svcLvl);/// Service Level
+		creditTransferTransaction391.setPmtTpInf(pmtTpInf);
+		/// Inter Bank Settlement Currency And Amount
+		ActiveCurrencyAndAmount intrBkSttlmAmt = new ActiveCurrencyAndAmount();
+		intrBkSttlmAmt.setCcy(mcCreditTransferRequest.getMerchantAccount().getCurrency());/// Currency
+		intrBkSttlmAmt.setValue(new BigDecimal(tot_tran_amount));/// Amount
+		creditTransferTransaction391.setIntrBkSttlmAmt(intrBkSttlmAmt);
+		/// Charge Bearer
+		if(chrBearer.equals(ChargeBearerType1Code.SLEV.value())) {
+			creditTransferTransaction391.setChrgBr(ChargeBearerType1Code.SLEV);
+		}else if(chrBearer.equals(ChargeBearerType1Code.SHAR.value())) {
+			creditTransferTransaction391.setChrgBr(ChargeBearerType1Code.SHAR);
+		}else if(chrBearer.equals(ChargeBearerType1Code.CRED.value())) {
+			creditTransferTransaction391.setChrgBr(ChargeBearerType1Code.CRED);
+		}else if(chrBearer.equals(ChargeBearerType1Code.DEBT.value())) {
+			creditTransferTransaction391.setChrgBr(ChargeBearerType1Code.DEBT);
+		}
+		/// Financial Institution Identification(Instructing Agent)
+		FinancialInstitutionIdentification181 fin = new FinancialInstitutionIdentification181();
+		fin.setBICFI(env.getProperty("ipsx.bicfi"));
+		BranchAndFinancialInstitutionIdentification61 instgAgt = new BranchAndFinancialInstitutionIdentification61();
+		instgAgt.setFinInstnId(fin);
+		creditTransferTransaction391.setInstgAgt(instgAgt);
+		/// Financial Institution Identification(Instructed Agent)
+		FinancialInstitutionIdentification181 fin1 = new FinancialInstitutionIdentification181();
+		// fin1.setBICFI("TSTAMUMU");
+		fin1.setBICFI(othBankAgent.getBank_agent());
+		BranchAndFinancialInstitutionIdentification61 instdAgt = new BranchAndFinancialInstitutionIdentification61();
+		instdAgt.setFinInstnId(fin1);
+		creditTransferTransaction391.setInstdAgt(instdAgt);
+		/// Debtor name
+		PartyIdentification1351 dbtr = new PartyIdentification1351();
+		dbtr.setNm(mcCreditTransferRequest.getRemitterAccount().getAcctName());
+		creditTransferTransaction391.setDbtr(dbtr);
+		
+	     CashAccount381 dbtrAcct = new CashAccount381();
+		 AccountIdentification4Choice1 acc1 = new AccountIdentification4Choice1();
+		 GenericAccountIdentification11 id = new GenericAccountIdentification11();
+		 id.setId((mcCreditTransferRequest.getRemitterAccount().getAcctNumber()));
+		/* id.setSchmeNm("OBAN");*/
+		 
+		/* FinancialIdentificationSchemeName1Choice finId=new FinancialIdentificationSchemeName1Choice();
+		 finId.setCd("OAB");
+		 finId.setPrtry("Office");
+		 id.setSchmeNm(finId);*/
+		 
+		 acc1.setOthr(id); 
+		 dbtrAcct.setId(acc1);
+		 creditTransferTransaction391.setDbtrAcct(dbtrAcct);
+		 
+		/// Debtor Agent
+		BranchAndFinancialInstitutionIdentification61 dbtrAgt = new BranchAndFinancialInstitutionIdentification61();
+		FinancialInstitutionIdentification181 fin2 = new FinancialInstitutionIdentification181();
+		fin2.setBICFI(env.getProperty("ipsx.dbtragt"));
+		dbtrAgt.setFinInstnId(fin2);
+		creditTransferTransaction391.setDbtrAgt(dbtrAgt);
+		/// Debtor Agent Account
+		CashAccount381 dbtrAgtAcct = new CashAccount381();
+		AccountIdentification4Choice1 id2 = new AccountIdentification4Choice1();
+		GenericAccountIdentification11 gen1 = new GenericAccountIdentification11();
+		gen1.setId(env.getProperty("ipsx.dbtragtacct"));
+		id2.setOthr(gen1);
+		dbtrAgtAcct.setId(id2);
+		creditTransferTransaction391.setDbtrAgtAcct(dbtrAgtAcct);
+		/// Creditor Agent
+		BranchAndFinancialInstitutionIdentification61 cdtrAgt = new BranchAndFinancialInstitutionIdentification61();
+		FinancialInstitutionIdentification181 fin3 = new FinancialInstitutionIdentification181();
+		// fin3.setBICFI("TSTAMUMU");
+		fin3.setBICFI(othBankAgent.getBank_agent());
+		cdtrAgt.setFinInstnId(fin3);
+		creditTransferTransaction391.setCdtrAgt(cdtrAgt);
+		/// Creditor Agent Account
+		CashAccount381 cdtrAgtAcct = new CashAccount381();
+		AccountIdentification4Choice1 acc3 = new AccountIdentification4Choice1();
+		GenericAccountIdentification11 gen3 = new GenericAccountIdentification11();
+		// gen3.setId("TSTBNRT");
+		gen3.setId(othBankAgent.getBank_agent_account());
+		acc3.setOthr(gen3);
+		cdtrAgtAcct.setId(acc3);
+		creditTransferTransaction391.setCdtrAgtAcct(cdtrAgtAcct);
+		/// Creditor Name
+		PartyIdentification1351 cdtr = new PartyIdentification1351();
+		cdtr.setNm(mcCreditTransferRequest.getMerchantAccount().getMerchantName());
+		
+		///Merchant ID and MCC
+		com.bornfire.jaxb.pacs_008_001_08.Party38Choice1 idMer=new com.bornfire.jaxb.pacs_008_001_08.Party38Choice1();
+		com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentification291 orgIdMerID=new com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentification291();
+		List<com.bornfire.jaxb.pacs_008_001_08.GenericOrganisationIdentification11> listOthrMerID=new ArrayList<>();
+		com.bornfire.jaxb.pacs_008_001_08.GenericOrganisationIdentification11 othrMerID=new com.bornfire.jaxb.pacs_008_001_08.GenericOrganisationIdentification11();
+		othrMerID.setId(mcCreditTransferRequest.getMerchantAccount().getMerchantID());
+		com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentificationSchemeName1Choice schmeNmMerID=new com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentificationSchemeName1Choice();
+		schmeNmMerID.setPrtry("MerchantID");
+		othrMerID.setSchmeNm(schmeNmMerID);
+		listOthrMerID.add(othrMerID);
+		
+		///MCC
+		com.bornfire.jaxb.pacs_008_001_08.GenericOrganisationIdentification11 othrMCCID=new com.bornfire.jaxb.pacs_008_001_08.GenericOrganisationIdentification11();
+		othrMCCID.setId(mcCreditTransferRequest.getMerchantAccount().getMCC());
+		com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentificationSchemeName1Choice schmeNmMCCID=new com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentificationSchemeName1Choice();
+		schmeNmMCCID.setPrtry("MCC");
+		othrMCCID.setSchmeNm(schmeNmMCCID);
+		listOthrMerID.add(othrMCCID);
+		
+		orgIdMerID.setOthr(listOthrMerID);
+		idMer.setOrgId(orgIdMerID);
+		cdtr.setId(idMer);
+		
+		///Postal Address
+		//Country
+		PostalAddress241 pstlAdrMer=new PostalAddress241();
+		pstlAdrMer.setCtry(mcCreditTransferRequest.getMerchantAccount().getCountryCode());
+		pstlAdrMer.setTwnNm(mcCreditTransferRequest.getMerchantAccount().getCity());
+		if(!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getPostalCode()).equals("null")) {
+			if(!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getPostalCode()).equals("")) {
+				pstlAdrMer.setPstCd(mcCreditTransferRequest.getMerchantAccount().getPostalCode());
+			}
+		}
+		cdtr.setPstlAdr(pstlAdrMer);
+		
+		creditTransferTransaction391.setCdtr(cdtr);
+		/// Creditor Account Number
+		CashAccount381 cdtrAcct = new CashAccount381();
+		AccountIdentification4Choice1 id4 = new AccountIdentification4Choice1();
+		GenericAccountIdentification11 gen4 = new GenericAccountIdentification11();
+		gen4.setId(mcCreditTransferRequest.getMerchantAccount().getMerchantAcctNumber());
+		id4.setOthr(gen4);
+		cdtrAcct.setId(id4);
+		creditTransferTransaction391.setCdtrAcct(cdtrAcct);
+		
+		////Remitter Information
+		RemittanceInformation161 rmtInf=new RemittanceInformation161();
+		rmtInf.setUstrd(Arrays.asList(rmtInfo));
 		creditTransferTransaction391.setRmtInf(rmtInf);
 		
 		cdtTrfTxInf.add(creditTransferTransaction391);
@@ -1600,7 +1833,7 @@ public class DocumentPacks implements Serializable{
 			String currencyCode ,String benName, String benAcctNumber,
 			String trAmt, String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID,
 			String msgNetMir,String cryptogram,String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,
-			String lclInstrData,String ctgyPurpData) {
+			String lclInstrData,String ctgyPurpData,String chargeBearer) {
 		///Group Header
 		GroupHeader851 grpHdr = new GroupHeader851();
 		String msg_seq_id = seqUniqueID;
@@ -1673,6 +1906,16 @@ public class DocumentPacks implements Serializable{
 		pmtInf.setDbtrAgtAcct(dbtrAgtAcct);
 		
 		pmtInf.setChrgBr(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.SLEV);
+
+		/*if (chargeBearer.equals(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.SHAR.value())) {
+			pmtInf.setChrgBr(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.SHAR);
+		} else if (chargeBearer.equals(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.DEBT.value())) {
+			pmtInf.setChrgBr(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.DEBT);
+		} else if (chargeBearer.equals(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.CRED.value())) {
+			pmtInf.setChrgBr(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.CRED);
+		} else {
+			pmtInf.setChrgBr(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.SLEV);
+		}*/
 		
 		/////Credit TransferInfo
 		List<com.bornfire.jaxb.pain_001_001_09.CreditTransferTransaction341> cdtTrfTxInfList=new ArrayList<>();
@@ -1738,7 +1981,13 @@ public class DocumentPacks implements Serializable{
 		cdtTrfTxInf.setRgltryRptg(Arrays.asList(rgltryRptgList));
 		
 		com.bornfire.jaxb.pain_001_001_09.RemittanceInformation161 rmtInf=new com.bornfire.jaxb.pain_001_001_09.RemittanceInformation161();
-		rmtInf.setUstrd(Arrays.asList("Transfer"));
+		if(trRmks.equals("null")&&trRmks.equals("")) {
+			rmtInf.setUstrd(Arrays.asList("Transfer"));
+		}else {
+			rmtInf.setUstrd(Arrays.asList(trRmks));
+		}
+		
+		
 		cdtTrfTxInf.setRmtInf(rmtInf);
 		pmtInf.setCdtTrfTxInf(Arrays.asList(cdtTrfTxInf));
 		
@@ -1788,6 +2037,239 @@ public class DocumentPacks implements Serializable{
 ///return document 
 		return sw.toString();
 	}
+	
+	public Object getMerchantPain_001_001_09Doc(String msgType, SendT request, String acctName, String acctNumber,
+			String currencyCode ,String benName, String benAcctNumber,
+			String trAmt, String trRmks, String seqUniqueID, String cimMsgID, String msgSeq, String endTOEndID,
+			String msgNetMir,String cryptogram,String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,
+			String lclInstrData,String ctgyPurpData,String chargeBearer,CIMMerchantDirectFndRequest cimMerchantRequest,String remitInfo) {
+		///Group Header
+		GroupHeader851 grpHdr = new GroupHeader851();
+		String msg_seq_id = seqUniqueID;
+		/// Message Identification ID
+		grpHdr.setMsgId(msg_seq_id);
+		/// Credit Date Time
+		grpHdr.setCreDtTm(listener.getxmlGregorianCalender("0"));
+		/// Number Of Transaction
+		grpHdr.setNbOfTxs("1");
+		
+		///Authorisation Cryptogram
+		Authorisation1Choice1 Authstn=new Authorisation1Choice1();
+		Authstn.setPrtry(cryptogram);
+		List<Authorisation1Choice1> authstn=Arrays.asList(Authstn);
+		grpHdr.setAuthstn(authstn);
+		
+		////Initiating Party(InitgPty)
+		com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351 initgPty=new com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351();
+		
+		com.bornfire.jaxb.pain_001_001_09.Party38Choice1 id=new com.bornfire.jaxb.pain_001_001_09.Party38Choice1();
+		com.bornfire.jaxb.pain_001_001_09.OrganisationIdentification291 orgId=new com.bornfire.jaxb.pain_001_001_09.OrganisationIdentification291();
+		orgId.setAnyBIC(instgAgent);
+		id.setOrgId(orgId);
+		initgPty.setId(id);
+		grpHdr.setInitgPty(initgPty);
+		
+		////Forwarding Agent
+		com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61 fwdgAgt=new com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61();
+		com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181 finInstnId=new com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181();
+		finInstnId.setBICFI(instdAgent);
+		fwdgAgt.setFinInstnId(finInstnId);
+		grpHdr.setFwdgAgt(fwdgAgt);
+		
+
+		/////Payment Information
+		com.bornfire.jaxb.pain_001_001_09.PaymentInstruction301 pmtInf=new com.bornfire.jaxb.pain_001_001_09.PaymentInstruction301();
+		pmtInf.setPmtInfId(seqUniqueID);
+		pmtInf.setPmtMtd(com.bornfire.jaxb.pain_001_001_09.PaymentMethod3Code1.TRF);
+		com.bornfire.jaxb.pain_001_001_09.DateAndDateTime2Choice1 reqdExctnDt=new com.bornfire.jaxb.pain_001_001_09.DateAndDateTime2Choice1();
+		reqdExctnDt.setDt(listener.getxmlGregorianCalender("1"));
+		pmtInf.setReqdExctnDt(reqdExctnDt);
+		
+		com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351 dbtr=new com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351();
+		dbtr.setNm(acctName);
+		/*com.bornfire.jaxb.pain_001_001_09.PostalAddress241 pstlAdr=new com.bornfire.jaxb.pain_001_001_09.PostalAddress241();
+		pstlAdr.setAdrLine(Arrays.asList(""));
+		dbtr.setPstlAdr(pstlAdr);*/
+		pmtInf.setDbtr(dbtr);
+		
+		com.bornfire.jaxb.pain_001_001_09.CashAccount381 dbtrAcct=new com.bornfire.jaxb.pain_001_001_09.CashAccount381();
+		com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1 id1=new com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1();
+		com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11 othr=new com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11();
+		othr.setId(acctNumber);
+		id1.setOthr(othr);
+		dbtrAcct.setId(id1);
+		pmtInf.setDbtrAcct(dbtrAcct);
+		
+		com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61 dbtrAgt=new com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61();
+		com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181 finInstnId1=new com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181();
+		finInstnId1.setBICFI(debtorAgent);
+		dbtrAgt.setFinInstnId(finInstnId1);
+		pmtInf.setDbtrAgt(dbtrAgt);
+		
+		com.bornfire.jaxb.pain_001_001_09.CashAccount381 dbtrAgtAcct=new com.bornfire.jaxb.pain_001_001_09.CashAccount381();
+		com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1 finInstnId3=new com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1();
+		com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11 other1=new com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11();
+		other1.setId(debtorAgentAcct);
+		finInstnId3.setOthr(other1);
+		dbtrAgtAcct.setId(finInstnId3);
+		pmtInf.setDbtrAgtAcct(dbtrAgtAcct);
+		
+		pmtInf.setChrgBr(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.SLEV);
+
+		
+		/////Credit TransferInfo
+		List<com.bornfire.jaxb.pain_001_001_09.CreditTransferTransaction341> cdtTrfTxInfList=new ArrayList<>();
+		com.bornfire.jaxb.pain_001_001_09.CreditTransferTransaction341 cdtTrfTxInf=new com.bornfire.jaxb.pain_001_001_09.CreditTransferTransaction341();
+		
+		com.bornfire.jaxb.pain_001_001_09.PaymentIdentification61 pmtId=new com.bornfire.jaxb.pain_001_001_09.PaymentIdentification61();
+		pmtId.setInstrId(seqUniqueID);
+		pmtId.setEndToEndId(endTOEndID);
+		cdtTrfTxInf.setPmtId(pmtId);
+		
+		com.bornfire.jaxb.pain_001_001_09.PaymentTypeInformation261 pmtTpInf=new com.bornfire.jaxb.pain_001_001_09.PaymentTypeInformation261();
+		com.bornfire.jaxb.pain_001_001_09.ServiceLevel8Choice1 svclvl=new com.bornfire.jaxb.pain_001_001_09.ServiceLevel8Choice1();
+		svclvl.setPrtry("0100");
+		pmtTpInf.setSvcLvl(Arrays.asList(svclvl));
+		com.bornfire.jaxb.pain_001_001_09.LocalInstrument2Choice1 lclInstrm=new com.bornfire.jaxb.pain_001_001_09.LocalInstrument2Choice1();
+		lclInstrm.setPrtry(lclInstrData);
+		pmtTpInf.setLclInstrm(lclInstrm);
+		com.bornfire.jaxb.pain_001_001_09.CategoryPurpose1Choice1 ctgyPurp=new com.bornfire.jaxb.pain_001_001_09.CategoryPurpose1Choice1();
+		ctgyPurp.setPrtry(ctgyPurpData);
+		pmtTpInf.setCtgyPurp(ctgyPurp);
+		cdtTrfTxInf.setPmtTpInf(pmtTpInf);
+		
+		com.bornfire.jaxb.pain_001_001_09.AmountType4Choice1 amt=new com.bornfire.jaxb.pain_001_001_09.AmountType4Choice1();
+		com.bornfire.jaxb.pain_001_001_09.ActiveOrHistoricCurrencyAndAmount instdAmt=new com.bornfire.jaxb.pain_001_001_09.ActiveOrHistoricCurrencyAndAmount();
+		instdAmt.setCcy(currencyCode);
+		instdAmt.setValue(new BigDecimal(trAmt));
+		amt.setInstdAmt(instdAmt);
+		cdtTrfTxInf.setAmt(amt);
+		
+		com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61 cdtrAgt=new com.bornfire.jaxb.pain_001_001_09.BranchAndFinancialInstitutionIdentification61();
+		com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181 finInstnId2=new com.bornfire.jaxb.pain_001_001_09.FinancialInstitutionIdentification181();
+		finInstnId2.setBICFI(CreditorAgent);
+		cdtrAgt.setFinInstnId(finInstnId2);
+		cdtTrfTxInf.setCdtrAgt(cdtrAgt);
+		
+		com.bornfire.jaxb.pain_001_001_09.CashAccount381 cdtrAgtAcct=new com.bornfire.jaxb.pain_001_001_09.CashAccount381();
+		com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1 finInstnId4=new com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1();
+		com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11 other2=new com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11();
+		other2.setId(CreditorAgentAcct);
+		finInstnId4.setOthr(other2);
+		cdtrAgtAcct.setId(finInstnId4);
+		cdtTrfTxInf.setCdtrAgtAcct(cdtrAgtAcct);
+		
+		com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351 cdtr=new com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351();
+		cdtr.setNm(benName);
+		
+		/// Merchant ID and MCC
+		com.bornfire.jaxb.pain_001_001_09.Party38Choice1 idMer = new com.bornfire.jaxb.pain_001_001_09.Party38Choice1();
+		com.bornfire.jaxb.pain_001_001_09.OrganisationIdentification291 orgIdMerID = new com.bornfire.jaxb.pain_001_001_09.OrganisationIdentification291();
+		List<com.bornfire.jaxb.pain_001_001_09.GenericOrganisationIdentification11> listOthrMerID = new ArrayList<>();
+		com.bornfire.jaxb.pain_001_001_09.GenericOrganisationIdentification11 othrMerID = new com.bornfire.jaxb.pain_001_001_09.GenericOrganisationIdentification11();
+		othrMerID.setId(cimMerchantRequest.getMerchantAccount().getMerchantID());
+		com.bornfire.jaxb.pain_001_001_09.OrganisationIdentificationSchemeName1Choice schmeNmMerID = new com.bornfire.jaxb.pain_001_001_09.OrganisationIdentificationSchemeName1Choice();
+		schmeNmMerID.setPrtry("MerchantID");
+		othrMerID.setSchmeNm(schmeNmMerID);
+		listOthrMerID.add(othrMerID);
+
+		/// MCC
+		com.bornfire.jaxb.pain_001_001_09.GenericOrganisationIdentification11 othrMCCID = new com.bornfire.jaxb.pain_001_001_09.GenericOrganisationIdentification11();
+		othrMCCID.setId(cimMerchantRequest.getMerchantAccount().getMCC());
+		com.bornfire.jaxb.pain_001_001_09.OrganisationIdentificationSchemeName1Choice schmeNmMCCID = new com.bornfire.jaxb.pain_001_001_09.OrganisationIdentificationSchemeName1Choice();
+		schmeNmMCCID.setPrtry("MCC");
+		othrMCCID.setSchmeNm(schmeNmMCCID);
+		listOthrMerID.add(othrMCCID);
+
+		orgIdMerID.setOthr(listOthrMerID);
+		idMer.setOrgId(orgIdMerID);
+		cdtr.setId(idMer);
+		
+		/// Postal Address
+		// Country
+		com.bornfire.jaxb.pain_001_001_09.PostalAddress241 pstlAdrMer = new com.bornfire.jaxb.pain_001_001_09.PostalAddress241();
+		pstlAdrMer.setCtry(cimMerchantRequest.getMerchantAccount().getCountryCode());
+		pstlAdrMer.setTwnNm(cimMerchantRequest.getMerchantAccount().getCity());
+		pstlAdrMer.setAdrLine(Arrays.asList(cimMerchantRequest.getMerchantAccount().getCity()));
+
+		if (!String.valueOf(cimMerchantRequest.getMerchantAccount().getPostalCode()).equals("null")) {
+			if (!String.valueOf(cimMerchantRequest.getMerchantAccount().getPostalCode()).equals("")) {
+				pstlAdrMer.setPstCd(cimMerchantRequest.getMerchantAccount().getPostalCode());
+			}
+		}
+		cdtr.setPstlAdr(pstlAdrMer);
+
+		//com.bornfire.jaxb.pain_001_001_09.PostalAddress241 pstlAdr1=new com.bornfire.jaxb.pain_001_001_09.PostalAddress241();
+		//pstlAdr1.setAdrLine(Arrays.asList(""));
+		//cdtr.setPstlAdr(pstlAdr1);
+		cdtTrfTxInf.setCdtr(cdtr);
+		
+		com.bornfire.jaxb.pain_001_001_09.CashAccount381 cdtrAcct=new com.bornfire.jaxb.pain_001_001_09.CashAccount381();
+		com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1 id2=new com.bornfire.jaxb.pain_001_001_09.AccountIdentification4Choice1();
+		com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11 acctId=new 	com.bornfire.jaxb.pain_001_001_09.GenericAccountIdentification11();
+		acctId.setId(benAcctNumber);
+		id2.setOthr(acctId);
+		cdtrAcct.setId(id2);
+		cdtTrfTxInf.setCdtrAcct(cdtrAcct);
+		
+		com.bornfire.jaxb.pain_001_001_09.RegulatoryReporting31 rgltryRptgList=new com.bornfire.jaxb.pain_001_001_09.RegulatoryReporting31();
+		com.bornfire.jaxb.pain_001_001_09.StructuredRegulatoryReporting31 dtls=new com.bornfire.jaxb.pain_001_001_09.StructuredRegulatoryReporting31();
+		dtls.setInf(Arrays.asList("Transfer"));
+		rgltryRptgList.setDtls(dtls);
+		//cdtTrfTxInf.setRgltryRptg(Arrays.asList(rgltryRptgList));
+		
+		com.bornfire.jaxb.pain_001_001_09.RemittanceInformation161 rmtInf=new com.bornfire.jaxb.pain_001_001_09.RemittanceInformation161();
+		rmtInf.setUstrd(Arrays.asList(remitInfo));
+		cdtTrfTxInf.setRmtInf(rmtInf);
+		pmtInf.setCdtTrfTxInf(Arrays.asList(cdtTrfTxInf));
+		
+		
+		/////Customer Credit Transfer Initiation
+		
+		com.bornfire.jaxb.pain_001_001_09.CustomerCreditTransferInitiationV09  CstmrCdtTrfInitn=new com.bornfire.jaxb.pain_001_001_09.CustomerCreditTransferInitiationV09();
+		CstmrCdtTrfInitn.setGrpHdr(grpHdr);
+		CstmrCdtTrfInitn.setPmtInf(pmtInf);
+		
+///Document
+		com.bornfire.jaxb.pain_001_001_09.Document document = new com.bornfire.jaxb.pain_001_001_09.Document();
+		document.setCstmrCdtTrfInitn(CstmrCdtTrfInitn);
+
+		JAXBContext jaxbContext;
+		Marshaller jaxbMarshaller;
+		StringWriter sw = null;
+		try {
+			jaxbContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_001_001_09.Document.class);
+			jaxbMarshaller = jaxbContext.createMarshaller();
+			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
+			jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+			JaxbCharacterEscapeHandler jaxbCharHandler = new JaxbCharacterEscapeHandler();
+			jaxbMarshaller.setProperty("com.sun.xml.bind.characterEscapeHandler", jaxbCharHandler);
+
+			com.bornfire.jaxb.pain_001_001_09.ObjectFactory obj = new com.bornfire.jaxb.pain_001_001_09.ObjectFactory();
+			JAXBElement<com.bornfire.jaxb.pain_001_001_09.Document> jaxbElement = obj.createDocument(document);
+			sw = new StringWriter();
+			System.out.println("okkkkkk");
+			try {
+				jaxbMarshaller.marshal(jaxbElement, sw);
+
+				//OutputStreamWriter os = new OutputStreamWriter(new ByteArrayOutputStream());
+				//jaxbMarshaller.marshal(jaxbElement, os);
+			}catch(Exception e) {
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+///return document 
+		return sw.toString();
+	}
+
 
 	public com.bornfire.jaxb.camt_053_001_08.Document getCamt053_001_08UnMarshalDoc(SendT request) {
 		String block4 = request.getMessage().getBlock4();
