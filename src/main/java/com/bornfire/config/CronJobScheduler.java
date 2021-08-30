@@ -54,6 +54,7 @@ import com.bornfire.entity.TransactionMonitor;
 public class CronJobScheduler {
 	private static final Logger logger = LoggerFactory.getLogger(CronJobScheduler.class);
 
+	
 	@Autowired
 	IPSDao ipsDao;
 
