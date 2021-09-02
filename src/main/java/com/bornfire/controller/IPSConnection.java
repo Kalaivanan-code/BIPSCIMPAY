@@ -248,7 +248,7 @@ public class IPSConnection {
 	////Debit Customer Account Credit Settl Account(Connect 24)
 	////Send Packages to IPSX,Credit to IPSX Account
 	public MCCreditTransferResponse createFTConnection(String psuDeviceID, String psuIpAddress, String psuID,
-			String senderParticipantBIC, String participantSOL, CIMCreditTransferRequest mcCreditTransferRequest,String p_id,
+			 CIMCreditTransferRequest mcCreditTransferRequest,String p_id,
 			String channelID,String resvField1,String resvField2)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
@@ -337,6 +337,9 @@ public class IPSConnection {
 
 					logger.debug("CBS Data:"+connect24Response.toString());
 					if (connect24Response.getStatusCode() == HttpStatus.OK) {
+						
+						logger.info(seqUniqueID + ": success"+String.valueOf(connect24Response.getBody().getStatus()));
+
 						logger.info(seqUniqueID + ": success"+connect24Response.getBody().getStatus().getIsSuccess()+":"+connect24Response.getBody().getStatus().getMessage());
 
 						if (connect24Response.getBody().getStatus().getIsSuccess()) {
@@ -358,7 +361,7 @@ public class IPSConnection {
 									TranMonitorStatus.IN_PROGRESS.toString());
 							
 							/////Calling IPSX
-							ipsxClient.sendftRequst(senderParticipantBIC, participantSOL, mcCreditTransferRequest,
+							ipsxClient.sendftRequst( mcCreditTransferRequest,
 									sysTraceNumber, cimMsgID, seqUniqueID, othBankAgent, msgSeq, endTOEndID, msgNetMir);
 
 
@@ -418,6 +421,169 @@ public class IPSConnection {
 
 		
 	}
+
+	
+
+	public MCCreditTransferResponse createMAnualTransaction(String psuDeviceID, String psuIpAddress,
+			List<ManualFndTransferRequest> manualFundTransferRequest,String userID,
+			String p_id,String channelID,String resvField1,String resvField2 ){
+
+		///// Generate Master Ref Id
+		String master_ref_id = "CFSL" + sequence.generateSystemTraceAuditNumber();
+
+		MCCreditTransferResponse mcCreditTransferResponse = null;
+
+		///// Starting Background Service
+		taskExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+
+				for (int i = 0; i < manualFundTransferRequest.size(); i++) {
+
+					////// Generate System Trace Audit Number
+					String sysTraceNumber = sequence.generateSystemTraceAuditNumber();
+					////// Generate Sequence Unique ID
+					String seqUniqueID = sequence.generateSeqUniqueID();
+					///// Generate Bob Message ID
+					String cimMsgID = seqUniqueID;
+					///// Generate Msg Sequence
+					String msgSeq = sequence.generateMsgSequence();
+					///// Generate End To End ID
+					String endTOEndID = env.getProperty("ipsx.bicfi")
+							+ new SimpleDateFormat("yyyyMMdd").format(new Date()) + msgSeq;
+					
+				    /////Net Mir
+					String msgNetMir=new SimpleDateFormat("yyMMdd").format(new Date())+env.getProperty("ipsx.user")+"0001"+msgSeq;
+
+					///// Register Manual Record
+					logger.info("Register Initial outgoing Fund Transfer Record");
+					
+					////Get Remitter Bank Code
+					String remitterBankCode=ipsDao.getOtherBankCode(env.getProperty("ipsx.dbtragt"));
+					
+					
+				    ////// Get Bank Agent Account and Agent Account
+					BankAgentTable othBankAgent = ipsDao
+												.getOtherBankAgent(manualFundTransferRequest.get(i).getBeneficiaryBankCode());
+					
+					
+					//////Register Data to Master Table
+					ipsDao.RegisterManualMasterRecord(psuDeviceID, psuIpAddress, sysTraceNumber, cimMsgID,
+							seqUniqueID, endTOEndID, master_ref_id, msgNetMir, env.getProperty("ipsx.bicfi"),
+							othBankAgent.getBank_agent(), env.getProperty("ipsx.dbtragt"),
+							env.getProperty("ipsx.dbtragtacct"), othBankAgent.getBank_agent(),
+							othBankAgent.getBank_agent_account(), seqUniqueID, "0100", "CSDC", "100", "100",
+							manualFundTransferRequest.get(i).getRemitterName(),
+							manualFundTransferRequest.get(i).getRemitterAcctNumber(),
+							manualFundTransferRequest.get(i).getBeneficiaryBankCode(),
+							remitterBankCode,
+							manualFundTransferRequest.get(i).getCurrencyCode(),
+							manualFundTransferRequest.get(i).getBeneficiaryName(),
+							manualFundTransferRequest.get(i).getBeneficiaryAcctNumber(),
+							p_id,manualFundTransferRequest.get(i).getTrAmt(),manualFundTransferRequest.get(i).getTrRmks(), p_id,
+							manualFundTransferRequest.get(i).getReqUniqueID(), channelID, resvField1,resvField2);
+					
+					
+					/*ipsDao.RegisterManualTranRecord(psuDeviceID, psuIpAddress, sysTraceNumber,
+							manualFundTransferRequest.get(i), bobMsgID, seqUniqueID, endTOEndID, master_ref_id,msgNetMir,
+							env.getProperty("ipsx.bicfi"),othBankAgent.getBank_agent(),env.getProperty("ipsx.dbtragt"),env.getProperty("ipsx.dbtragtacct"),
+							othBankAgent.getBank_agent(),othBankAgent.getBank_agent_account(),seqUniqueID,"0100","CSDC","100","100",userID);
+*/
+					
+					
+					
+					
+				////Generate RequestUUID
+				String requestUUID=sequence.generateRequestUUId();
+					
+				/**********ESB*********/
+				////Store ESB Registration Data
+				////Register ESB Data
+			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), "", "True", "DR", "N", "", manualFundTransferRequest.get(i).getBeneficiaryAcctNumber(), manualFundTransferRequest.get(i).getTrAmt(), manualFundTransferRequest.get(i).getCurrencyCode(),
+						seqUniqueID, manualFundTransferRequest.get(i).getRemitterAcctNumber(), manualFundTransferRequest.get(i).getRemitterName(), "NRT/RTP",manualFundTransferRequest.get(i).getTrRmks(), "", "", "");
+				
+			    /////Call ESB Connection
+					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
+
+					logger.debug("CBS Data:"+connect24Response.toString());
+					if (connect24Response.getStatusCode() == HttpStatus.OK) {
+						logger.info(seqUniqueID + ": success"+connect24Response.getBody().getStatus().getIsSuccess()+":"+connect24Response.getBody().getStatus().getMessage());
+
+						if (connect24Response.getBody().getStatus().getIsSuccess()) {
+							
+							////Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+							
+							
+						    ////Update CBS Status to Tran Table
+							ipsDao.updateOutwardCBSStatus(seqUniqueID,
+									TranMonitorStatus.CBS_DEBIT_OK.toString(),
+									TranMonitorStatus.IN_PROGRESS.toString());
+							
+							/////Calling IPSX
+							/*ipsxClient.sendftRequst( mcCreditTransferRequest,
+									sysTraceNumber, cimMsgID, seqUniqueID, othBankAgent, msgSeq, endTOEndID, msgNetMir);*/
+							
+							logger.info("Calling IPSX");
+							ipsxClient.sendManualftRequst(
+									manualFundTransferRequest.get(i).getRemitterName(),
+									manualFundTransferRequest.get(i).getRemitterAcctNumber(),
+									manualFundTransferRequest.get(i).getBeneficiaryName(),
+									manualFundTransferRequest.get(i).getBeneficiaryAcctNumber(),
+									manualFundTransferRequest.get(i).getTrAmt(),
+									manualFundTransferRequest.get(i).getCurrencyCode(), sysTraceNumber, cimMsgID,
+									seqUniqueID, othBankAgent, msgSeq, endTOEndID,msgNetMir);
+
+
+
+						} else {
+							
+							//// Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+	
+							
+					      	//// Update ESB Data Error
+							ipsDao.updateOutwardCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
+									connect24Response.getBody().getStatus().getMessage(), TranMonitorStatus.FAILURE.toString());
+		
+							
+						}
+					} else {
+						//// Update ESB Data to CIM Table
+						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
+								"Internal Server Error","");
+	 
+						
+					    //// Update ESB Data to Outward Table
+						ipsDao.updateOutwardCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
+								String.valueOf(connect24Response.getStatusCodeValue())+":Internal Server Error", TranMonitorStatus.FAILURE.toString());
+	
+						
+					}
+					
+
+				}
+
+			}
+		});
+
+		///// Return Master Ref ID
+		mcCreditTransferResponse = new MCCreditTransferResponse(master_ref_id,
+				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ").format(new Date()));
+		return mcCreditTransferResponse;
+		
+
+	}
+
+	
 
 	////Bulk Credit Transaction
 	public MCCreditTransferResponse createBulkCreditConnection(String psuDeviceID, String psuIpAddress, String psuID,
@@ -947,232 +1113,6 @@ public class IPSConnection {
 
 			return mcCreditTransferResponse;
 	}
-
-	public MCCreditTransferResponse createMAnualTransaction(String psuDeviceID, String psuIpAddress,
-			List<ManualFndTransferRequest> manualFundTransferRequest,String userID)
-			{
-
-		/*///// Generate Master Ref Id
-		String master_ref_id = "CFSL" + sequence.generateSystemTraceAuditNumber();
-
-		MCCreditTransferResponse mcCreditTransferResponse = null;
-
-		///// Starting Background Service
-		taskExecutor.execute(new Runnable() {
-			@Override
-			public void run() {
-
-				for (int i = 0; i < manualFundTransferRequest.size(); i++) {
-
-					////// Generate System Trace Audit Number
-					String sysTraceNumber = sequence.generateSystemTraceAuditNumber();
-					////// Generate Sequence Unique ID
-					String seqUniqueID = sequence.generateSeqUniqueID();
-					///// Generate Bob Message ID
-					String bobMsgID = seqUniqueID;
-					///// Generate Msg Sequence
-					String msgSeq = sequence.generateMsgSequence();
-					///// Generate End To End ID
-					String endTOEndID = env.getProperty("ipsx.bicfi")
-							+ new SimpleDateFormat("yyyyMMdd").format(new Date()) + msgSeq;
-					
-				    /////Net Mir
-					String msgNetMir=new SimpleDateFormat("yyMMdd").format(new Date())+env.getProperty("ipsx.user")+"0001"+msgSeq;
-
-					///// Register Manual Record
-					logger.info("Register Initial outgoing Fund Transfer Record");
-					
-					
-				    ////// Get Bank Agent Account and Agent Account
-					BankAgentTable othBankAgent = ipsDao
-												.getOtherBankAgent(manualFundTransferRequest.get(i).getBeneficiaryBankCode());
-					
-					ipsDao.RegisterManualTranRecord(psuDeviceID, psuIpAddress, sysTraceNumber,
-							manualFundTransferRequest.get(i), bobMsgID, seqUniqueID, endTOEndID, master_ref_id,msgNetMir,
-							env.getProperty("ipsx.bicfi"),othBankAgent.getBank_agent(),env.getProperty("ipsx.dbtragt"),env.getProperty("ipsx.dbtragtacct"),
-							othBankAgent.getBank_agent(),othBankAgent.getBank_agent_account(),seqUniqueID,"0100","CSDC","100","100",userID);
-
-					ResponseEntity<C24FTResponse> connect24Response = null;
-
-					ResponseEntity<AccountContactResponse> connect24ResponseAccContactExist = connect24Service
-							.getAccountContact("", "", "",
-									manualFundTransferRequest.get(i).getRemitterAcctNumber());
-					
-					if (connect24ResponseAccContactExist.getStatusCode() == HttpStatus.OK) {
-						if (connect24ResponseAccContactExist.getBody().getStatus().equals("0")) {
-							if (connect24ResponseAccContactExist.getBody().getSchmType().equals("SBA")
-									|| connect24ResponseAccContactExist.getBody().getSchmType().equals("CAA")
-									|| connect24ResponseAccContactExist.getBody().getSchmType().equals("ODA")) {
-								if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("A")) {
-									if (connect24ResponseAccContactExist.getBody().getFrezCode().equals("T")
-											|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("D")
-											|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("C")) {
-
-										ipsDao.updateCBSStatusError(seqUniqueID,
-												TranMonitorStatus.VALIDATION_ERROR.toString(),
-												"Transaction forbidden on this type of account/" + "Freeze Account",
-												TranMonitorStatus.FAILURE.toString());
-									}else {
-										if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
-										////// Calling Connect 24 for Manual Transaction
-											logger.info("Send message to Connect24");
-											connect24Response = connect24Service.ManualDbtFundRequest(manualFundTransferRequest.get(i),
-													sysTraceNumber, seqUniqueID,manualFundTransferRequest.get(i).getBeneficiaryBankCode()+"/"+
-															manualFundTransferRequest.get(i).getBeneficiaryAcctNumber()+"/"+
-															manualFundTransferRequest.get(i).getBeneficiaryName());
-
-											///// Return Status Code 200 from Connect 24
-											if (connect24Response.getStatusCode() == HttpStatus.OK) {
-
-												logger.info("Connect24 Processed Successfully");
-												logger.info("Update CBS Debit OK Status to Table");
-												ipsDao.updateCBSStatus(seqUniqueID, TranMonitorStatus.CBS_DEBIT_OK.toString(),
-														TranMonitorStatus.IN_PROGRESS.toString());
-
-												
-												logger.info(othBankAgent.getBank_agent(), "" + othBankAgent.getBank_agent_account());
-												
-
-												////// Calling IPSX
-												logger.info("Calling IPSX");
-												MCCreditTransferResponse response = ipsxClient.sendManualftRequst(
-														manualFundTransferRequest.get(i).getRemitterName(),
-														manualFundTransferRequest.get(i).getRemitterAcctNumber(),
-														manualFundTransferRequest.get(i).getBeneficiaryName(),
-														manualFundTransferRequest.get(i).getBeneficiaryAcctNumber(),
-														manualFundTransferRequest.get(i).getTrAmt(),
-														manualFundTransferRequest.get(i).getCurrencyCode(), sysTraceNumber, bobMsgID,
-														seqUniqueID, othBankAgent, msgSeq, endTOEndID,msgNetMir);
-
-											} else if (connect24Response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-												ipsDao.updateCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
-														TranMonitorStatus.CBS_SERVER_NOT_CONNECTED.toString(),
-														TranMonitorStatus.FAILURE.toString());
-												ipsDao.updateINOUT(seqUniqueID, "MC_OUT");
-
-											} else {
-												ipsDao.updateCBSStatusError(seqUniqueID, TranMonitorStatus.CBS_DEBIT_ERROR.toString(),
-														connect24Response.getBody().getError_desc().get(0).toString(),
-														TranMonitorStatus.FAILURE.toString());
-
-												ipsDao.updateINOUT(seqUniqueID, "MC_OUT");
-
-											}
-										}else {
-											ipsDao.updateCBSStatusError(seqUniqueID,
-													TranMonitorStatus.VALIDATION_ERROR.toString(),
-													"Invalid Currency Code",
-													TranMonitorStatus.FAILURE.toString());
-										}
-									} 
-									
-								}else {
-									if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("C")) {
-
-										ipsDao.updateCBSStatusError(seqUniqueID,
-												TranMonitorStatus.VALIDATION_ERROR.toString(), "Closed Account Number",
-												TranMonitorStatus.FAILURE.toString());
-
-									} else {
-										ipsDao.updateCBSStatusError(seqUniqueID,
-												TranMonitorStatus.VALIDATION_ERROR.toString(), "Blocked Account Number",
-												TranMonitorStatus.FAILURE.toString());
-
-									}
-								}
-								
-							}else {
-								ipsDao.updateCBSStatusError(seqUniqueID,
-										TranMonitorStatus.VALIDATION_ERROR.toString(),
-										"Transaction forbidden on this type of account",
-										TranMonitorStatus.FAILURE.toString());
-							}
-						}else {
-							if (connect24ResponseAccContactExist.getBody().getStatus().equals("1")) {
-
-								ipsDao.updateCBSStatusError(seqUniqueID,
-										TranMonitorStatus.VALIDATION_ERROR.toString(),
-										"Incorrect Account Debtor Number", TranMonitorStatus.FAILURE.toString());
-
-							} else {
-								ipsDao.updateCBSStatusError(seqUniqueID,
-										TranMonitorStatus.VALIDATION_ERROR.toString(),
-										"Transaction forbidden on this type of account/" + "Invalid Account Number",
-										TranMonitorStatus.FAILURE.toString());
-
-							}
-						}
-					}else {
-						ipsDao.updateCBSStatusError(seqUniqueID,
-								TranMonitorStatus.VALIDATION_ERROR.toString(), "Technical Problem",
-								TranMonitorStatus.FAILURE.toString());
-					}
-					
-					
-
-				}
-
-			}
-		});
-
-		///// Return Master Ref ID
-		mcCreditTransferResponse = new MCCreditTransferResponse(master_ref_id,
-				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ").format(new Date()));
-		return mcCreditTransferResponse;*/
-		
-	///// Generate Master Ref Id
-			String master_ref_id = env.getProperty("ipsx.userS") + sequence.generateSystemTraceAuditNumber();
-
-			MCCreditTransferResponse mcCreditTransferResponse = null;
-
-			///// Starting Background Service
-			taskExecutor.execute(new Runnable() {
-				@Override
-				public void run() {
-
-					for (int i = 0; i < manualFundTransferRequest.size(); i++) {
-
-						////// Generate System Trace Audit Number
-						String sysTraceNumber = sequence.generateSystemTraceAuditNumber();
-						////// Generate Sequence Unique ID
-						String seqUniqueID = sequence.generateSeqUniqueID();
-						///// Generate Bob Message ID
-						String bobMsgID = seqUniqueID;
-						///// Generate Msg Sequence
-						String msgSeq = sequence.generateMsgSequence();
-						///// Generate End To End ID
-						String endTOEndID = env.getProperty("ipsx.bicfi")
-								+ new SimpleDateFormat("YYYYMMdd").format(new Date()) + msgSeq;
-						
-					    /////Net Mir
-						String msgNetMir=new SimpleDateFormat("YYMMdd").format(new Date())+env.getProperty("ipsx.user")+"0001"+msgSeq;
-
-						///// Register Manual Record
-						logger.info("Register Initial outgoing Fund Transfer Record");
-						
-						
-					    ////// Get Bank Agent Account and Agent Account
-						BankAgentTable othBankAgent = ipsDao
-													.getOtherBankAgent(manualFundTransferRequest.get(i).getBeneficiaryBankCode());
-						logger.info("Register Initial outgoing Fund Transfer Record"+othBankAgent.getBank_agent());
-						ipsDao.RegisterManualTranRecord(psuDeviceID, psuIpAddress, sysTraceNumber,
-								manualFundTransferRequest.get(i), bobMsgID, seqUniqueID, endTOEndID, master_ref_id,msgNetMir,
-								env.getProperty("ipsx.bicfi"),othBankAgent.getBank_agent(),env.getProperty("ipsx.dbtragt"),env.getProperty("ipsx.dbtragtacct"),
-								othBankAgent.getBank_agent(),othBankAgent.getBank_agent_account(),seqUniqueID,"0100","CSDC","100","100",userID);
-					}
-
-				}
-			});
-
-			///// Return Master Ref ID
-			mcCreditTransferResponse = new MCCreditTransferResponse(master_ref_id,
-					new SimpleDateFormat("YYYY-MM-dd HH:mm:ss ").format(new Date()));
-			return mcCreditTransferResponse;
-
-
-	}
-
-	
 
 	public String setSL() {
 		logger.info("Setting Settlement Limit");
@@ -3580,8 +3520,11 @@ public class IPSConnection {
 						String CreditorAgent=creditorAgent.getBank_agent();
 						String CreditorAgentAcct=creditorAgent.getBank_agent_account();
 						
+						////Check Creditor Account Number already registerd in BIPS
+						boolean isRegisteredPISP=ipsDao.checkExistConsent(rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
+						
 						////Category Purpose
-						String ctgyPurp=listener.getCtgyPurp(instgAgent,debtorAgent,CreditorAgent);
+						String ctgyPurp=listener.getCtgyPurp(instgAgent,debtorAgent,CreditorAgent,rtpBulkTransferRequest.getRemitterAccount().getAcctName(),rtpBulkTransferRequest.getBenAccount().get(i).getBenName(),isRegisteredPISP);
 						
 						///Local Instrumentation
 						String lclInstr=TranMonitorStatus.CSDC.toString();

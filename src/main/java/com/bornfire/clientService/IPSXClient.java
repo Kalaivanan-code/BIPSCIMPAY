@@ -139,7 +139,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 	ErrorResponseCode errorCode;
 
 	@SuppressWarnings("unchecked")
-	public void sendftRequst(String senderParticipantBIC, String participantSOL,
+	public void sendftRequst(
 			CIMCreditTransferRequest mcCreditTransferRequest, String sysTraceNumber, String bobMsgID, String seqUniqueID,
 			BankAgentTable othBankAgent, String msgSeq, String endToEndIDt, String msgNetMir) {
 
@@ -208,7 +208,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			ipsDao.updateOutwardIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_ACK_RECEIVED.toString(),
 					TranMonitorStatus.IN_PROGRESS.toString());
 
-			//ipsDao.updateTranIPSACK(seqUniqueID, seqUniqueID, "O", "SUCCESS", NetMIR, UserRef);
+			ipsDao.updateTranIPSACK(seqUniqueID, seqUniqueID, "O", "SUCCESS", NetMIR, UserRef);
 
 		} else {
 			///// Update NAK Message
@@ -1685,7 +1685,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "MANUAL", "", "", "", "O",
 				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndIDt);
 
-		ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
+		ipsDao.updateOutwardIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 				TranMonitorStatus.IN_PROGRESS.toString());
 
 		/**** Create Pacs008 *****/
@@ -1705,7 +1705,6 @@ public class IPSXClient extends WebServiceGatewaySupport {
 		/**** Send Pacs008 Request to IPSX *****/
 		logger.info("Sending pacs.008.001.01 to ipsx");
 		JAXBElement<SendResponse> response = null;
-		String responseStatus = null;
 		try {
 			response = (JAXBElement<SendResponse>) getWebServiceTemplate().marshalSendAndReceive(jaxbElement);
 			logger.info("Get ACK/NAK from IPSX :" + response.getValue().getData().getType().toString());
@@ -1716,9 +1715,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				@Override
 				public void run() {
 
-					ipsDao.updateIPSXStatusResponseRJCT(seqUniqueID, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
+					ipsDao.updateIPSXStatusResponseRJCTBulkRTP(seqUniqueID, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
 							"", TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_ERROR.toString(), "",
-							SERVER_ERROR_CODE,"");
+							SERVER_ERROR_CODE);
 
 				}
 			});
@@ -1737,7 +1736,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 			ipsDao.updateTranIPSACK(seqUniqueID, seqUniqueID, "O", "SUCCESS", NetMIR, UserRef);
 
-			ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_ACK_RECEIVED.toString(),
+			ipsDao.updateOutwardIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_ACK_RECEIVED.toString(),
 					TranMonitorStatus.IN_PROGRESS.toString());
 
 		} else {
@@ -1751,14 +1750,14 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					TranMonitorStatus.IN_PROGRESS.toString());
 
 			logger.info("update CBS debit reverse to Table");
-			ipsDao.updateCBSStatus(seqUniqueID, TranMonitorStatus.CBS_DEBIT_REVERSE_INITIATED.toString(),
+			ipsDao.updateOutwardIPSXStatus(seqUniqueID, TranMonitorStatus.CBS_DEBIT_REVERSE_INITIATED.toString(),
 					TranMonitorStatus.IN_PROGRESS.toString());
 
-			logger.info("Calling Connect24 For Reverse Fund Transfer");
+			/*logger.info("Calling Connect24 For Reverse Fund Transfer");
 
 			connect24Service.dbtReverseFundRequest(frAccountNumber, sequence.generateSystemTraceAuditNumber(),
 					trCurrency, trAmt, seqUniqueID,"RT/"+response.getValue().getData().getDescription());
-
+*/
 		}
 
 		return mcCreditTransferResponse;

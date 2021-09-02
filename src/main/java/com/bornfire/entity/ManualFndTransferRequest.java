@@ -2,6 +2,7 @@ package com.bornfire.entity;
 
 public class ManualFndTransferRequest {
 
+	private String ReqUniqueID;
 	private String RemitterName;
 	private String RemitterAcctNumber;
 	private String BeneficiaryName;
@@ -9,6 +10,7 @@ public class ManualFndTransferRequest {
 	private String BeneficiaryBankCode;
 	private String TrAmt;
 	private String CurrencyCode;
+	private String TrRmks;
 	
 	public String getBeneficiaryName() {
 		return BeneficiaryName;
@@ -56,9 +58,29 @@ public class ManualFndTransferRequest {
 	public void setRemitterAcctNumber(String remitterAcctNumber) {
 		RemitterAcctNumber = remitterAcctNumber;
 	}
-	public ManualFndTransferRequest(String remitterName, String remitterAcctNumber, String beneficiaryName,
-			String beneficiaryAcctNumber, String beneficiaryBankCode, String trAmt, String currencyCode) {
+	
+	
+	
+	public String getReqUniqueID() {
+		return ReqUniqueID;
+	}
+	public void setReqUniqueID(String reqUniqueID) {
+		ReqUniqueID = reqUniqueID;
+	}
+	
+	
+	
+	public String getTrRmks() {
+		return TrRmks;
+	}
+	public void setTrRmks(String trRmks) {
+		TrRmks = trRmks;
+	}
+	public ManualFndTransferRequest(String reqUniqueID, String remitterName, String remitterAcctNumber,
+			String beneficiaryName, String beneficiaryAcctNumber, String beneficiaryBankCode, String trAmt,
+			String currencyCode) {
 		super();
+		ReqUniqueID = reqUniqueID;
 		RemitterName = remitterName;
 		RemitterAcctNumber = remitterAcctNumber;
 		BeneficiaryName = beneficiaryName;
@@ -67,6 +89,14 @@ public class ManualFndTransferRequest {
 		TrAmt = trAmt;
 		CurrencyCode = currencyCode;
 	}
+	@Override
+	public String toString() {
+		return "ManualFndTransferRequest [ReqUniqueID=" + ReqUniqueID + ", RemitterName=" + RemitterName
+				+ ", RemitterAcctNumber=" + RemitterAcctNumber + ", BeneficiaryName=" + BeneficiaryName
+				+ ", BeneficiaryAcctNumber=" + BeneficiaryAcctNumber + ", BeneficiaryBankCode=" + BeneficiaryBankCode
+				+ ", TrAmt=" + TrAmt + ", CurrencyCode=" + CurrencyCode + "]";
+	}
+	
 	
 	
 }

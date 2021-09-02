@@ -132,7 +132,8 @@ public class Listener {
 		return jsonString;
 	}
 
-	public String getCtgyPurp(String instgAgent, String debtorAgent, String creditorAgent) {
+	public String getCtgyPurp(String instgAgent, String debtorAgent, String creditorAgent,
+			String debtorName,String creditorName,boolean isRegiteredPISP) {
 
 		String ctgyPurp = "";
 

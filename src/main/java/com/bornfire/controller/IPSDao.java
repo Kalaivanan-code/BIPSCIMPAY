@@ -1453,7 +1453,7 @@ public class IPSDao {
 
 					
 					
-				   /* /////Send Sucess Message to CIM
+				   /* /////Send Success Message to CIM
 					
 					////Generate RequestUUID
 					String requestUUID=sequence.generateRequestUUId();
@@ -2722,11 +2722,11 @@ public class IPSDao {
 			Optional<BankAgentTable> otm = bankAgentTableRep.findById(bankCode);
 
 			if (otm.isPresent()) {
-				/*if(otm.get().getBank_agent().equals(env.getProperty("ipsx.bicfi"))) {
+				if(otm.get().getBank_agent().equals(env.getProperty("ipsx.bicfi"))) {
 					valid = true;
 				}else {
 					valid = false;
-				}*/
+				}
 				valid = false;
 			} else {
 				valid = true;
@@ -3435,6 +3435,92 @@ public class IPSDao {
 		
 		return status;
 	}
+	
+	
+	public String RegisterManualMasterRecord(String psuDeviceID, String psuIpAddress, String sysTraceNumber,
+			String bobMsgID, String seqUniqueID, String endTOEndID,
+			String master_ref_id, String msgNetMIR, String instg_agt, String instd_agt, String dbtr_agt,
+			String dbtr_agt_acc, String cdtr_agt, String cdtr_agt_acc, String instr_id, String svc_lvl,
+			String lcl_instrm, String ctgy_purp, String tran_type_code,String remitterAcctName,String remitterAcctNumber,
+			String bank_code,String remitterbank_code,String currencyCode,String benAcctName,String benAcctNumber,String reqUniqueId,String trAmt,
+			String trRmks,String p_id,String req_unique_id,String channelID,String resvfield1,String resvfield2) {
+		
+		String status="0";
+		try {
+
+			OutwardTransactionMonitoringTable tranManitorTable = new OutwardTransactionMonitoringTable();
+			tranManitorTable.setP_id(p_id);
+			tranManitorTable.setReq_unique_id(req_unique_id);
+			tranManitorTable.setInit_channel_id(channelID);
+			tranManitorTable.setResv_field1(resvfield1);
+			tranManitorTable.setResv_field2(resvfield2);
+			tranManitorTable.setTran_rmks(trRmks);
+			tranManitorTable.setMsg_type(TranMonitorStatus.OUTGOING.toString());
+			tranManitorTable.setTran_audit_number(sysTraceNumber);
+			tranManitorTable.setSequence_unique_id(seqUniqueID);
+			tranManitorTable.setCim_message_id(bobMsgID);
+			tranManitorTable.setCim_account(benAcctNumber);
+			tranManitorTable.setIpsx_account(remitterAcctNumber);
+			tranManitorTable.setReceiver_bank(bank_code);
+			tranManitorTable.setInitiator_bank(remitterbank_code);
+			tranManitorTable.setTran_amount(new BigDecimal(trAmt));
+			tranManitorTable.setTran_date(new Date());
+			tranManitorTable.setEntry_time(new Date());
+			tranManitorTable.setCbs_status(TranMonitorStatus.CBS_DEBIT_INITIATED.toString());
+			tranManitorTable.setTran_currency(currencyCode);
+			tranManitorTable.setTran_status(TranMonitorStatus.INITIATED.toString());
+			tranManitorTable.setDevice_id(psuDeviceID);
+			tranManitorTable.setDevice_ip(psuIpAddress);
+			tranManitorTable.setNat_id("");
+			tranManitorTable.setMaster_ref_id(master_ref_id);
+
+			tranManitorTable.setEnd_end_id(endTOEndID);
+			tranManitorTable.setCim_account_name(benAcctName);
+			tranManitorTable.setIpsx_account_name(remitterAcctName);
+
+			tranManitorTable.setTran_type_code(tran_type_code);
+			tranManitorTable.setNet_mir(msgNetMIR);
+			tranManitorTable.setInstg_agt(instg_agt);
+			tranManitorTable.setInstd_agt(instd_agt);
+
+			tranManitorTable.setDbtr_agt(dbtr_agt);
+			tranManitorTable.setDbtr_agt_acc(dbtr_agt_acc);
+			tranManitorTable.setCdtr_agt(cdtr_agt);
+			tranManitorTable.setCdtr_agt_acc(cdtr_agt_acc);
+
+			tranManitorTable.setInstr_id(instr_id);
+			tranManitorTable.setSvc_lvl(svc_lvl);
+			tranManitorTable.setLcl_instrm(lcl_instrm);
+			tranManitorTable.setCtgy_purp(ctgy_purp);
+			tranManitorTable.setChrg_br("SLEV");
+
+			//// Check CutOff time after BOB settlement time
+			//// if yes the value date is +1
+			if (isTimeAfterCutOff()) {
+				Date dt = new Date();
+				Calendar c = Calendar.getInstance();
+				c.setTime(dt);
+				c.add(Calendar.DATE, 1);
+				dt = c.getTime();
+				tranManitorTable.setValue_date(dt);
+			} else {
+				tranManitorTable.setValue_date(new Date());
+			}
+
+			outwardTranRep.save(tranManitorTable);
+			
+			status="1";
+
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			status="0";
+		}
+		
+		
+		return status;
+	}
+	
+
 	
 	public String RegisterMerchantOutgoingMasterRecord(String psuDeviceID, String psuIpAddress, String sysTraceNumber,
 			String bobMsgID, String seqUniqueID, String endTOEndID,
@@ -5958,6 +6044,22 @@ public class IPSDao {
 		}
 
 		return valid;
+	}
+
+	public boolean checkExistConsent(String benAcctNumber) {
+		boolean isData=false;
+		try {
+			List<ConsentOutwardAccessTable>  list=consentOutwardAccessTableRep.getAccountNumber(benAcctNumber);
+			if(list.size()>0) {
+				isData=true;
+			}else {
+				isData=false;
+			}
+		}catch(Exception e) {
+			isData=false;
+		}
+		// TODO Auto-generated method stub
+		return isData;
 	}
 	
 	

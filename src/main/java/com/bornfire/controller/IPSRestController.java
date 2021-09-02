@@ -170,8 +170,6 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
 			@RequestHeader(value = "PSU_IP_Address", required = true) String psuIpAddress,
 			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "Participant_BIC", required = false) String senderParticipantBIC,
-			@RequestHeader(value = "Participant_SOL", required = false) String participantSOL,
 			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
 			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
 			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
@@ -186,8 +184,8 @@ public class IPSRestController {
 		logger.info("Calling Credit Transfer Connection flow Starts");
 		if (ipsDao.invalidP_ID(p_id)) {
 			if (!ipsDao.invalidBankCode(mcCreditTransferRequest.getToAccount().getBankCode())) {
-				response = ipsConnection.createFTConnection(psuDeviceID, psuIpAddress, psuID, senderParticipantBIC,
-						participantSOL, mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
+				response = ipsConnection.createFTConnection(psuDeviceID, psuIpAddress, psuID, 
+						 mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
 			} else {
 				String responseStatus = errorCode.validationError("BIPS10");
 				throw new IPSXException(responseStatus);
@@ -196,6 +194,25 @@ public class IPSRestController {
 			String responseStatus = errorCode.validationError("BIPS13");
 			throw new IPSXException(responseStatus);
 		}
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@PostMapping(path = "/api/ws/manualCreditFndTransfer", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<MCCreditTransferResponse> manualCreditFndTransfer(
+			@RequestHeader(value = "P_ID", required = true)   String p_id,
+			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "USER_ID", required = true) String userID,
+			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@RequestBody List<ManualFndTransferRequest> manualFundTransferRequest) {
+
+		MCCreditTransferResponse response = null;
+
+		response = ipsConnection.createMAnualTransaction(psuDeviceID, psuIpAddress, manualFundTransferRequest, userID,
+				p_id,channelID,resvfield1,resvfield2);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -235,19 +252,7 @@ public class IPSRestController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
-	@PostMapping(path = "/api/ws/manualCreditFndTransfer", produces = "application/json", consumes = "application/json")
-	public ResponseEntity<MCCreditTransferResponse> manualCreditFndTransfer(
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
-			@RequestHeader(value = "USER_ID", required = true) String userID,
-			@RequestBody List<ManualFndTransferRequest> manualFundTransferRequest) {
 
-		MCCreditTransferResponse response = null;
-
-		response = ipsConnection.createMAnualTransaction(psuDeviceID, psuIpAddress, manualFundTransferRequest, userID);
-
-		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
 
 	//// Reverse Transaction (Debit) from IPS Admin Manually
 	@PostMapping(path = "api/ws/{userID}/reverseDebit", produces = "application/json", consumes = "application/json")
