@@ -246,8 +246,138 @@ public class CronJobScheduler {
 	}
 
 	///// Get Settlement Amount from Connect24
-	//@Scheduled(cron = "0 0/1 * 1/1 * ?")
+	@Scheduled(cron = "0 0/1 * 1/1 * ?")
 	public void getSettlBal() {
+
+		try {
+			
+			//logger.info("Get Settlement Account Balance");
+			if (settlDate == null) {
+				this.setSettlDate(new Date());
+				this.setSettleFlg("Y");
+			} else {
+				DateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+
+				if (dateFormat.format(getSettlDate()).equals(dateFormat.format(new Date()))) {
+					if (getSettleFlg().equals("Y")) {
+
+						logger.info("Get Settlement Account Balance");
+
+						//ResponseEntity<C24FTResponse> balannce = connect24Service
+							//	.getBalance(settlAccountRep.findById(env.getProperty("settl.settlment")).get().getAccount_number());
+
+						//if (balannce.getStatusCode() == HttpStatus.OK) {
+							Optional<SettlementAccount> settlAccount = settlAccountRep.findById(env.getProperty("settl.settlment"));
+
+							if (settlAccount.isPresent()) {
+
+								logger.info("Settlement Account Balance Updated Successfully");
+
+								SettlementAccount setAccount = settlAccount.get();
+								if (setAccount.getAcct_bal_time() == null) {
+
+									setAccount.setPrev_acct_bal(setAccount.getNot_bal());
+									setAccount.setAcct_bal(
+											new BigDecimal("0"));
+									setAccount.setNot_bal(
+											new BigDecimal("0"));
+
+									setAccount.setAcct_bal_time(new Date());
+
+									settlAccountRep.save(setAccount);
+
+									this.setSettleFlg("N");
+
+									Optional<SettlementAccountAmtTable> acctExist = settlAccountAmtRep
+											.customfindById(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
+
+									if (acctExist.isPresent()) {
+										SettlementAccountAmtTable dd = acctExist.get();
+										dd.setPrev_acct_bal(setAccount.getPrev_acct_bal());
+										dd.setPayable_acct_bal(new BigDecimal(ipsConnection.payableAmt()));
+										dd.setReceivable_acct_bal(new BigDecimal(ipsConnection.receivalbleAmt()));
+										dd.setIncome_acct_bal(new BigDecimal(ipsConnection.incomeAmt()));
+										dd.setExpense_acct_bal(new BigDecimal(ipsConnection.expenseAmt()));
+										settlAccountAmtRep.save(dd);
+									}
+
+									SettlementAccountAmtTable settlAmt = new SettlementAccountAmtTable();
+									settlAmt.setAcct_type(setAccount.getAcct_type());
+									settlAmt.setCategory(setAccount.getCategory());
+									settlAmt.setAccount_number(setAccount.getAccount_number());
+									settlAmt.setName(setAccount.getName());
+									settlAmt.setCrncy(setAccount.getCrncy());
+									settlAmt.setAcct_bal_time(new Date());
+									settlAmt.setAcct_bal(setAccount.getAcct_bal());
+									settlAmt.setNot_bal(setAccount.getNot_bal());
+									settlAmt.setEntry_time(new Date());
+									settlAccountAmtRep.save(settlAmt);
+
+								} else {
+									if (dateFormat.format(getSettlDate())
+											.equals(dateFormat.format(setAccount.getAcct_bal_time()))) {
+										// setAccount.setAcct_bal_time(new Date());
+										// settlAccountRep.save(setAccount);
+										this.setSettleFlg("N");
+									} else {
+										setAccount.setPrev_acct_bal(setAccount.getNot_bal());
+										setAccount.setAcct_bal(
+												new BigDecimal("0"));
+										setAccount.setNot_bal(
+												new BigDecimal("0"));
+
+										setAccount.setAcct_bal_time(new Date());
+										settlAccountRep.save(setAccount);
+
+										this.setSettleFlg("N");
+
+										Optional<SettlementAccountAmtTable> acctExist = settlAccountAmtRep
+												.customfindById(
+														new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
+
+										if (acctExist.isPresent()) {
+											SettlementAccountAmtTable dd = acctExist.get();
+											dd.setPrev_acct_bal(setAccount.getPrev_acct_bal());
+											dd.setPayable_acct_bal(new BigDecimal(ipsConnection.payableAmt()));
+											dd.setReceivable_acct_bal(new BigDecimal(ipsConnection.receivalbleAmt()));
+											dd.setIncome_acct_bal(new BigDecimal(ipsConnection.incomeAmt()));
+											dd.setExpense_acct_bal(new BigDecimal(ipsConnection.expenseAmt()));
+											settlAccountAmtRep.save(dd);
+										}
+										SettlementAccountAmtTable settlAmt = new SettlementAccountAmtTable();
+										settlAmt.setAcct_type(setAccount.getAcct_type());
+										settlAmt.setCategory(setAccount.getCategory());
+										settlAmt.setAccount_number(setAccount.getAccount_number());
+										settlAmt.setName(setAccount.getName());
+										settlAmt.setCrncy(setAccount.getCrncy());
+										settlAmt.setAcct_bal_time(new Date());
+										settlAmt.setAcct_bal(setAccount.getAcct_bal());
+										settlAmt.setNot_bal(setAccount.getNot_bal());
+										settlAmt.setEntry_time(new Date());
+										settlAccountAmtRep.save(settlAmt);
+									}
+
+								}
+
+							}
+						//}
+
+					}
+				} else {
+					this.setSettlDate(new Date());
+					this.setSettleFlg("Y");
+				}
+			}
+		} catch (Exception e) {
+			logger.error(e.getLocalizedMessage());
+		}
+	}
+
+	
+	
+///// Get Settlement Amount from Connect24
+	//@Scheduled(cron = "0 0/1 * 1/1 * ?")
+	public void getSettlBalTest() {
 
 		try {
 			logger.info("Get Settlement Account Balance");

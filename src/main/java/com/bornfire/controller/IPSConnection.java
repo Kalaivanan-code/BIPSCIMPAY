@@ -130,6 +130,7 @@ import com.bornfire.entity.SettlementAccount;
 import com.bornfire.entity.SettlementAccountRep;
 import com.bornfire.entity.SettlementLimitResponse;
 import com.bornfire.entity.TranCBSTable;
+import com.bornfire.entity.TranCimCBSTableRep;
 import com.bornfire.entity.TranMonitorStatus;
 import com.bornfire.entity.TransactionListResponse;
 import com.bornfire.entity.TransactionMonitor;
@@ -243,6 +244,10 @@ public class IPSConnection {
 
 	@Autowired
 	ConsentOutwardAccessTableRep consentOutwardAccessTableRep;
+	
+	
+	@Autowired 
+	TranCimCBSTableRep tranCimCBStableRep;
 	
 	/////Fund Transfer Connection
 	////Debit Customer Account Credit Settl Account(Connect 24)
@@ -481,7 +486,8 @@ public class IPSConnection {
 							manualFundTransferRequest.get(i).getBeneficiaryName(),
 							manualFundTransferRequest.get(i).getBeneficiaryAcctNumber(),
 							p_id,manualFundTransferRequest.get(i).getTrAmt(),manualFundTransferRequest.get(i).getTrRmks(), p_id,
-							manualFundTransferRequest.get(i).getReqUniqueID(), channelID, resvField1,resvField2);
+							manualFundTransferRequest.get(i).getReqUniqueID(), channelID, resvField1,resvField2,
+							userID);
 					
 					
 					/*ipsDao.RegisterManualTranRecord(psuDeviceID, psuIpAddress, sysTraceNumber,
@@ -2363,43 +2369,110 @@ public class IPSConnection {
 		}
 	}*/
 	
+//	public String payableAmt() {
+//		logger.info("Payable Amount");
+//		
+//		String trAmt="0";
+//		
+//		ResponseEntity<C24FTResponse> balannce = connect24Service
+//				.getBalance(settlAccountRep.findById(env.getProperty("settl.payable")).get().getAccount_number());
+//
+//		if (balannce.getStatusCode() == HttpStatus.OK) {
+//			trAmt = balannce.getBody().getBalance().getAvailableBalance();
+//			logger.info("Payable Amount OK");
+//			return trAmt;
+//		} else {
+//			trAmt="0";
+//			logger.info("Payable Amount ERROR"+balannce.getStatusCodeValue());
+//			return trAmt;
+//		}
+//
+//	}
+//	
+//	public String receivalbleAmt() {
+//		logger.info("receivable Amount");
+//		
+//		String trAmt="0";
+//		
+//		ResponseEntity<C24FTResponse> balannce = connect24Service
+//				.getBalance(settlAccountRep.findById(env.getProperty("settl.receivable")).get().getAccount_number());
+//
+//		if (balannce.getStatusCode() == HttpStatus.OK) {
+//			trAmt = balannce.getBody().getBalance().getAvailableBalance();
+//			logger.info("receivable Amount OK");
+//			return trAmt;
+//		} else {
+//			logger.info("receivable Amount Error"+balannce.getStatusCodeValue());
+//			trAmt="0";
+//			return trAmt;
+//		}
+//
+//	}
+//	
+//	public String expenseAmt() {
+//		logger.info("Expense Amount");
+//		
+//		String trAmt="0";
+//		
+//		ResponseEntity<C24FTResponse> balannce = connect24Service
+//				.getBalance(settlAccountRep.findById(env.getProperty("settl.expense")).get().getAccount_number());
+//
+//		if (balannce.getStatusCode() == HttpStatus.OK) {
+//			trAmt = balannce.getBody().getBalance().getAvailableBalance();
+//			logger.info("Expense Amount OK");
+//			return trAmt;
+//		} else {
+//			trAmt="0";
+//			logger.info("Expense Amount ERROR"+balannce.getStatusCodeValue());
+//			return trAmt;
+//		}
+//
+//	}
+//	
+//	public String incomeAmt() {
+//		logger.info("Income Amount");
+//		
+//		String trAmt="0";
+//		
+//		ResponseEntity<C24FTResponse> balannce = connect24Service
+//				.getBalance(settlAccountRep.findById(env.getProperty("settl.income")).get().getAccount_number());
+//
+//		if (balannce.getStatusCode() == HttpStatus.OK) {
+//			trAmt = balannce.getBody().getBalance().getAvailableBalance();
+//			logger.info("Income Amount OK");
+//			return trAmt;
+//		} else {
+//			logger.info("Income Amount Error"+balannce.getStatusCodeValue());
+//			trAmt="0";
+//			return trAmt;
+//		}
+//
+//	}
+
+	
+	
 	public String payableAmt() {
 		logger.info("Payable Amount");
 		
 		String trAmt="0";
 		
-		ResponseEntity<C24FTResponse> balannce = connect24Service
-				.getBalance(settlAccountRep.findById(env.getProperty("settl.payable")).get().getAccount_number());
+		Double NetAmount=Double.parseDouble(tranCimCBStableRep.payableAmt())-
+				Double.parseDouble(tranCimCBStableRep.payableReverseAmt());
+		trAmt=NetAmount.toString();
 
-		if (balannce.getStatusCode() == HttpStatus.OK) {
-			trAmt = balannce.getBody().getBalance().getAvailableBalance();
-			logger.info("Payable Amount OK");
-			return trAmt;
-		} else {
-			trAmt="0";
-			logger.info("Payable Amount ERROR"+balannce.getStatusCodeValue());
-			return trAmt;
-		}
-
+		return trAmt;
 	}
 	
 	public String receivalbleAmt() {
 		logger.info("receivable Amount");
 		
 		String trAmt="0";
-		
-		ResponseEntity<C24FTResponse> balannce = connect24Service
-				.getBalance(settlAccountRep.findById(env.getProperty("settl.receivable")).get().getAccount_number());
+				
+		Double NetAmount=Double.parseDouble(tranCimCBStableRep.receivableAmt())-
+				Double.parseDouble(tranCimCBStableRep.receivableReverseAmt());
+		trAmt=NetAmount.toString();
 
-		if (balannce.getStatusCode() == HttpStatus.OK) {
-			trAmt = balannce.getBody().getBalance().getAvailableBalance();
-			logger.info("receivable Amount OK");
-			return trAmt;
-		} else {
-			logger.info("receivable Amount Error"+balannce.getStatusCodeValue());
-			trAmt="0";
-			return trAmt;
-		}
+		return trAmt;
 
 	}
 	
@@ -2408,38 +2481,16 @@ public class IPSConnection {
 		
 		String trAmt="0";
 		
-		ResponseEntity<C24FTResponse> balannce = connect24Service
-				.getBalance(settlAccountRep.findById(env.getProperty("settl.expense")).get().getAccount_number());
-
-		if (balannce.getStatusCode() == HttpStatus.OK) {
-			trAmt = balannce.getBody().getBalance().getAvailableBalance();
-			logger.info("Expense Amount OK");
-			return trAmt;
-		} else {
-			trAmt="0";
-			logger.info("Expense Amount ERROR"+balannce.getStatusCodeValue());
-			return trAmt;
-		}
-
+		return trAmt;
+		
 	}
 	
 	public String incomeAmt() {
 		logger.info("Income Amount");
 		
 		String trAmt="0";
-		
-		ResponseEntity<C24FTResponse> balannce = connect24Service
-				.getBalance(settlAccountRep.findById(env.getProperty("settl.income")).get().getAccount_number());
-
-		if (balannce.getStatusCode() == HttpStatus.OK) {
-			trAmt = balannce.getBody().getBalance().getAvailableBalance();
-			logger.info("Income Amount OK");
-			return trAmt;
-		} else {
-			logger.info("Income Amount Error"+balannce.getStatusCodeValue());
-			trAmt="0";
-			return trAmt;
-		}
+	
+		return trAmt;
 
 	}
 

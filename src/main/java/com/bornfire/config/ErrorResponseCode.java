@@ -105,6 +105,10 @@ public class ErrorResponseCode {
 			responseDesc = "BIPS19:Invalid Currency Type";
 		}else if(code.equals("BIPS20")) {
 			responseDesc = "BIPS20:Invalid Country Code";
+		}else if(code.equals("BIPS21")){
+			responseDesc = "BIPS21:Invalid Remitter Bank Code";
+		}else if(code.equals("BIPS22")){
+			responseDesc = "BIPS22:Remitter Account Number doesn't match with Remitter Bank Code";
 		}
 		
 		return responseDesc;

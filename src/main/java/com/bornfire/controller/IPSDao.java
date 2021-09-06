@@ -1227,7 +1227,7 @@ public class IPSDao {
 									env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 									sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
 									tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-									tm.getSequence_unique_id(),tm.getIpsx_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc);
+									tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc);
 							
 							logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -2698,12 +2698,31 @@ public class IPSDao {
 		return response;
 	}
 
-	public List<OtherBankDetResponse> getOtherBankDet() {
+	public List<OtherBankDetResponse> getPartcipantBankDet() {
 		List<OtherBankDetResponse> list = new ArrayList<OtherBankDetResponse>();
 		try {
 			List<BankAgentTable> otm = bankAgentTableRep.findAll();
 			for (BankAgentTable i : otm) {
 				if (!i.getDel_flg().equals("Y")) {
+					OtherBankDetResponse res = new OtherBankDetResponse(i.getBank_code(),i.getBank_agent(), i.getBank_name());
+					list.add(res);
+				}
+
+			}
+			return list;
+		} catch (Exception e) {
+			throw new IPSXException("Server connection is not available");
+		}
+
+	}
+	
+	
+	public List<OtherBankDetResponse> getOtherBankDet() {
+		List<OtherBankDetResponse> list = new ArrayList<OtherBankDetResponse>();
+		try {
+			List<BankAgentTable> otm = bankAgentTableRep.findAll();
+			for (BankAgentTable i : otm) {
+				if (!i.getDel_flg().equals("Y") && !i.getBank_agent().equals(env.getProperty("ipsx.dbtragt"))) {
 					OtherBankDetResponse res = new OtherBankDetResponse(i.getBank_code(),i.getBank_agent(), i.getBank_name());
 					list.add(res);
 				}
@@ -3375,8 +3394,8 @@ public class IPSDao {
 			tranManitorTable.setTran_audit_number(sysTraceNumber);
 			tranManitorTable.setSequence_unique_id(seqUniqueID);
 			tranManitorTable.setCim_message_id(bobMsgID);
-			tranManitorTable.setCim_account(benAcctNumber);
-			tranManitorTable.setIpsx_account(remitterAcctNumber);
+			tranManitorTable.setCim_account(remitterAcctNumber);
+			tranManitorTable.setIpsx_account(benAcctNumber);
 			tranManitorTable.setReceiver_bank(bank_code);
 			tranManitorTable.setInitiator_bank(remitterbank_code);
 			tranManitorTable.setTran_amount(new BigDecimal(trAmt));
@@ -3391,8 +3410,8 @@ public class IPSDao {
 			tranManitorTable.setMaster_ref_id(master_ref_id);
 
 			tranManitorTable.setEnd_end_id(endTOEndID);
-			tranManitorTable.setCim_account_name(benAcctName);
-			tranManitorTable.setIpsx_account_name(remitterAcctName);
+			tranManitorTable.setCim_account_name(remitterAcctName);
+			tranManitorTable.setIpsx_account_name(benAcctName);
 
 			tranManitorTable.setTran_type_code(tran_type_code);
 			tranManitorTable.setNet_mir(msgNetMIR);
@@ -3409,6 +3428,9 @@ public class IPSDao {
 			tranManitorTable.setLcl_instrm(lcl_instrm);
 			tranManitorTable.setCtgy_purp(ctgy_purp);
 			tranManitorTable.setChrg_br("SLEV");
+			
+			tranManitorTable.setEntry_user("SYSTEM");
+
 
 			//// Check CutOff time after BOB settlement time
 			//// if yes the value date is +1
@@ -3443,7 +3465,7 @@ public class IPSDao {
 			String dbtr_agt_acc, String cdtr_agt, String cdtr_agt_acc, String instr_id, String svc_lvl,
 			String lcl_instrm, String ctgy_purp, String tran_type_code,String remitterAcctName,String remitterAcctNumber,
 			String bank_code,String remitterbank_code,String currencyCode,String benAcctName,String benAcctNumber,String reqUniqueId,String trAmt,
-			String trRmks,String p_id,String req_unique_id,String channelID,String resvfield1,String resvfield2) {
+			String trRmks,String p_id,String req_unique_id,String channelID,String resvfield1,String resvfield2,String userID) {
 		
 		String status="0";
 		try {
@@ -3459,8 +3481,8 @@ public class IPSDao {
 			tranManitorTable.setTran_audit_number(sysTraceNumber);
 			tranManitorTable.setSequence_unique_id(seqUniqueID);
 			tranManitorTable.setCim_message_id(bobMsgID);
-			tranManitorTable.setCim_account(benAcctNumber);
-			tranManitorTable.setIpsx_account(remitterAcctNumber);
+			tranManitorTable.setCim_account(remitterAcctNumber);
+			tranManitorTable.setIpsx_account(benAcctNumber);
 			tranManitorTable.setReceiver_bank(bank_code);
 			tranManitorTable.setInitiator_bank(remitterbank_code);
 			tranManitorTable.setTran_amount(new BigDecimal(trAmt));
@@ -3475,8 +3497,8 @@ public class IPSDao {
 			tranManitorTable.setMaster_ref_id(master_ref_id);
 
 			tranManitorTable.setEnd_end_id(endTOEndID);
-			tranManitorTable.setCim_account_name(benAcctName);
-			tranManitorTable.setIpsx_account_name(remitterAcctName);
+			tranManitorTable.setCim_account_name(remitterAcctName);
+			tranManitorTable.setIpsx_account_name(benAcctName);
 
 			tranManitorTable.setTran_type_code(tran_type_code);
 			tranManitorTable.setNet_mir(msgNetMIR);
@@ -3493,6 +3515,8 @@ public class IPSDao {
 			tranManitorTable.setLcl_instrm(lcl_instrm);
 			tranManitorTable.setCtgy_purp(ctgy_purp);
 			tranManitorTable.setChrg_br("SLEV");
+			
+			tranManitorTable.setEntry_user(userID);
 
 			//// Check CutOff time after BOB settlement time
 			//// if yes the value date is +1

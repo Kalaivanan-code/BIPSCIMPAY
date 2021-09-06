@@ -166,13 +166,13 @@ public class IPSRestController {
 	/* MConnect Initiate the request */
 	@PostMapping(path = "/api/ws/creditFndTransfer", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<MCCreditTransferResponse> sendCreditTransferMessage(
-			@RequestHeader(value = "P_ID", required = true) @NotEmpty(message = "Required") String p_id,
-			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = true) String psuIpAddress,
-			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
-			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
-			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
 			@Valid @RequestBody CIMCreditTransferRequest mcCreditTransferRequest)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
@@ -200,13 +200,13 @@ public class IPSRestController {
 	
 	@PostMapping(path = "/api/ws/manualCreditFndTransfer", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<MCCreditTransferResponse> manualCreditFndTransfer(
-			@RequestHeader(value = "P_ID", required = true)   String p_id,
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
-			@RequestHeader(value = "USER_ID", required = true) String userID,
-			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
-			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
-			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@RequestHeader(value = "P-ID", required = true)   String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "USER-ID", required = true) String userID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
 			@RequestBody List<ManualFndTransferRequest> manualFundTransferRequest) {
 
 		MCCreditTransferResponse response = null;
@@ -323,7 +323,21 @@ public class IPSRestController {
 		return new ResponseEntity<SettlementLimitResponse>(response, HttpStatus.OK);
 	}
 
-	//// Other Bank List(IPS Participants)
+	
+    ////Other Bank List(IPS Participants)
+	@GetMapping(path = "/api/ws/otherParticipantBanks", produces = "application/json")
+	public ResponseEntity<List<OtherBankDetResponse>> otherParticipantBanks(
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID) {
+
+		logger.info("Get Bank List flow Starts");
+		List<OtherBankDetResponse> response = ipsDao.getOtherBankDet();
+
+		return new ResponseEntity<List<OtherBankDetResponse>>(response, HttpStatus.OK);
+	}
+	
+	//// Bank List(IPS Participants)
 	@GetMapping(path = "/api/ws/participantBanks", produces = "application/json")
 	public ResponseEntity<List<OtherBankDetResponse>> otherBankDet(
 			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
@@ -331,7 +345,7 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID", required = false) String psuID) {
 
 		logger.info("Get Bank List flow Starts");
-		List<OtherBankDetResponse> response = ipsDao.getOtherBankDet();
+		List<OtherBankDetResponse> response = ipsDao.getPartcipantBankDet();
 
 		return new ResponseEntity<List<OtherBankDetResponse>>(response, HttpStatus.OK);
 	}
@@ -1136,13 +1150,13 @@ public class IPSRestController {
 	/* MConnect Initiate the request */
 	@PostMapping(path = "/api/ws/bulkRTPTransfer", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<RTPbulkTransferResponse> bulkRTPTransfer(
-			@RequestHeader(value = "P_ID", required = true) @NotEmpty(message = "Required") String p_id,
-			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = true) String psuIpAddress,
-			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
-			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
-			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
 			@Valid @RequestBody RTPbulkTransferRequest rtpBulkTransferRequest)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
@@ -1161,20 +1175,30 @@ public class IPSRestController {
 		logger.info("RTP Bulk Request->" + rtpBulkTransferRequest);
 
 		if (ipsDao.invalidP_ID(p_id)) {
-			// if(!ipsDao.invalidBankCode(rtpBulkTransferRequest.getBenAccount().get(0))) {
-			List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
-					.getAccountNumber(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
-			if (regAccList.size() > 0) {
-				response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID,
-						rtpBulkTransferRequest, p_id, channelID, resvfield1, resvfield2);
+			if (!ipsDao.invalidBankCode(rtpBulkTransferRequest.getRemitterAccount().getBankCode())) {
+				List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
+						.getAccountNumber(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
+				if (regAccList.size() > 0) {
+					
+					if(regAccList.get(0).getReceiverparticipant_bic().equals
+							(ipsDao.getOtherBankAgent(rtpBulkTransferRequest.getRemitterAccount().getBankCode()).getBank_agent())) {
+						response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID,
+								rtpBulkTransferRequest, p_id, channelID, resvfield1, resvfield2);
+					}else {
+						String responseStatus = errorCode.validationError("BIPS22");
+						throw new IPSXException(responseStatus);
+					}
+					
+				} else {
+					String responseStatus = errorCode.validationError("BIPS15");
+					throw new IPSXException(responseStatus);
+				}
+
 			} else {
-				String responseStatus = errorCode.validationError("BIPS15");
+				String responseStatus = errorCode.validationError("BIPS21");
 				throw new IPSXException(responseStatus);
 			}
-			/*
-			 * }else { String responseStatus = errorCode.validationError("BIPS10"); throw
-			 * new IPSXException(responseStatus); }
-			 */
+			 
 		} else {
 			String responseStatus = errorCode.validationError("BIPS13");
 			throw new IPSXException(responseStatus);
@@ -1187,13 +1211,13 @@ public class IPSRestController {
 	/* MConnect Initiate the request */
 	@PostMapping(path = "/api/ws/directMerchantFndTransfer", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<MCCreditTransferResponse> directMerchantFndTransfer(
-			@RequestHeader(value = "P_ID", required = true) @NotEmpty(message = "Required") String p_id,
-			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = true) String psuIpAddress,
-			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
-			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
-			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
 			@Valid @RequestBody CIMMerchantDirectFndRequest mcCreditTransferRequest)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
@@ -1226,13 +1250,13 @@ public class IPSRestController {
 	/* MConnect Initiate the request */
 	@PostMapping(path = "/api/ws/rtpMerchantFndTransfer", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<RTPbulkTransferResponse> rtpMerchantFndTransfer(
-			@RequestHeader(value = "P_ID", required = true) @NotEmpty(message = "Required") String p_id,
-			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = true) String psuIpAddress,
-			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
-			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
-			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
 			@Valid @RequestBody CIMMerchantDirectFndRequest mcCreditTransferRequest)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
@@ -1265,13 +1289,13 @@ public class IPSRestController {
 
 	@PostMapping(path = "/api/ws/generateMerchantQRcode", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<CimMerchantResponse> genMerchantQRcode(
-			@RequestHeader(value = "P_ID", required = true) @NotEmpty(message = "Required") String p_id,
-			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = true) String psuIpAddress,
-			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
-			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
-			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
 			@Valid @RequestBody CIMMerchantQRcodeRequest mcCreditTransferRequest)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
@@ -1309,13 +1333,13 @@ public class IPSRestController {
 
 	@PostMapping(path = "/api/ws/scanMerchantQRcode", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<CIMMerchantDecodeQRFormatResponse> getMerchantQRdata(
-			@RequestHeader(value = "P_ID", required = true) @NotEmpty(message = "Required") String p_id,
-			@RequestHeader(value = "PSU_Device_ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = true) String psuIpAddress,
-			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "PSU_Channel", required = true) String channelID,
-			@RequestHeader(value = "PSU_Resv_Field1", required = false) String resvfield1,
-			@RequestHeader(value = "PSU_Resv_Field2", required = false) String resvfield2,
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
 			@Valid @RequestBody CIMMerchantQRRequestFormat mcCreditTransferRequest)
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {

@@ -35,7 +35,7 @@ public class BenAccount {
 	@JsonProperty("trRmks")
 	private String TrRmks;
 	
-	@NotBlank(message="Bank Code Required")
+	@NotBlank(message="Beneficiary Bank Code Required")
 	private String BankCode;
 
 	public String getReqUniqueId() {
