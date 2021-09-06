@@ -1579,14 +1579,16 @@ public class DocumentPacks implements Serializable{
 				PartyIdentification1351 dbtr = new PartyIdentification1351();
 				dbtr.setNm(frAccountName);
 				creditTransferTransaction391.setDbtr(dbtr);
-				/*
-				 * ///Debtor Account Number CashAccount381 dbtrAcct = new CashAccount381();
-				 * AccountIdentification4Choice1 acc1 = new AccountIdentification4Choice1();
-				 * GenericAccountIdentification11 id = new GenericAccountIdentification11();
-				 * id.setId((mcCreditTransferRequest.getFrAccount().getAcctNumber()));
-				 * acc1.setOthr(id); dbtrAcct.setId(acc1);
-				 * creditTransferTransaction391.setDbtrAcct(dbtrAcct);
-				 */
+
+				/// Debtor Account Number
+				CashAccount381 dbtrAcct = new CashAccount381();
+				AccountIdentification4Choice1 acc1 = new AccountIdentification4Choice1();
+				GenericAccountIdentification11 id = new GenericAccountIdentification11();
+				id.setId((frAccountNumber));
+				acc1.setOthr(id);
+				dbtrAcct.setId(acc1);
+				creditTransferTransaction391.setDbtrAcct(dbtrAcct);
+
 				/// Debtor Agent
 				BranchAndFinancialInstitutionIdentification61 dbtrAgt = new BranchAndFinancialInstitutionIdentification61();
 				FinancialInstitutionIdentification181 fin2 = new FinancialInstitutionIdentification181();
