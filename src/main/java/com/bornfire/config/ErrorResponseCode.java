@@ -76,7 +76,7 @@ public class ErrorResponseCode {
 		}else if(code.equals("BIPS12")) {
 			responseDesc = "BIPS12:Maximum Amount Not Permitted";
 		}else if(code.equals("BIPS13")) {
-			responseDesc = "BIPS13:Unable to Process Request.Dublicate Reference ID:PID";
+			responseDesc = "BIPS13:Unable to Process Request your rest.Dublicate Reference ID:PID";
 		}else if(code.equals("BIPS14")) {
 			responseDesc = "BIPS14:Invalid Response";
 		}else if(code.equals("BIPS15")) {

@@ -1,5 +1,6 @@
 package com.bornfire.config;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -116,13 +117,19 @@ public class IPSGenConfig {
     
 	@Bean
 	public RestTemplate restTemplate() throws NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, KeyStoreException, KeyManagementException, UnrecoverableKeyException {
-		/*KeyStore ks = KeyStore.getInstance("JKS");
+		KeyStore ks = KeyStore.getInstance("JKS");
 		char[] pwdArray = env.getProperty("cimESB.jks.password").toCharArray();
 
 		ks.load(new FileInputStream(env.getProperty("cimESB.jks.file")), pwdArray);
 		SSLContext sslContext=org.apache.http.ssl.SSLContextBuilder.create()
 				.loadKeyMaterial(ks, pwdArray)
-				.loadTrustMaterial(null, new TrustSelfSignedStrategy())
+				.loadTrustMaterial(new File(env.getProperty("cimESB.jks.file")), pwdArray, new TrustSelfSignedStrategy() {
+                    @Override
+                    public boolean isTrusted(java.security.cert.X509Certificate[] chain, String authType) throws java.security.cert.CertificateException {
+                        return true;
+                    }
+                })
+				//.loadTrustMaterial(null, new TrustSelfSignedStrategy())
 				.build();
 		
 		SSLConnectionSocketFactory socketFactory=new SSLConnectionSocketFactory(sslContext,NoopHostnameVerifier.INSTANCE);
@@ -136,17 +143,17 @@ public class IPSGenConfig {
 	
 		RestTemplate restTemplate = new RestTemplate(requestFactory);
 		return restTemplate;
-*/		//return builder.errorHandler(getRestErrorHandler()).build();
+		//return builder.errorHandler(getRestErrorHandler()).build();
 		
 		
-		TrustStrategy acceptingTrustStrategy = (x509Certificates, s) -> true;
+		/*TrustStrategy acceptingTrustStrategy = (x509Certificates, s) -> true;
 	    SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
 	    SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier());
 	    CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
 	    HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 	    requestFactory.setHttpClient(httpClient);
 	    RestTemplate restTemplate = new RestTemplate(requestFactory);
-	    return restTemplate;
+	    return restTemplate;*/
 	}
 	
 	@Bean
