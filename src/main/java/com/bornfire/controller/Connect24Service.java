@@ -822,12 +822,12 @@ public class Connect24Service {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 		httpHeaders.set("Partipant_BIC", env.getProperty("bob.bankcode"));
-		httpHeaders.set("Partipant_SOL", mcCreditTransferRequest.getFrAccount().get(0).getAcctNumber().substring(0,4));
+		httpHeaders.set("Partipant_SOL", mcCreditTransferRequest.getFrAccount().getAcctNumber().substring(0,4));
 		httpHeaders.set("SYS_TRACE_AUDIT_NUMBER", sysTraceAuditNumber);
 
 		C24FTRequest c24ftRequest = new C24FTRequest();
 		C24RequestAcount c24RequestAcount = new C24RequestAcount();
-		c24RequestAcount.setAcctNumber(mcCreditTransferRequest.getFrAccount().get(0).getAcctNumber());
+		c24RequestAcount.setAcctNumber(mcCreditTransferRequest.getFrAccount().getAcctNumber());
 		c24RequestAcount.setSchmType("");
 		c24RequestAcount.setSettlAcctNumber(settlAcctRep.findById(env.getProperty("settl.payable")).get().getAccount_number());
 		c24ftRequest.setAccount(c24RequestAcount);
@@ -852,7 +852,7 @@ public class Connect24Service {
 					response.getBody().getTranCurrency());
 
 			//// update table
-			ipsDao.updateTranCBS(sysTraceAuditNumber, mcCreditTransferRequest.getFrAccount().get(0).getAcctNumber(),
+			ipsDao.updateTranCBS(sysTraceAuditNumber, mcCreditTransferRequest.getFrAccount().getAcctNumber(),
 					mcCreditTransferRequest.getTotAmt(), "BULK_CREDIT", mcCreditTransferRequest.getCurrencyCode(), "SUCCESS",
 					"", seqUniqueID,"SYSTEM",settlAcct.getAccount_number(),settlAcct.getAcct_type(),env.getProperty("trchtype.tran"));
 
@@ -868,7 +868,7 @@ public class Connect24Service {
 						Collections.singletonList(TranMonitorStatus.CBS_SERVER_NOT_CONNECTED.toString()));
 
 				///// Update Table
-				ipsDao.updateTranCBS(sysTraceAuditNumber, mcCreditTransferRequest.getFrAccount().get(0).getAcctNumber(),
+				ipsDao.updateTranCBS(sysTraceAuditNumber, mcCreditTransferRequest.getFrAccount().getAcctNumber(),
 						mcCreditTransferRequest.getTotAmt(), "BULK_CREDIT", mcCreditTransferRequest.getCurrencyCode(),
 						"FAILURE", TranMonitorStatus.CBS_SERVER_NOT_CONNECTED.toString(), seqUniqueID,"SYSTEM",settlAcct.getAccount_number(),settlAcct.getAcct_type(),env.getProperty("trchtype.tran"));
 
@@ -879,7 +879,7 @@ public class Connect24Service {
 						c24ftResponse1.getError_desc());
 
 				//// update table
-				ipsDao.updateTranCBS(sysTraceAuditNumber, mcCreditTransferRequest.getFrAccount().get(0).getAcctNumber(),
+				ipsDao.updateTranCBS(sysTraceAuditNumber, mcCreditTransferRequest.getFrAccount().getAcctNumber(),
 						mcCreditTransferRequest.getTotAmt(), "BULK_CREDIT", mcCreditTransferRequest.getCurrencyCode(),
 						"FAILURE", c24ftResponse1.getError_desc().get(0).toString(), seqUniqueID,"SYSTEM",settlAcct.getAccount_number(),settlAcct.getAcct_type(),env.getProperty("trchtype.tran"));
 
@@ -893,7 +893,7 @@ public class Connect24Service {
 
 			C24FTResponse c24ftResponse = new C24FTResponse("FAILURE", SERVER_ERROR_CODE,
 					Collections.singletonList(TranMonitorStatus.CBS_SERVER_NOT_CONNECTED.toString()));
-			ipsDao.updateTranCBS(sysTraceAuditNumber, mcCreditTransferRequest.getFrAccount().get(0).getAcctNumber(),
+			ipsDao.updateTranCBS(sysTraceAuditNumber, mcCreditTransferRequest.getFrAccount().getAcctNumber(),
 					mcCreditTransferRequest.getTotAmt(), "BULK_CREDIT", mcCreditTransferRequest.getCurrencyCode(), "FAILURE",
 					TranMonitorStatus.CBS_SERVER_NOT_CONNECTED.toString(), seqUniqueID,"SYSTEM",settlAcct.getAccount_number(),settlAcct.getAcct_type(),env.getProperty("trchtype.tran"));
 

@@ -16,5 +16,14 @@ public interface OutwardTransactionMonitoringTableRep extends JpaRepository<Outw
 
 	@Query(value = "select * from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where sequence_unique_id=?1", nativeQuery = true)
 	List<OutwardTransactionMonitoringTable> getExistData(String seqID);
+
+	@Query(value="select * from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where master_ref_id=?1",nativeQuery = true)
+	List<OutwardTransactionMonitoringTable> findBulkCreditID(String master_ref_id);
+	
+	@Query(value="update BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE set  where master_ref_id=?1",nativeQuery = true)
+	List<OutwardTransactionMonitoringTable> updateBulkCreditCBSStatusError(String master_ref_id);
+
+	@Query(value="select * from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where master_ref_id=?1",nativeQuery = true)
+	List<OutwardTransactionMonitoringTable> findBulkDebitID(String master_ref_id);
 	
 }

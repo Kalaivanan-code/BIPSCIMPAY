@@ -7,6 +7,7 @@ public class BulkDebitRemitterAccount {
 	private String TrAmt;
 	private String TrRmks;
 	private String CurrencyCode;
+	private String ReqUniqueID;
 	
 	public BulkDebitRemitterAccount() {
 		super();
@@ -59,6 +60,14 @@ public class BulkDebitRemitterAccount {
 
 	public void setTrRmks(String trRmks) {
 		TrRmks = trRmks;
+	}
+
+	public String getReqUniqueID() {
+		return ReqUniqueID;
+	}
+
+	public void setReqUniqueID(String reqUniqueID) {
+		ReqUniqueID = reqUniqueID;
 	}
 	
 	

@@ -1742,14 +1742,16 @@ public class DocumentPacks implements Serializable{
 				PartyIdentification1351 dbtr = new PartyIdentification1351();
 				dbtr.setNm(frAccountName);
 				creditTransferTransaction391.setDbtr(dbtr);
-				/*
-				 * ///Debtor Account Number CashAccount381 dbtrAcct = new CashAccount381();
-				 * AccountIdentification4Choice1 acc1 = new AccountIdentification4Choice1();
-				 * GenericAccountIdentification11 id = new GenericAccountIdentification11();
-				 * id.setId((mcCreditTransferRequest.getFrAccount().getAcctNumber()));
-				 * acc1.setOthr(id); dbtrAcct.setId(acc1);
-				 * creditTransferTransaction391.setDbtrAcct(dbtrAcct);
-				 */
+				
+				  ///Debtor Account Number 
+				CashAccount381 dbtrAcct = new CashAccount381();
+				AccountIdentification4Choice1 acc1 = new AccountIdentification4Choice1();
+				GenericAccountIdentification11 id = new GenericAccountIdentification11();
+				id.setId((frAccountNumber));
+				acc1.setOthr(id);
+				dbtrAcct.setId(acc1);
+				creditTransferTransaction391.setDbtrAcct(dbtrAcct);
+
 				/// Debtor Agent
 				BranchAndFinancialInstitutionIdentification61 dbtrAgt = new BranchAndFinancialInstitutionIdentification61();
 				FinancialInstitutionIdentification181 fin2 = new FinancialInstitutionIdentification181();
@@ -2496,5 +2498,120 @@ public class DocumentPacks implements Serializable{
 
 
 	}*/
+	
+
+	public String getPacs_008_001_01UnMarshalDocXML(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;
+	}
+
+	public String getPacs_002_001_10UnMarshalDocXML(SendT request){
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+		
+	}
+
+	public String getAdmi_002_001_01UnMarshalDocXML(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+	}
+
+	public String getCamt052_001_08UnMarshalDocXML(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+		
+	}
+
+	public String getPain001_001_09UnMarshalDocXML(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+	}
+
+	
+	public String getPain_002_001_10UnMarshalDocXML(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+		
+	}
+
+	
+	public String getCamt025_001_05UnMarshalDocXML(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+		
+	}
+
+	
+	
+	public String getCamt010_001_07UnMarshalDocXML(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+		
+	}
+	
+	
+public String getCamt053_001_08UnMarshalDocXML(SendT request) {
+	String block4 = request.getMessage().getBlock4();
+	final int start = block4.indexOf("<DataPDU");
+	final int end = block4.indexOf("</DataPDU>");
+
+	String XMLData=block4.substring(start, end + 10);
+
+	return XMLData;	
+	
+	
+	}
+
+	public String getCamt019_001_07UnMarshalDocXML(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+		
+	}
+
 
 }

@@ -464,7 +464,7 @@ public class IPSDao {
 						//// Apply Charges And Fee
 						/// Check Transaction outward
 						if (!tm.getMsg_type().equals(TranMonitorStatus.INCOMING.toString())) {
-							ipsConnection.ipsChargesAndFeeTran(tm.getSequence_unique_id(), "IPS Fund Transfer");
+							//ipsConnection.ipsChargesAndFeeTran(tm.getSequence_unique_id(), "IPS Fund Transfer");
 						}
 
 					} else {
@@ -1204,135 +1204,146 @@ public class IPSDao {
 					logger.info("outwardRJCT");
 					OutwardTransactionMonitoringTable tm = otm.get();
 					
-					if(tm.getMsg_type().equals(TranMonitorStatus.OUTWARD_BULK_RTP.toString())) {
-						tm.setIpsx_message_id(ipsxMsgID);
-						tm.setIpsx_status(ipsXStatus);
-						tm.setIpsx_status_error(ipsxerrorDesc);
-						tm.setResponse_status(ipsxResponseStatus);
-						tm.setIpsx_response_time(new Date());
-						tm.setTran_status(tranStatus);
-						tm.setIpsx_status_code(ipsxErrorCode);
-						outwardTranRep.save(tm);
-
-						
-						
-						String cbsStatus=tm.getCbs_status()==null?"":tm.getCbs_status();
-					    /////Send Failure Message to CIM
-						
-						if(!cbsStatus.equals("CBS_CREDIT_OK") && !cbsStatus.equals("CBS_CREDIT_ERROR")) {
-							////Generate RequestUUID
-							String requestUUID=sequence.generateRequestUUId();
-							
-							String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-									env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-									sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
-									tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-									tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc);
-							
-							logger.info("Pain Output Return Msg to ThirdParty Application");
-
-							logger.info(tm.getSequence_unique_id() + " :CIM Register Reverse Data Output:"+response);
+					if (!tm.getMsg_type().equals("BULK_DEBIT")) {
+						if(tm.getMsg_type().equals(TranMonitorStatus.OUTWARD_BULK_RTP.toString())) {
+							tm.setIpsx_message_id(ipsxMsgID);
+							tm.setIpsx_status(ipsXStatus);
+							tm.setIpsx_status_error(ipsxerrorDesc);
+							tm.setResponse_status(ipsxResponseStatus);
+							tm.setIpsx_response_time(new Date());
+							tm.setTran_status(tranStatus);
+							tm.setIpsx_status_code(ipsxErrorCode);
+							outwardTranRep.save(tm);
 
 							
-							if(response.equals("1")) {
-								ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice
-										.cbsResponseFailure(requestUUID);
-
-								logger.debug(listener.generateJsonFormat(connect24Response.toString()));
-								logger.info(tm.getSequence_unique_id() + "CIM : 0");
+							
+							String cbsStatus=tm.getCbs_status()==null?"":tm.getCbs_status();
+						    /////Send Failure Message to CIM
+							
+							if(!cbsStatus.equals("CBS_CREDIT_OK") && !cbsStatus.equals("CBS_CREDIT_ERROR")) {
+								////Generate RequestUUID
+								String requestUUID=sequence.generateRequestUUId();
 								
-								if (connect24Response.getStatusCode() == HttpStatus.OK) {
+								String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
+										env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
+										sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
+										tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
+										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc);
+								
+								logger.info("Pain Output Return Msg to ThirdParty Application");
 
-									CimCBSresponse data=connect24Response.getBody();
-									logger.info(tm.getSequence_unique_id() + " CIM: 1");
+								logger.info(tm.getSequence_unique_id() + " :CIM Register Reverse Data Output:"+response);
+
+								
+								if(response.equals("1")) {
+									ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice
+											.cbsResponseFailure(requestUUID);
+
+									logger.debug(listener.generateJsonFormat(connect24Response.toString()));
+									logger.info(tm.getSequence_unique_id() + "CIM : 0");
 									
-									if(connect24Response.getBody().getData()!=null) {
-										if(connect24Response.getBody().getStatus().getIsSuccess()) {
-											updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage(),connect24Response.getBody().getData().getTransactionNoFromCBS());
-											
-											logger.info(tm.getSequence_unique_id() + " CIM: 2");
-											updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"SUCCESS","");
-											
+									if (connect24Response.getStatusCode() == HttpStatus.OK) {
+
+										CimCBSresponse data=connect24Response.getBody();
+										logger.info(tm.getSequence_unique_id() + " CIM: 1");
+										
+										if(connect24Response.getBody().getData()!=null) {
+											if(connect24Response.getBody().getStatus().getIsSuccess()) {
+												updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage(),connect24Response.getBody().getData().getTransactionNoFromCBS());
+												
+												logger.info(tm.getSequence_unique_id() + " CIM: 2");
+												updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"SUCCESS","");
+												
+											}else {
+												updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage(),connect24Response.getBody().getData().getTransactionNoFromCBS());
+												logger.info(tm.getSequence_unique_id() + " CIM: 3");
+												updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE",connect24Response.getBody().getStatus().getMessage());								
+											}
 										}else {
 											updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage(),connect24Response.getBody().getData().getTransactionNoFromCBS());
 											logger.info(tm.getSequence_unique_id() + " CIM: 3");
-											updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE",connect24Response.getBody().getStatus().getMessage());								
+											updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE","No Response return from CBS");	
 										}
-									}else {
-										updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage(),connect24Response.getBody().getData().getTransactionNoFromCBS());
-										logger.info(tm.getSequence_unique_id() + " CIM: 3");
-										updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE","No Response return from CBS");	
-									}
-									
-								} else {
-									logger.info(tm.getSequence_unique_id() + " : CIM 4:Failure");
-									updateCIMcbsData(requestUUID,"FAILURE","500","Internal Server Error","");
-									updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE","Internal Server Error");
+										
+									} else {
+										logger.info(tm.getSequence_unique_id() + " : CIM 4:Failure");
+										updateCIMcbsData(requestUUID,"FAILURE","500","Internal Server Error","");
+										updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE","Internal Server Error");
 
+									}
 								}
 							}
-						}
 
-						
-						
-					}else {
-						tm.setIpsx_message_id(ipsxMsgID);
-						tm.setIpsx_status(ipsXStatus);
-						tm.setIpsx_status_error(ipsxerrorDesc);
-						tm.setResponse_status(ipsxResponseStatus);
-						tm.setIpsx_response_time(new Date());
-						tm.setTran_status(tranStatus);
-						tm.setIpsx_status_code(ipsxErrorCode);
-						
-						outwardTranRep.save(tm);
-
-					    /////Send Failure Message to CIM
-						
-						////Generate RequestUUID
-						
-						/*
-						String requestUUID=sequence.generateRequestUUId();
-						
-						String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-								sequence.generateTranNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
-								tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-								tm.getSequence_unique_id(),tm.getIpsx_account(),tm.getIpsx_account_name(),"NRT/RTP","","","Failure",ipsxerrorDesc);
-						
-						logger.info("Pain Output Return Msg to ThirdParty Application");
-
-						logger.info(tm.getSequence_unique_id() + " :CIM Register Reverse Data Output:"+response);
-
-						if(response.equals("1")) {
-							ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice
-									.cbsResponseFailure(requestUUID);
-
-							logger.info(tm.getSequence_unique_id() + "CIM : 0");
 							
-							if (connect24Response.getStatusCode() == HttpStatus.OK) {
-
-								logger.info(tm.getSequence_unique_id() + " CIM: 1");
-								if(connect24Response.getBody().getStatus().getIsSuccess()) {
-									updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
-									
-									logger.info(tm.getSequence_unique_id() + " CIM: 2");
-									updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"SUCCESS","");
-									
-								}else {
-									updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage());
-									logger.info(tm.getSequence_unique_id() + " CIM: 3");
-									updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE",connect24Response.getBody().getStatus().getMessage());								}
-							} else {
-								logger.info(tm.getSequence_unique_id() + " : CIM 4:Failure");
-								updateCIMcbsData(requestUUID,"FAILURE","500","Something went wrong at server end");
-								updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE","Something went wrong at server end");
-
-							}
+							
+						}else {
+							tm.setIpsx_message_id(ipsxMsgID);
+							tm.setIpsx_status(ipsXStatus);
+							tm.setIpsx_status_error(ipsxerrorDesc);
+							tm.setResponse_status(ipsxResponseStatus);
+							tm.setIpsx_response_time(new Date());
+							tm.setTran_status(tranStatus);
+							tm.setIpsx_status_code(ipsxErrorCode);
+							
+							outwardTranRep.save(tm);
 						}
-*/						
+
+						break;
+					}else {
+						List<OutwardTransactionMonitoringTable> tranMonitorList = outwardTranRep.findBulkDebitID(tm.getMaster_ref_id());
+
+						for (OutwardTransactionMonitoringTable tranMonitorItem : tranMonitorList) {
+
+							logger.info(tranMonitorItem.getSequence_unique_id() + " : BulkDebit / "
+									+ tranMonitorItem.getCbs_status());
+
+							
+							
+							tranMonitorItem.setIpsx_message_id(ipsxMsgID);
+							tranMonitorItem.setIpsx_status(ipsXStatus);
+							tranMonitorItem.setIpsx_status_error(ipsxerrorDesc);
+							tranMonitorItem.setResponse_status(ipsxResponseStatus);
+							tranMonitorItem.setIpsx_response_time(new Date());
+							tranMonitorItem.setTran_status(tranStatus);
+							tranMonitorItem.setIpsx_status_code(ipsxErrorCode);
+
+							outwardTranRep.save(tranMonitorItem);
+
+							/*if (tranMonitorItem.getCbs_status().equals(TranMonitorStatus.CBS_DEBIT_OK.toString())) {
+
+								tranMonitorItem.setIpsx_message_id(ipsxMsgID);
+								tranMonitorItem.setIpsx_status(ipsXStatus);
+								tranMonitorItem.setIpsx_status_error(ipsxerrorDesc);
+								tranMonitorItem.setResponse_status(ipsxResponseStatus);
+								tranMonitorItem.setIpsx_response_time(new Date());
+								tranMonitorItem.setTran_status(tranStatus);
+								tranMonitorItem.setIpsx_status_code(ipsxErrorCode);
+
+								outwardTranRep.save(tranMonitorItem);
+
+								updateCBSStatus(tranMonitorItem.getSequence_unique_id(),
+										TranMonitorStatus.CBS_DEBIT_REVERSE_INITIATED.toString(),
+										TranMonitorStatus.IN_PROGRESS.toString());
+
+								logger.info(
+										tranMonitorItem.getSequence_unique_id() + " : Initiate Reversal Transaction");
+
+								connect24Service.BulkdbtReverseFundRequest(tranMonitorItem.getBob_account(),
+										sequence.generateSystemTraceAuditNumber(), tranMonitorItem.getTran_currency(),
+										tranMonitorItem.getTran_amount().toString(),
+										tranMonitorItem.getSequence_unique_id(), "TR/"+tranMonitorItem.getTran_audit_number()+"/"+ ipsxerrorDesc);
+							} else {
+
+								logger.info(tranMonitorItem.getSequence_unique_id()
+										+ " : No need for Reversal Transaction");
+								updateCBSStatus(tranMonitorItem.getSequence_unique_id(),
+										tranMonitorItem.getCbs_status(), TranMonitorStatus.FAILURE.toString());
+							}*/
+
+						}
+
 					}
 
-					break;
 				}
 			}
 			
@@ -1444,12 +1455,29 @@ public class IPSDao {
 				if (otm.isPresent()) {
 					logger.info("outwardACSP");
 					OutwardTransactionMonitoringTable tm=otm.get();
-					tm.setIpsx_status(TranMonitorStatus.IPSX_RESPONSE_ACSP.toString());
-					tm.setResponse_status(TranMonitorStatus.ACSP.toString().trim());
-					tm.setIpsx_message_id(ipsxMsgID);
-					tm.setIpsx_response_time(new Date());
-					tm.setTran_status(tranStatus);
-					outwardTranRep.save(tm);
+					if (!tm.getMsg_type().equals("BULK_DEBIT")) {
+						tm.setIpsx_status(TranMonitorStatus.IPSX_RESPONSE_ACSP.toString());
+						tm.setResponse_status(TranMonitorStatus.ACSP.toString().trim());
+						tm.setIpsx_message_id(ipsxMsgID);
+						tm.setIpsx_response_time(new Date());
+						tm.setTran_status(tranStatus);
+						outwardTranRep.save(tm);
+					}else {
+						List<OutwardTransactionMonitoringTable> tranMonitorList = outwardTranRep.findBulkDebitID(tm.getMaster_ref_id());
+
+						for (OutwardTransactionMonitoringTable tranMonitorItem : tranMonitorList) {
+
+							if (tranMonitorItem.getCbs_status().equals(TranMonitorStatus.CBS_DEBIT_OK.toString())) {
+								tranMonitorItem.setIpsx_status(TranMonitorStatus.IPSX_RESPONSE_ACSP.toString());
+								tranMonitorItem.setResponse_status(TranMonitorStatus.ACSP.toString().trim());
+								tranMonitorItem.setIpsx_message_id(ipsxMsgID);
+								tranMonitorItem.setIpsx_response_time(new Date());
+								tranMonitorItem.setTran_status(tranStatus);
+								outwardTranRep.save(tranMonitorItem);
+							}
+						}
+					}
+					
 
 					
 					
@@ -2954,7 +2982,7 @@ public class IPSDao {
 
 	public void insertTranIPS(String sequenceUniqueID, String msgID, String msgCode, String msgType,
 			String responseStatus, String responseErrorCode, String responseErrorDesc, String msg_sub_type,
-			String msgSender, String msgReceiver, String msgNetMir, String userRef,String end_end_id) {
+			String msgSender, String msgReceiver, String msgNetMir, String userRef,String end_end_id,String mx_msg) {
 		try {
 			TranIPSTable tranIPStable = new TranIPSTable();
 
@@ -2977,6 +3005,7 @@ public class IPSDao {
 			tranIPStable.setNet_mir(msgNetMir);
 			tranIPStable.setUser_ref(userRef);
 			tranIPStable.setEnd_end_id(end_end_id);
+			tranIPStable.setMx_msg(mx_msg);
 
 			logger.info(sequenceUniqueID + ":Insert Tran IPS Table Successfully SeqUniqueID" + sequenceUniqueID
 					+ " /MessageID :" + msgID);
@@ -3032,81 +3061,31 @@ public class IPSDao {
 	}
 
 	public void RegisterBulkCreditRecord(String psuDeviceID, String psuIpAddress, String psuID,
-			String senderParticipantBIC, String participantSOL, String sysTraceNumber, String frAccountNumber,
+			String sysTraceNumber, String frAccountNumber,
 			String frAcctName, String toAccountNumber, String toAccountName, String toAccountBank, String trAmt,
 			String currency, String bobMsgID, String seqUniqueID, String tran_type_code, String master_ref_id,
 			String endToEndID, String msgNetMIR, String instg_agt, String instd_agt, String dbtr_agt,
 			String dbtr_agt_acc, String cdtr_agt, String cdtr_agt_acc, String instr_id, String svc_lvl,
-			String lcl_instrm, String ctgy_purp, String userID) {
-		/*try {
-
-			TransactionMonitor tranManitorTable = new TransactionMonitor();
-			tranManitorTable.setMsg_type(TranMonitorStatus.BULK_CREDIT.toString());
-			tranManitorTable.setTran_audit_number(sysTraceNumber);
-			tranManitorTable.setSequence_unique_id(seqUniqueID);
-			tranManitorTable.setBob_message_id(bobMsgID);
-			tranManitorTable.setBob_account(frAccountNumber);
-			tranManitorTable.setIpsx_account(toAccountNumber);
-			tranManitorTable.setReceiver_bank(toAccountBank);
-			tranManitorTable.setTran_amount(new BigDecimal(trAmt));
-			tranManitorTable.setTran_date(new Date());
-			tranManitorTable.setEntry_time(new Date());
-			tranManitorTable.setCbs_status(TranMonitorStatus.CBS_DEBIT_INITIATED.toString());
-			tranManitorTable.setEntry_user(userID);
-			tranManitorTable.setTran_currency(currency);
-			tranManitorTable.setTran_status(TranMonitorStatus.INITIATED.toString());
-			tranManitorTable.setDevice_id(psuDeviceID);
-			tranManitorTable.setDevice_ip(psuIpAddress);
-			tranManitorTable.setNat_id(psuID);
-			tranManitorTable.setMaster_ref_id(master_ref_id);
-
-			tranManitorTable.setBob_account_name(frAcctName);
-			tranManitorTable.setIpsx_account_name(toAccountName);
-			tranManitorTable.setTran_type_code(tran_type_code);
-			tranManitorTable.setEnd_end_id(endToEndID);
-			tranManitorTable.setNet_mir(msgNetMIR);
-			tranManitorTable.setInstg_agt(instg_agt);
-			tranManitorTable.setInstd_agt(instd_agt);
-
-			tranManitorTable.setDbtr_agt(dbtr_agt);
-			tranManitorTable.setDbtr_agt_acc(dbtr_agt_acc);
-			tranManitorTable.setCdtr_agt(cdtr_agt);
-			tranManitorTable.setCdtr_agt_acc(cdtr_agt_acc);
-
-			tranManitorTable.setInstr_id(instr_id);
-			tranManitorTable.setSvc_lvl(svc_lvl);
-			tranManitorTable.setLcl_instrm(lcl_instrm);
-			tranManitorTable.setCtgy_purp(ctgy_purp);
-
-			//// Check CutOff time after BOB settlement time
-			//// if yes the value date is +1
-			if (isTimeAfterCutOff()) {
-				Date dt = new Date();
-				Calendar c = Calendar.getInstance();
-				c.setTime(dt);
-				c.add(Calendar.DATE, 1);
-				dt = c.getTime();
-				tranManitorTable.setValue_date(dt);
-			} else {
-				tranManitorTable.setValue_date(new Date());
-			}
-
-			tranRep.save(tranManitorTable);
-
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-		}*/
-		
+			String lcl_instrm, String ctgy_purp, String userID,String remarks,String p_id,
+			String reqUniqueID,String channel,String resv_field1,String resv_field2,String remitterBankCode) {
 		try {
 
-			TransactionMonitor tranManitorTable = new TransactionMonitor();
+			OutwardTransactionMonitoringTable tranManitorTable = new OutwardTransactionMonitoringTable();
+			tranManitorTable.setP_id(p_id);
+			tranManitorTable.setReq_unique_id(reqUniqueID);
+			tranManitorTable.setInit_channel_id(channel);
+			tranManitorTable.setResv_field1(resv_field1);
+			tranManitorTable.setResv_field2(resv_field2);
+			tranManitorTable.setTran_rmks(remarks);
+			
 			tranManitorTable.setMsg_type(TranMonitorStatus.BULK_CREDIT.toString());
 			tranManitorTable.setTran_audit_number(sysTraceNumber);
 			tranManitorTable.setSequence_unique_id(seqUniqueID);
-			tranManitorTable.setBob_message_id(bobMsgID);
-			tranManitorTable.setBob_account(frAccountNumber);
+			tranManitorTable.setCim_message_id(bobMsgID);
+			tranManitorTable.setCim_account(frAccountNumber);
 			tranManitorTable.setIpsx_account(toAccountNumber);
 			tranManitorTable.setReceiver_bank(toAccountBank);
+			tranManitorTable.setInitiator_bank(remitterBankCode);
 			tranManitorTable.setTran_amount(new BigDecimal(trAmt));
 			tranManitorTable.setTran_date(new Date());
 			tranManitorTable.setEntry_time(new Date());
@@ -3119,7 +3098,7 @@ public class IPSDao {
 			tranManitorTable.setNat_id(psuID);
 			tranManitorTable.setMaster_ref_id(master_ref_id);
 
-			tranManitorTable.setBob_account_name(frAcctName);
+			tranManitorTable.setCim_account_name(frAcctName);
 			tranManitorTable.setIpsx_account_name(toAccountName);
 			tranManitorTable.setTran_type_code(tran_type_code);
 			tranManitorTable.setEnd_end_id(endToEndID);
@@ -3136,16 +3115,9 @@ public class IPSDao {
 			tranManitorTable.setSvc_lvl(svc_lvl);
 			tranManitorTable.setLcl_instrm(lcl_instrm);
 			tranManitorTable.setCtgy_purp(ctgy_purp);
+			tranManitorTable.setChrg_br("SLEV");
 			
-		      ///////
-					tranManitorTable.setIpsx_message_id("M2248279/002");
-					tranManitorTable.setCbs_status(TranMonitorStatus.CBS_DEBIT_OK.toString());
-					tranManitorTable.setCbs_response_time(new Date());
-					tranManitorTable.setIpsx_status(TranMonitorStatus.IPSX_RESPONSE_ACSP.toString());
-					tranManitorTable.setTran_status(TranMonitorStatus.SUCCESS.toString());
-					tranManitorTable.setResponse_status(TranMonitorStatus.ACSP.toString());
-					
-					//////
+			tranManitorTable.setEntry_user(userID);
 
 			//// Check CutOff time after BOB settlement time
 			//// if yes the value date is +1
@@ -3160,8 +3132,9 @@ public class IPSDao {
 				tranManitorTable.setValue_date(new Date());
 			}
 
-			tranRep.save(tranManitorTable);
+			outwardTranRep.save(tranManitorTable);
 
+		
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
@@ -4066,6 +4039,28 @@ public class IPSDao {
 		}
 
 	}
+	
+	public void updateOutwardCBSStatusBulkCreditError(String seqUniqueID, String cbsStatus, String error_desc,
+			String tranStatus) {
+		try {
+			List<OutwardTransactionMonitoringTable> otm = outwardTranRep.findBulkCreditID(seqUniqueID);
+
+			if (!otm.isEmpty()) {
+				for (int i = 0; i < otm.size(); i++) {
+					OutwardTransactionMonitoringTable tm = otm.get(i);
+					tm.setCbs_status(cbsStatus);
+					tm.setCbs_status_error(error_desc);
+					tm.setCbs_response_time(new Date());
+					tm.setTran_status(tranStatus);
+					outwardTranRep.save(tm);
+				}
+
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+
+	}
 
 	public void updateCBSStatusBulkCredit(String seqUniqueID, String cbsStatus, String tranStatus) {
 		try {
@@ -4078,6 +4073,26 @@ public class IPSDao {
 					tm.setCbs_response_time(new Date());
 					tm.setTran_status(tranStatus);
 					tranRep.save(tm);
+				}
+
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+
+	}
+	
+	public void updateOutwardCBSStatusBulkCredit(String seqUniqueID, String cbsStatus, String tranStatus) {
+		try {
+			List<OutwardTransactionMonitoringTable> otm = outwardTranRep.findBulkCreditID(seqUniqueID);
+
+			if (!otm.isEmpty()) {
+				for (int i = 0; i < otm.size(); i++) {
+					OutwardTransactionMonitoringTable tm = otm.get(i);
+					tm.setCbs_status(cbsStatus);
+					tm.setCbs_response_time(new Date());
+					tm.setTran_status(tranStatus);
+					outwardTranRep.save(tm);
 				}
 
 			}
@@ -4268,73 +4283,19 @@ public class IPSDao {
 			String BenacctNumber, String BenBankCode, String seqUniqueID, String bobMsgId, String endTOEndID,
 			String master_ref_id, String tran_type_code, String msgNetMir, String instg_agt, String instd_agt,
 			String dbtr_agt, String dbtr_agt_acc, String cdtr_agt, String cdtr_agt_acc, String instr_id, String svc_lvl,
-			String lcl_instrm, String ctgy_purp, String userID) {
+			String lcl_instrm, String ctgy_purp, String userID,String remarks,
+			String p_id,String requniqueId,String channel,String resvfield11,String resvfield2,String remitterBankCode) {
 
-		/*try {
-			TransactionMonitor tranManitorTable = new TransactionMonitor();
-			tranManitorTable.setMsg_type(TranMonitorStatus.BULK_DEBIT.toString());
-			tranManitorTable.setTran_audit_number(sysTraceNumber);
-			tranManitorTable.setSequence_unique_id(seqUniqueID);
-			tranManitorTable.setBob_message_id(bobMsgId);
-			tranManitorTable.setBob_account(remitterAcctNumber);
-			tranManitorTable.setIpsx_account(BenacctNumber);
-			tranManitorTable.setReceiver_bank(BenBankCode);
-			tranManitorTable.setTran_amount(new BigDecimal(trAmt));
-			tranManitorTable.setTran_date(new Date());
-			tranManitorTable.setEntry_time(new Date());
-			tranManitorTable.setCbs_status(TranMonitorStatus.CBS_DEBIT_INITIATED.toString());
-			tranManitorTable.setEntry_user(userID);
-			tranManitorTable.setTran_currency(currencyCode);
-			tranManitorTable.setTran_status(TranMonitorStatus.INITIATED.toString());
-			tranManitorTable.setDevice_id(psuDeviceID);
-			tranManitorTable.setDevice_ip(psuIpAddress);
-			// tranManitorTable.setNat_id(psuID);
-			tranManitorTable.setMaster_ref_id(master_ref_id);
-			tranManitorTable.setEnd_end_id(endTOEndID);
-			tranManitorTable.setTran_type_code(tran_type_code);
-			tranManitorTable.setNet_mir(msgNetMir);
-			tranManitorTable.setBob_account_name(remitterName);
-			tranManitorTable.setIpsx_account_name(BenAccountName);
-			tranManitorTable.setInstg_agt(instg_agt);
-			tranManitorTable.setInstd_agt(instd_agt);
-
-			tranManitorTable.setDbtr_agt(dbtr_agt);
-			tranManitorTable.setDbtr_agt_acc(dbtr_agt_acc);
-			tranManitorTable.setCdtr_agt(cdtr_agt);
-			tranManitorTable.setCdtr_agt_acc(cdtr_agt_acc);
-
-			tranManitorTable.setInstr_id(instr_id);
-			tranManitorTable.setSvc_lvl(svc_lvl);
-			tranManitorTable.setLcl_instrm(lcl_instrm);
-			tranManitorTable.setCtgy_purp(ctgy_purp);
-
-			//// Check CutOff time after BOB settlement time
-			//// if yes the value date is +1
-			if (isTimeAfterCutOff()) {
-				Date dt = new Date();
-				Calendar c = Calendar.getInstance();
-				c.setTime(dt);
-				c.add(Calendar.DATE, 1);
-				dt = c.getTime();
-				tranManitorTable.setValue_date(dt);
-			} else {
-				tranManitorTable.setValue_date(new Date());
-			}
-
-			tranRep.save(tranManitorTable);
-		} catch (Exception e) {
-			logger.error(e.getLocalizedMessage());
-		}*/
-		
 		try {
-			TransactionMonitor tranManitorTable = new TransactionMonitor();
+			OutwardTransactionMonitoringTable tranManitorTable = new OutwardTransactionMonitoringTable();
 			tranManitorTable.setMsg_type(TranMonitorStatus.BULK_DEBIT.toString());
 			tranManitorTable.setTran_audit_number(sysTraceNumber);
 			tranManitorTable.setSequence_unique_id(seqUniqueID);
-			tranManitorTable.setBob_message_id(bobMsgId);
-			tranManitorTable.setBob_account(remitterAcctNumber);
+			tranManitorTable.setCim_message_id(bobMsgId);
+			tranManitorTable.setCim_account(remitterAcctNumber);
 			tranManitorTable.setIpsx_account(BenacctNumber);
 			tranManitorTable.setReceiver_bank(BenBankCode);
+			tranManitorTable.setInitiator_bank(remitterBankCode);
 			tranManitorTable.setTran_amount(new BigDecimal(trAmt));
 			tranManitorTable.setTran_date(new Date());
 			tranManitorTable.setEntry_time(new Date());
@@ -4349,7 +4310,7 @@ public class IPSDao {
 			tranManitorTable.setEnd_end_id(endTOEndID);
 			tranManitorTable.setTran_type_code(tran_type_code);
 			tranManitorTable.setNet_mir(msgNetMir);
-			tranManitorTable.setBob_account_name(remitterName);
+			tranManitorTable.setCim_account_name(remitterName);
 			tranManitorTable.setIpsx_account_name(BenAccountName);
 			tranManitorTable.setInstg_agt(instg_agt);
 			tranManitorTable.setInstd_agt(instd_agt);
@@ -4363,16 +4324,13 @@ public class IPSDao {
 			tranManitorTable.setSvc_lvl(svc_lvl);
 			tranManitorTable.setLcl_instrm(lcl_instrm);
 			tranManitorTable.setCtgy_purp(ctgy_purp);
-
-		///////
-					tranManitorTable.setIpsx_message_id("M2248279/002");
-					tranManitorTable.setCbs_status(TranMonitorStatus.CBS_DEBIT_OK.toString());
-					tranManitorTable.setCbs_response_time(new Date());
-					tranManitorTable.setIpsx_status(TranMonitorStatus.IPSX_RESPONSE_ACSP.toString());
-					tranManitorTable.setTran_status(TranMonitorStatus.SUCCESS.toString());
-					tranManitorTable.setResponse_status(TranMonitorStatus.ACSP.toString());
-					
-					//////
+			
+			tranManitorTable.setP_id(p_id);
+			tranManitorTable.setReq_unique_id(requniqueId);
+			tranManitorTable.setInit_channel_id(channel);
+			tranManitorTable.setResv_field1(resvfield11);
+			tranManitorTable.setResv_field2(resvfield2);
+			tranManitorTable.setTran_rmks(remarks);
 			//// Check CutOff time after BOB settlement time
 			//// if yes the value date is +1
 			if (isTimeAfterCutOff()) {
@@ -4386,10 +4344,11 @@ public class IPSDao {
 				tranManitorTable.setValue_date(new Date());
 			}
 
-			tranRep.save(tranManitorTable);
+			outwardTranRep.save(tranManitorTable);
 		} catch (Exception e) {
 			logger.error(e.getLocalizedMessage());
 		}
+		
 	}
 
 	public void registerCamt53Record(com.bornfire.jaxb.camt_053_001_08.Document docCamt053_001_08) {
@@ -6085,7 +6044,15 @@ public class IPSDao {
 		// TODO Auto-generated method stub
 		return isData;
 	}
-	
+
+	public void updateMxMsg(String ame) {
+
+		List<TranIPSTable> list=tranIPStableRep.findByIdCustom("M213265/002");
+		TranIPSTable tr=list.get(0);
+		tr.setMx_msg(ame);
+		tranIPStableRep.save(tr);
+	}
+
 	
 
 	

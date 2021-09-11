@@ -6,6 +6,7 @@ import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 
 @Entity
@@ -29,6 +30,9 @@ public class TranIPSTable  implements Serializable{
 	private String net_mir;
 	private String user_ref;
 	private String end_end_id;
+	
+	@Lob 
+	private String mx_msg;
 	
 	public String getSequence_unique_id() {
 		return sequence_unique_id;
@@ -119,6 +123,12 @@ public class TranIPSTable  implements Serializable{
 	}
 	public void setEnd_end_id(String end_end_id) {
 		this.end_end_id = end_end_id;
+	}
+	public String getMx_msg() {
+		return mx_msg;
+	}
+	public void setMx_msg(String mx_msg) {
+		this.mx_msg = mx_msg;
 	}
 	
 	

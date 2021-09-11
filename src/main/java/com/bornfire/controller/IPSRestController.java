@@ -220,18 +220,20 @@ public class IPSRestController {
 	//// Bulk Credit Fund Transfer
 	@PostMapping(path = "/api/ws/bulkCreditFndTransfer", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<MCCreditTransferResponse> bulkCreditTransfer(
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
-			@RequestHeader(value = "PSU_ID", required = false) String psuID,
-			@RequestHeader(value = "Participant_BIC", required = true) String senderParticipantBIC,
-			@RequestHeader(value = "Participant_SOL", required = true) String participantSOL,
-			@RequestHeader(value = "USER_ID", required = true) String userID,
+			@RequestHeader(value = "P-ID", required = true)   String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "USER-ID", required = true) String userID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
 			@RequestBody BukCreditTransferRequest mcCreditTransferRequest) {
 
 		MCCreditTransferResponse response = null;
 
-		response = ipsConnection.createBulkCreditConnection(psuDeviceID, psuIpAddress, psuID, senderParticipantBIC,
-				participantSOL, mcCreditTransferRequest, userID);
+		response = ipsConnection.createBulkCreditConnection(psuDeviceID, psuIpAddress, psuID, 
+				 mcCreditTransferRequest, userID,p_id,channelID,resvfield1,resvfield2);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -239,15 +241,19 @@ public class IPSRestController {
 	//// Bulk Debit Fund Transfer
 	@PostMapping(path = "/api/ws/bulkDebitFndTransfer", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<MCCreditTransferResponse> bulkDebitFndTransfer(
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
-			@RequestHeader(value = "PSU_IP_Address", required = false) String psuIpAddress,
-			@RequestHeader(value = "USER_ID", required = true) String userID,
+			@RequestHeader(value = "P-ID", required = true)   String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "USER-ID", required = true) String userID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
 			@RequestBody BulkDebitFndTransferRequest bulkDebitFndTransferRequest) {
 
 		MCCreditTransferResponse response = null;
 
 		response = ipsConnection.createBulkDebitConnection(psuDeviceID, psuIpAddress, bulkDebitFndTransferRequest,
-				userID);
+				userID,p_id,channelID,resvfield1,resvfield2);
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -790,9 +796,11 @@ public class IPSRestController {
 				+ "						<Prtry>100</Prtry>\n" + "					</CtgyPurp>\n"
 				+ "				</PmtTpInf>\n" + "			</OrgnlTxRef>\n" + "		</TxInfAndSts>\n"
 				+ "	</FIToFIPmtStsRpt>\n" + "</Document>\n" + "</Body>";
-		signDocument.verifySignParseDoc(ame);
+		//signDocument.verifySignParseDoc(ame);
 
-		logger.info(signDocument.verifySignParseDoc(ame).toString());
+		//logger.info(signDocument.verifySignParseDoc(ame).toString());
+		
+		ipsDao.updateMxMsg(ame);
 		return "";
 	}
 

@@ -144,10 +144,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			BankAgentTable othBankAgent, String msgSeq, String endToEndIDt, String msgNetMir) {
 
 
-		///// update IPS TranIPS Table
-		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "OUTGOING", "", "", "", "O",
-				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndIDt);
-
+		
 		/*logger.info("Update IPSX OutMessage Initiated Status ");
 		ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 				TranMonitorStatus.IN_PROGRESS.toString());*/
@@ -160,6 +157,11 @@ public class IPSXClient extends WebServiceGatewaySupport {
 		sendRequest.setMessage(paramMTMsgs.getParamMTmsg(DocType.pacs_008_001_08.getDocs(), sendRequest, bobMsgID,
 				mcCreditTransferRequest, othBankAgent, msgSeq, endToEndIDt));
 
+	    ///// update IPS TranIPS Table
+		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "OUTGOING", "", "", "", "O",
+					env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndIDt,docPacs.getPacs_008_001_01UnMarshalDocXML(sendRequest));
+
+			
 		com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
 		JAXBElement<SendT> jaxbElement = obj.createSend(sendRequest);
 
@@ -466,7 +468,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			///// Update Tran IPS Table
 			logger.info(seqUniqueID008 + " :Register Initial Incoming Fund Transfer Record to table");
 			ipsDao.insertTranIPS(seqUniqueID008, seqUniqueID008, "pacs.008.001.08", "INCOMING", "", "", "", "I",
-					msgSender, msgReceiver, msgNetMIR, userReference,endToEndID008);
+					msgSender, msgReceiver, msgNetMIR, userReference,endToEndID008,docPacs.getPacs_008_001_01UnMarshalDocXML(request));
 			///// Register InComing Message
 			String status = ipsDao.RegisterInMsgRecord(sysTraceNumber008, bobMsgID008, ipsxMsgID008, seqUniqueID008,
 					debtorAccount008, creditorAccount008, trAmount008, trCurrency008,
@@ -564,7 +566,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 								bobMsgID008, CreditStatusType, CreditStatusCode, CreditStatusDesc, msgSeqPacs002));
 
 						ipsDao.insertTranIPS(seqUniqueID008, bobMsgID008, "pacs.002.001.10", "", "", "", "", "O",
-								env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgOutPacs002NteMIR, "",endToEndID008);
+								env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgOutPacs002NteMIR, "",endToEndID008,docPacs.getPacs_002_001_10UnMarshalDocXML(sendRequest008));
 
 						///// Send Pacs.002 Pacs to IPSX
 						com.bornfire.jaxb.wsdl.ObjectFactory obj008 = new com.bornfire.jaxb.wsdl.ObjectFactory();
@@ -751,7 +753,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				}
 
 				ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "", "ACSP", "", "", "I", msgSender,
-						msgReceiver, msgNetMIR, userReference,endToendID002);
+						msgReceiver, msgNetMIR, userReference,endToendID002,docPacs.getPacs_002_001_10UnMarshalDocXML(request));
 				
 				ipsDao.updateIPSXStatusResponseACSPBulkRTP(orglMsgID002, msgID002,
 						TranMonitorStatus.SUCCESS.toString(), "pacs.002.001.10");
@@ -794,7 +796,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				}
 				
 				ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "",tranStatus002, errorCode002, errorDesc002,
-						"I", msgSender, msgReceiver, msgNetMIR, userReference,endToendID002);
+						"I", msgSender, msgReceiver, msgNetMIR, userReference,endToendID002,docPacs.getPacs_002_001_10UnMarshalDocXML(request));
 				
 				if (!userReference.equals("")) {
 				ipsDao.updateIPSXStatusResponseRJCTBulkRTP(orglMsgID002, errorDesc002, msgID002,
@@ -806,7 +808,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			}else {
 				logger.info(orglMsgID002 + " :Update IPSX other msg response in table");
 				ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "",tranStatus002, errorCode002, errorDesc002,
-						"I", msgSender, msgReceiver, msgNetMIR, userReference,endToendID002);
+						"I", msgSender, msgReceiver, msgNetMIR, userReference,endToendID002,docPacs.getPacs_002_001_10UnMarshalDocXML(request));
 			}
 
 			break;
@@ -836,7 +838,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			logger.info(orglMsgIDCamt025 + " :Insert Tran IPS Camt025" + stsCodeCamt025);
 
 			ipsDao.insertTranIPS(orglMsgIDCamt025, msgIDCamt025, "camt.025.001.05", "", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference,"");
+					msgReceiver, msgNetMIR, userReference,"",docPacs.getCamt025_001_05UnMarshalDocXML(request));
 
 			if (docCamt_025_001_05.getRct().getRctDtls().get(0).getOrgnlMsgId().getMsgNmId().split("/")[0]
 					.equals(DocType.pacs_008_001_08.toString())) {
@@ -898,7 +900,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String descAdmi002=docAdmi002_001_01.getAdmi00200101().getRsn().getRsnDesc();
 
 			ipsDao.insertTranIPS(orglMsgIdAdmi002, orglMsgIdAdmi002, "admi.002.001.01", "", "", codeAdmi002,
-					descAdmi002, "I", msgSender, msgReceiver, msgNetMIR, userReference,"");
+					descAdmi002, "I", msgSender, msgReceiver, msgNetMIR, userReference,"",docPacs.getAdmi_002_001_01UnMarshalDocXML(request));
 
 			ipsDao.updateIPSXStatusResponseRJCT(orglMsgIdAdmi002, descAdmi002, orglMsgIdAdmi002,
 					TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
@@ -918,7 +920,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String orglMsgIdCamt019 = docCamt019_001_07.getRtrBizDayInf().getMsgHdr().getMsgId();
 
 			ipsDao.insertTranIPS(orglMsgIdCamt019, orglMsgIdCamt019, "camt.019.001.07", "", "", "",
-					"", "I", msgSender, msgReceiver, msgNetMIR, userReference,"");
+					"", "I", msgSender, msgReceiver, msgNetMIR, userReference,"",docPacs.getCamt019_001_07UnMarshalDocXML(request));
 
 
 			break;
@@ -935,7 +937,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String msgIDCamt052 = docCamt052_001_08.getBkToCstmrAcctRpt().getGrpHdr().getMsgId();
 
 			ipsDao.insertTranIPS(orglMsgIDCamt052, msgIDCamt052, "camt.052.001.08", "", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference,"");
+					msgReceiver, msgNetMIR, userReference,"",docPacs.getCamt052_001_08UnMarshalDocXML(request));
 
 			ipsDao.registerNetStatRecord(docCamt052_001_08);
 
@@ -952,7 +954,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String msgIDCamt053 = docCamt053_001_08.getBkToCstmrStmt().getGrpHdr().getMsgId();
 
 			ipsDao.insertTranIPS(orglMsgIDCamt053, msgIDCamt053, "camt.053.001.08", "", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference,"");
+					msgReceiver, msgNetMIR, userReference,"",docPacs.getCamt053_001_08UnMarshalDocXML(request));
 
 			ipsDao.registerCamt53Record(docCamt053_001_08);
 			// ipsDao.registerNetStatRecord(docCamt052_001_08);
@@ -966,7 +968,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String ipsxMsgID11 = docsCamt010_001_08.getRtrLmt().getMsgHdr().getMsgId();
 
 			ipsDao.insertTranIPS(ipsxMsgID11, ipsxMsgID11, "camt.010.001.08", "", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference,"");
+					msgReceiver, msgNetMIR, userReference,"",docPacs.getCamt010_001_07UnMarshalDocXML(request));
 
 			if (docsCamt010_001_08.getRtrLmt().getMsgHdr().getOrgnlBizQry().getMsgNmId().equals("camt.009.001.07")) {
 				ipsDao.updateSettlementLimitReportStatus(docsCamt010_001_08);
@@ -1174,7 +1176,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 			////// Register Pain001 RTP Message
 			ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pain.001.001.09", "RTP", "", "", "", "I", msgSender,
-					msgReceiver, msgNetMIR, userReference,endToEndID);
+					msgReceiver, msgNetMIR, userReference,endToEndID,docPacs.getPain001_001_09UnMarshalDocXML(request));
 			logger.info(seqUniqueID + ": Register RTP Message to table");
 
 			String stat = ipsDao.RegisterRTPMsgRecord(sysTraceNumber, bobMsgID, ipsxMsgID, seqUniqueID, creditorAccount,
@@ -1226,9 +1228,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						String msgSeqPain001Pain008 = sequence.generateMsgSequence();
 						String msgNetMirPain001Pain008 = new SimpleDateFormat("yyMMdd").format(new Date())
 								+ env.getProperty("ipsx.user") + "0001" + msgSeqPain001Pain008;
-						ipsDao.insertTranIPS(seqUniqueID, bobMsgID, "pacs.008.001.08", "", "", "", "", "O",
-								env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMirPain001Pain008,
-								"",endToEndID);
+						
 
 						///// Create Pacs008 Package
 						logger.info(seqUniqueID + ": Create Pacs008 package");
@@ -1236,6 +1236,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						sendRequest.setMessage(paramMTMsgs.getRTPParamMTmsgPacs008(DocType.pacs_008_001_08.getDocs(), // msgType
 								request, bobMsgID, msgSeqPain001Pain008));
 
+						ipsDao.insertTranIPS(seqUniqueID, bobMsgID, "pacs.008.001.08", "", "", "", "", "O",
+								env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMirPain001Pain008,
+								"",endToEndID,docPacs.getPacs_008_001_01UnMarshalDocXML(sendRequest));
 						///// Send Pacs008 to IPSX
 						com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
 						JAXBElement<SendT> jaxbElement = obj.createSend(sendRequest);
@@ -1337,9 +1340,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 								+ env.getProperty("ipsx.user") + "0001" + msgSeqPain001Pain002;
 
 						logger.info(seqUniqueID + ": Insert Tran IPS Table pain.002.001.10");
-						ipsDao.insertTranIPS(seqUniqueID, bobMsgID, "pain.002.001.10", "", "", CreditStatusCode,
-								CreditStatusDesc, "O", env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"),
-								msgNetMirPain001Pain002, "",endToEndID);
+						
 						logger.info(seqUniqueID + ": Create  pain.002.001.10 Package");
 
 						///// Create Pain 002 Pacs
@@ -1347,7 +1348,12 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						sendRequest.setMessage(paramMTMsgs.getRTPParamMTmsgPain002(DocType.pain_002_001_10.getDocs(), // msgType
 								request, bobMsgID, CreditStatusCode, CreditStatusDesc, msgSeqPain001Pain002));
 
+						ipsDao.insertTranIPS(seqUniqueID, bobMsgID, "pain.002.001.10", "", "", CreditStatusCode,
+								CreditStatusDesc, "O", env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"),
+								msgNetMirPain001Pain002, "",endToEndID,docPacs.getPain_002_001_10UnMarshalDocXML(sendRequest));
+						
 						///// Send Pain002 to IPSX
+						
 						com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
 						JAXBElement<SendT> jaxbElement = obj.createSend(sendRequest);
 						logger.info(seqUniqueID + ": Send  pain.002.001.10 Package");
@@ -1447,7 +1453,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				
 				logger.info(orglMsgID + " : Insert Tran IPS Table Pain002.001.10");
 				ipsDao.insertTranIPS(orglMsgID, msgID, "pain.002.001.10", "", "ACSP", "", "", "I", msgSender,
-						msgReceiver, msgNetMIR, userReference,endToEndIDPain002);
+						msgReceiver, msgNetMIR, userReference,endToEndIDPain002,docPacs.getPain_002_001_10UnMarshalDocXML(request));
 				
 				//if(instgId.equals(env.getProperty("ipsx.bicfi"))) {
 					ipsDao.updateIPSXStatusResponseACSPBulkRTP(orglMsgID, msgID,
@@ -1482,7 +1488,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				
 				logger.info(orglMsgID + " : Insert Tran IPS Table Pain002.001.10");
 				ipsDao.insertTranIPS(orglMsgID, msgID, "pain.002.001.10", "", "RJCT", tranErrorCode, tranErrorDesc, "I",
-						msgSender, msgReceiver, msgNetMIR, userReference,endToEndIDPain002);
+						msgSender, msgReceiver, msgNetMIR, userReference,endToEndIDPain002,docPacs.getPain_002_001_10UnMarshalDocXML(request));
 				
 				//if(instgId.equals(env.getProperty("ipsx.bicfi"))) {
 					ipsDao.updateIPSXStatusResponseRJCTBulkRTP(orglMsgID, tranErrorDesc, msgID,
@@ -1588,7 +1594,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 	}
 
 	@SuppressWarnings("unchecked")
-	public MCCreditTransferResponse sendBulkCreditRequest(String senderParticipantBIC, String participantSOL,
+	public MCCreditTransferResponse sendBulkCreditRequest(
 			String frAccountName, String frAccountNumber, String toAccountName, String toAccountNumber, String trAmt,
 			String trCurrency, String sysTraceNumber, String bobMsgID, String seqUniqueID, BankAgentTable othBankAgent,
 			String msgSeq, String endToEndID, String netMsgMIR) {
@@ -1596,8 +1602,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 		logger.info("Update IPSX OutMessage Initiated Status ");
 
-		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "BULK_CREDIT", "", "", "", "O",
-				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), netMsgMIR, "",endToEndID);
+		
 		ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 				TranMonitorStatus.IN_PROGRESS.toString());
 
@@ -1608,6 +1613,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				bobMsgID, frAccountName, frAccountNumber, toAccountName, toAccountNumber, trAmt, trCurrency,
 				othBankAgent, msgSeq, endToEndID));
 
+		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "BULK_CREDIT", "", "", "", "O",
+				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), netMsgMIR, "",endToEndID,docPacs.getPacs_008_001_01UnMarshalDocXML(sendRequest));
+		
 		///// Send Pacs008 to IPSX
 		logger.info("Sending pacs.008.001.01 to ipsx");
 		com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
@@ -1681,9 +1689,6 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 		logger.info("Update IPSX OutMessage Initiated Status ");
 
-		
-		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "MANUAL", "", "", "", "O",
-				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndIDt);
 
 		ipsDao.updateOutwardIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 				TranMonitorStatus.IN_PROGRESS.toString());
@@ -1698,6 +1703,11 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				bobMsgID, frAccountName, frAccountNumber, toAccountName, toAccountNumber, trAmt, trCurrency,
 				othBankAgent,msgSeq,endToEndIDt));
 
+
+		
+		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "MANUAL", "", "", "", "O",
+				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndIDt,docPacs.getPacs_008_001_01UnMarshalDocXML(sendRequest));
+		
 		com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
 		JAXBElement<SendT> jaxbElement = obj.createSend(sendRequest);
 		/************************/
@@ -1772,8 +1782,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 		logger.info("Update IPSX OutMessage Initiated Status ");
 
-		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "BULK_DEBIT", "", "", "", "O",
-				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndID);
+		
 		ipsDao.updateBulkDebitIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 				TranMonitorStatus.IN_PROGRESS.toString());
 
@@ -1784,6 +1793,8 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				bobMsgID, remitterAcctName, remitterAcctNumber, benAcctName, benAcctNumber, trAmt, trCurrency,
 				othBankAgent, msgSeq, endToEndID));
 
+		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "BULK_DEBIT", "", "", "", "O",
+				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndID,docPacs.getPacs_008_001_01UnMarshalDocXML(sendRequest));
 		///// Send Pacs008 to IPSX
 		logger.info("Sending pacs.008.001.01 to ipsx");
 		com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
@@ -1845,8 +1856,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,String lclInstr,String ctgyPurp,String chargeBearer) {
 		
 	        ///// update IPS TranIPS Table
-			ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pain.001.001.09", "BULK_RTP", "", "", "", "O",
-					env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endTOEndID);
+		
 
 			logger.info("Update IPSX OutMessage Initiated Status ");
 			ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
@@ -1862,6 +1872,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					 instgAgent,instdAgent,debtorAgent,
 						debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp,chargeBearer));
 
+			ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pain.001.001.09", "BULK_RTP", "", "", "", "O",
+					env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endTOEndID,docPacs.getPain001_001_09UnMarshalDocXML(sendRequest));
+			
 			com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
 			JAXBElement<SendT> jaxbElement = obj.createSend(sendRequest);
 
@@ -1929,10 +1942,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String instgAgent,String instdAgent,String debtorAgent,String debtorAgentAcct,String CreditorAgent,String CreditorAgentAcct,String lclInstr,String ctgyPurp,String chargeBearer,
 			CIMMerchantDirectFndRequest cimMerchantRequest,String rmtInfo) {
 		
-	        ///// update IPS TranIPS Table
-			ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pain.001.001.09", "BULK_RTP", "", "", "", "O",
-					env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endTOEndID);
-
+	       
 			logger.info("Update IPSX OutMessage Initiated Status ");
 			ipsDao.updateIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 					TranMonitorStatus.IN_PROGRESS.toString());
@@ -1947,6 +1957,10 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					 instgAgent,instdAgent,debtorAgent,
 						debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp,chargeBearer,
 						cimMerchantRequest,rmtInfo));
+
+			 ///// update IPS TranIPS Table
+			ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pain.001.001.09", "BULK_RTP", "", "", "", "O",
+					env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endTOEndID,docPacs.getPain001_001_09UnMarshalDocXML(sendRequest));
 
 			com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
 			JAXBElement<SendT> jaxbElement = obj.createSend(sendRequest);
@@ -2017,10 +2031,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String lclInstr,String ctgyPurp,String chrBearer,String rmtInfo,String tot_tran_amount) {
 
 
-		///// update IPS TranIPS Table
-		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "OUTGOING", "", "", "", "O",
-				env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndIDt);
-
+		
 		logger.info("Update IPSX OutMessage Initiated Status ");
 		ipsDao.updateOutwardIPSXStatus(seqUniqueID, TranMonitorStatus.IPSX_OUTMSG_INITIATED.toString(),
 				TranMonitorStatus.IN_PROGRESS.toString());
@@ -2031,6 +2042,11 @@ public class IPSXClient extends WebServiceGatewaySupport {
 		sendRequest.setMessage(paramMTMsgs.getParamMerchantMTmsg(DocType.pacs_008_001_08.getDocs(), sendRequest, bobMsgID,
 				mcCreditTransferRequest, othBankAgent, msgSeq, endToEndIDt, lclInstr, ctgyPurp, chrBearer, rmtInfo,tot_tran_amount));
 
+	///// update IPS TranIPS Table
+		ipsDao.insertTranIPS(seqUniqueID, seqUniqueID, "pacs.008.001.08", "OUTGOING", "", "", "", "O",
+					env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgNetMir, "",endToEndIDt,docPacs.getPacs_008_001_01UnMarshalDocXML(sendRequest));
+
+			
 		com.bornfire.jaxb.wsdl.ObjectFactory obj = new com.bornfire.jaxb.wsdl.ObjectFactory();
 		JAXBElement<SendT> jaxbElement = obj.createSend(sendRequest);
 
