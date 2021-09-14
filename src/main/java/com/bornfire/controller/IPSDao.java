@@ -80,6 +80,8 @@ import com.bornfire.entity.ManualFndTransferRequest;
 import com.bornfire.entity.OTPGenTable;
 import com.bornfire.entity.OTPGenTableRep;
 import com.bornfire.entity.OtherBankDetResponse;
+import com.bornfire.entity.OutwardTransHistMonitorTable;
+import com.bornfire.entity.OutwardTransHistMonitoringTableRep;
 import com.bornfire.entity.OutwardTransactionMonitoringTable;
 import com.bornfire.entity.OutwardTransactionMonitoringTableRep;
 import com.bornfire.entity.RegPublicKey;
@@ -241,6 +243,10 @@ public class IPSDao {
 	@Autowired
 	OutwardTransactionMonitoringTableRep outwardTranRep;
 	
+	@Autowired
+	OutwardTransHistMonitoringTableRep outwardTranHistRep;
+	
+
 	@Autowired
 	TranCimCBSTableRep tranCimCBSTableRep;
 	
@@ -1044,7 +1050,7 @@ public class IPSDao {
 						sequence.generateSystemTraceAuditNumber(), tm.getInit_channel_id(), tm.getReq_unique_id(), "False", "", "",
 						"", tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 						tm.getSequence_unique_id(), tm.getIpsx_account(), tm.getIpsx_account_name(), "NRT", "", "",
-						"Failure", ipsxerrorDesc);
+						"Failure", ipsxerrorDesc,new Date());
 
 				logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -1220,7 +1226,7 @@ public class IPSDao {
 							String cbsStatus=tm.getCbs_status()==null?"":tm.getCbs_status();
 						    /////Send Failure Message to CIM
 							
-							if(!cbsStatus.equals("CBS_CREDIT_OK") && !cbsStatus.equals("CBS_CREDIT_ERROR")) {
+							if(!cbsStatus.equals("CBS_CREDIT_OK") && !cbsStatus.equals("CBS_CREDIT_ERROR")&&!tm.getInit_channel_id().equals("BIPS")) {
 								////Generate RequestUUID
 								String requestUUID=sequence.generateRequestUUId();
 								
@@ -1228,7 +1234,7 @@ public class IPSDao {
 										env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 										sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
 										tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc);
+										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc,new Date());
 								
 								logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -4243,6 +4249,35 @@ public class IPSDao {
 
 	}
 
+	public void updateOutwardCBSStatusManual(String seqUniqueID, String cbsStatus, String tranStatus) {
+		try {
+			Optional<OutwardTransactionMonitoringTable> otm = outwardTranRep.findById(seqUniqueID);
+
+			if (otm.isPresent()) {
+				OutwardTransactionMonitoringTable tm = otm.get();
+				tm.setCbs_status(cbsStatus);
+				tm.setCbs_response_time(new Date());
+				// tm.setCbs_status_error("");
+				tm.setTran_status(tranStatus);
+				outwardTranRep.save(tm);
+			} else {
+				Optional<OutwardTransHistMonitorTable> otmHist = outwardTranHistRep.findById(seqUniqueID);
+
+				if (otmHist.isPresent()) {
+					OutwardTransHistMonitorTable tm = otmHist.get();
+					tm.setCbs_status(cbsStatus);
+					tm.setCbs_response_time(new Date());
+					// tm.setCbs_status_error("");
+					tm.setTran_status(tranStatus);
+					outwardTranHistRep.save(tm);
+				}
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+
+	}
+
 	public void updateCBSStatusErrorManual(String seqUniqueID, String cbsStatus, String error_desc, String tranStatus) {
 		try {
 			Optional<TransactionMonitor> otm = tranRep.findById(seqUniqueID);
@@ -5806,7 +5841,7 @@ public class IPSDao {
 			String tran_type,String isReversal,String tran_numberFromCbs, String acctNumber, String trAmt, String currency,
 			String seqUniqueID,  String debrAcctNumber,
 			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
-			String resv_field1,String res_field2) {
+			String resv_field1,String res_field2,Date valueDate) {
 		
 		String response="0";
 		try {
@@ -5837,6 +5872,7 @@ public class IPSDao {
 			tranCimCBSTable.setCredit_remarks(credit_remarks);
 			tranCimCBSTable.setResv_field_1(resv_field1);
 			tranCimCBSTable.setResv_field_2(res_field2);
+			tranCimCBSTable.setValue_date(valueDate);
 			tranCimCBSTableRep.save(tranCimCBSTable);
 			response="1";
 
@@ -6053,7 +6089,50 @@ public class IPSDao {
 		tranIPStableRep.save(tr);
 	}
 
+	public void getOutwardTranData(String sequence_unique_id,Date date) {
+		DateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+		String currentDate = dateFormat.format(new Date());
+		String tranDate = dateFormat.format(date);
+		
+		if (tranDate.equals(currentDate)) {
+			List<OutwardTransactionMonitoringTable> list=outwardTranRep.getExistData(sequence_unique_id);
+		}else {
+			List<OutwardTransactionMonitoringTable> list=outwardTranHistRep.getExistData(sequence_unique_id);
+		}
+		
+	}
+
+	public TranCimCBSTable getTranCIMcbsData(String tran_no) {
+		TranCimCBSTable cbsTable=tranCimCBSTableRep.getTranData(tran_no);
+		return cbsTable;
+	}
+
+	public void updateSettlAmtTable(TranCimCBSTable cbsData) {
+		DateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+		String currentDate = dateFormat.format(new Date());
+		String previousDate = dateFormat.format(previousDay());
+		String tranDate = dateFormat.format(cbsData.getTran_date());
+		
+		if (!tranDate.equals(currentDate)) {
+			Optional<SettlementAccountAmtTable> data=settlAcctAmtRep.customfindById(previousDate);
+			
+			if(data.isPresent()) {
+				if(cbsData.getTran_type().equals("DR")) {
+					
+					String currentAmount=String.valueOf((Double.parseDouble(data.get().getPayable_acct_bal().toString())-
+							Double.parseDouble(cbsData.getTran_amt().toString())));
+					settlAcctAmtRep.updatePayableAmount(previousDate, currentAmount);
+				}else if(cbsData.getTran_type().equals("CR")) {
+					String currentAmount=String.valueOf((Double.parseDouble(data.get().getReceivable_acct_bal().toString())-
+							Double.parseDouble(cbsData.getTran_amt().toString())));
+					settlAcctAmtRep.updateReceivableAmount(previousDate, currentAmount);
+				}
+			}
+		}
+		
+	}
 	
+
 
 	
 	

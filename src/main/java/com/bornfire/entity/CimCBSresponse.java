@@ -1,5 +1,7 @@
 package com.bornfire.entity;
 
+import org.springframework.boot.context.properties.bind.DefaultValue;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -36,6 +38,17 @@ public class CimCBSresponse {
 	@Override
 	public String toString() {
 		return "CimCBSresponse [data=" + data + ", status=" + status + "]";
+	}
+
+	public CimCBSresponse(CimCBSresponseData data, CimCBSresponseStatus status) {
+		super();
+		this.data = data;
+		this.status = status;
+	}
+
+	public CimCBSresponse() {
+		super();
+		// TODO Auto-generated constructor stub
 	}
 	
 	

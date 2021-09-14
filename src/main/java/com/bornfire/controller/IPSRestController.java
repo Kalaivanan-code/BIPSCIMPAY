@@ -87,6 +87,7 @@ import com.bornfire.entity.SCAAuthenticatedData;
 import com.bornfire.entity.SettlementAccountRep;
 import com.bornfire.entity.SettlementLimitResponse;
 import com.bornfire.entity.TranCBSTable;
+import com.bornfire.entity.TranCimCBSTable;
 import com.bornfire.entity.TranIPSTableRep;
 import com.bornfire.entity.TransactionListResponse;
 import com.bornfire.entity.UserRegistrationRequest;
@@ -264,8 +265,9 @@ public class IPSRestController {
 	@PostMapping(path = "api/ws/{userID}/reverseDebit", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<String> ManualdebitReverseTransaction(
 			@PathVariable(value = "userID", required = true) String UserID,
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
-			@RequestBody TranCBSTable tranCBSTable) {
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestBody TranCimCBSTable tranCBSTable) {
 
 		logger.info("ManualDebitReverse" + UserID);
 		String response = ipsConnection.reverseDebitTransaction(tranCBSTable, UserID);
@@ -276,8 +278,9 @@ public class IPSRestController {
 	@PostMapping(path = "api/ws/{userID}/reverseCredit", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<String> ManualCreditReverseTransaction(
 			@PathVariable(value = "userID", required = true) String UserID,
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
-			@RequestBody TranCBSTable tranCBSTable) {
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestBody TranCimCBSTable tranCBSTable) {
 
 		logger.info("ManualCreditReverse" + UserID);
 		String response = ipsConnection.reverseCreditTransaction(tranCBSTable, UserID);
@@ -288,8 +291,9 @@ public class IPSRestController {
 	@PostMapping(path = "api/ws/{userID}/reverseBulkCredit", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<String> ManualreverseBulkCreditReverseTransaction(
 			@PathVariable(value = "userID", required = true) String UserID,
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
-			@RequestBody TranCBSTable tranCBSTable) {
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestBody TranCimCBSTable tranCBSTable) {
 
 		logger.info("ManualDebitReverse" + UserID);
 		String response = ipsConnection.reversereverseBulkCreditTransaction(tranCBSTable, UserID);
@@ -300,8 +304,9 @@ public class IPSRestController {
 	@PostMapping(path = "api/ws/{userID}/reverseBulkDebit", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<String> ManualreverseBulkDebitReverseTransaction(
 			@PathVariable(value = "userID", required = true) String UserID,
-			@RequestHeader(value = "PSU_Device_ID", required = true) String psuDeviceID,
-			@RequestBody TranCBSTable tranCBSTable) {
+			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestBody TranCimCBSTable tranCBSTable) {
 
 		logger.info("ManualDebitReverse" + UserID);
 		String response = ipsConnection.reverseBulkDebitTransaction(tranCBSTable, UserID);

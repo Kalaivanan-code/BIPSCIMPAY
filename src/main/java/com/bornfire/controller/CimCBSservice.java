@@ -59,8 +59,7 @@ public class CimCBSservice {
 	@Autowired
 	IPSDao ipsDao;
 
-	public ResponseEntity<CimCBSresponse> cdtFundRequest(String requestUUID,String acctNumber, String trAmt, String currency,
-			String sysTraceAuditNumber, String SeqUniqueID,String trRmks) {
+	public ResponseEntity<CimCBSresponse> cdtFundRequest(String requestUUID) {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 		

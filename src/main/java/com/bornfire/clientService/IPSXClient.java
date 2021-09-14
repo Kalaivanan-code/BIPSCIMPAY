@@ -496,7 +496,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				if (listTranTR.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
 					ipsDao.updateIPSXStatusResponseRJCT(listTranTR.get(0).getSequence_unique_id(),
 							listTranTR.get(0).getResponse_error_desc(), listTranTR.get(0).getMsg_id(),
-							TranMonitorStatus.IN_PROGRESS.toString(),
+							TranMonitorStatus.FAILURE.toString(),
 							TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 							listTranTR.get(0).getResponse_status(), listTranTR.get(0).getResponse_error_code(),"pacs.008.001.08");
 				}
@@ -546,7 +546,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						if (list.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
 							ipsDao.updateIPSXStatusResponseRJCT(list.get(0).getSequence_unique_id(),
 									list.get(0).getResponse_error_desc(), list.get(0).getMsg_id(),
-									TranMonitorStatus.IN_PROGRESS.toString(),
+									TranMonitorStatus.FAILURE.toString(),
 									TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 									list.get(0).getResponse_status(), list.get(0).getResponse_error_code(),"pacs.008.001.08");
 						}
@@ -580,7 +580,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							if (listNex.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
 								ipsDao.updateIPSXStatusResponseRJCT(listNex.get(0).getSequence_unique_id(),
 										listNex.get(0).getResponse_error_desc(), listNex.get(0).getMsg_id(),
-										TranMonitorStatus.IN_PROGRESS.toString(),
+										TranMonitorStatus.FAILURE.toString(),
 										TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 										listNex.get(0).getResponse_status(), listNex.get(0).getResponse_error_code(),"pacs.008.001.08");
 							}
@@ -612,7 +612,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 										if (listtyp.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
 											ipsDao.updateIPSXStatusResponseRJCT(listtyp.get(0).getSequence_unique_id(),
 													listtyp.get(0).getResponse_error_desc(), listtyp.get(0).getMsg_id(),
-													TranMonitorStatus.IN_PROGRESS.toString(),
+													TranMonitorStatus.FAILURE.toString(),
 													TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 													listtyp.get(0).getResponse_status(), listtyp.get(0).getResponse_error_code(),"pacs.008.001.08");
 										}
@@ -1775,7 +1775,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 	@SuppressWarnings("unchecked")
 	public MCCreditTransferResponse sendBulkDebitFndTransefer(String remitterAcctName, String remitterAcctNumber,
-			String benAcctName, String benAcctNumber, String trAmt, String trCurrency, String sysTraceNumber,
+			String benAcctName, String benAcctNumber, String trAmt, String trCurrency,
 			String bobMsgID, String seqUniqueID, BankAgentTable othBankAgent, String msgSeq, String endToEndID,
 			String msgNetMir) {
 		MCCreditTransferResponse mcCreditTransferResponse = null;
