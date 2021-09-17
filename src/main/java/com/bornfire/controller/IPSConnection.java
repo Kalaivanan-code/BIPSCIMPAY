@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyPair;
@@ -29,6 +30,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -49,6 +51,9 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.imageio.ImageIO;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -340,7 +345,7 @@ public class IPSConnection {
 			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), "", "True", "DR", "N", "", settlPayableAccount, mcCreditTransferRequest.getTrAmt(), mcCreditTransferRequest.getCurrencyCode(),
-						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT/RTP",mcCreditTransferRequest.getTrRmks(), "", "", "",new Date());
+						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT/RTP",mcCreditTransferRequest.getTrRmks(), "", "", "",new Date(),"PAYABLE");
 				
 			    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -360,6 +365,7 @@ public class IPSConnection {
 										connect24Response.getBody().getStatus().getStatusCode(),
 										connect24Response.getBody().getStatus().getMessage(),
 										connect24Response.getBody().getData().getTransactionNoFromCBS());
+								
 								
 								/*////Update CBS Status to Tran Table
 								ipsDao.updateCBSStatus(seqUniqueID,
@@ -527,7 +533,7 @@ public class IPSConnection {
 			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), "", "True", "DR", "N", "",settlPayableAccount, manualFundTransferRequest.get(i).getTrAmt(), manualFundTransferRequest.get(i).getCurrencyCode(),
-						seqUniqueID, manualFundTransferRequest.get(i).getRemitterAcctNumber(), manualFundTransferRequest.get(i).getRemitterName(), "NRT/RTP",manualFundTransferRequest.get(i).getTrRmks(), "", "", "",new Date());
+						seqUniqueID, manualFundTransferRequest.get(i).getRemitterAcctNumber(), manualFundTransferRequest.get(i).getRemitterName(), "NRT/RTP",manualFundTransferRequest.get(i).getTrRmks(), "", "", "",new Date(),"PAYABLE");
 				
 			    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -705,7 +711,7 @@ public class IPSConnection {
 			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), "", "True", "DR", "N", "", settlPayableAccount, mcCreditTransferRequest.getTotAmt(), mcCreditTransferRequest.getCurrencyCode(),
-						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT/RTP",mcCreditTransferRequest.getToAccountList().get(0).getTrRmks(), "", "", "",new Date());
+						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT/RTP",mcCreditTransferRequest.getToAccountList().get(0).getTrRmks(), "", "", "",new Date(),"PAYABLE");
 				
 			    /////Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -894,7 +900,7 @@ public class IPSConnection {
 				    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 							env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 							sysTraceNumber1, env.getProperty("cimCBS.outDBChannel"), "", "True", "DR", "N", "", settlPayableAccount, bulkDebitFndTransferRequest.getRemitterAccount().get(i).getTrAmt(), bulkDebitFndTransferRequest.getRemitterAccount().get(i).getCurrencyCode(),
-							seqUniqueID+"/"+srlNo, bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterAcctNumber(), bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterName(), "NRT/RTP",bulkDebitFndTransferRequest.getRemitterAccount().get(i).getTrRmks(), "", "", "",new Date());
+							seqUniqueID+"/"+srlNo, bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterAcctNumber(), bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterName(), "NRT/RTP",bulkDebitFndTransferRequest.getRemitterAccount().get(i).getTrRmks(), "", "", "",new Date(),"PAYABLE");
 					
 				    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -1976,7 +1982,7 @@ public class IPSConnection {
 					cbsData.getFrom_account_no(), cbsData.getTran_amt().toString(), cbsData.getTran_currency(),
 					cbsData.getSequence_unique_id(),settlPayableAccount,
 					cbsData.getCustomer_name(), "NRT/RTP",
-					"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date());
+					"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
 
 			///// Call ESB Connection
 			ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2066,7 +2072,7 @@ public class IPSConnection {
 					settlReceivableAccount, cbsData.getTran_amt().toString(), cbsData.getTran_currency(),
 					cbsData.getSequence_unique_id(),cbsData.getFrom_account_no(),
 					cbsData.getCustomer_name(), "NRT/RTP",
-					tranCBSTable.getDebit_remarks(),"", "", "",cbsData.getTran_date());
+					tranCBSTable.getDebit_remarks(),"", "", "",cbsData.getTran_date(),"RECEIVABLE");
 
 			///// Call ESB Connection
 			ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2171,7 +2177,7 @@ public class IPSConnection {
 					cbsData.getFrom_account_no(), tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
 					cbsData.getSequence_unique_id(),settlPayableAccount,
 					cbsData.getCustomer_name(), "NRT/RTP",
-					"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date());
+					"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
 
 			///// Call ESB Connection
 			ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2276,7 +2282,7 @@ public class IPSConnection {
 							cbsData.getFrom_account_no(), tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
 							cbsData.getSequence_unique_id(),settlPayableAccount,
 							cbsData.getCustomer_name(), "NRT/RTP",
-							"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date());
+							"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
 
 					///// Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -3028,9 +3034,9 @@ public class IPSConnection {
 
 			///Store KeyPair
 			//listener.storePubKey(kp, customDeviceID);
-			//String encryptPublicKey=listener.encrypt(publicKey,customDeviceID);
-			//String encryptPrivateKey=listener.encrypt(privateKey,customDeviceID);
-			//String encryptCustomDevieID=listener.encryptDid(customDeviceID);
+			String encryptPublicKey=listener.encrypt(publicKey,customDeviceID);
+			String encryptPrivateKey=listener.encrypt(privateKey,customDeviceID);
+			String encryptCustomDevieID=listener.encryptDid(customDeviceID);
 			
 			String res = ipsDao.consentOutwardDataRegister(x_request_id, psuDeviceID, psuIPAddress, psuID, psuIDCountry,
 					psuIDType, sender_participant_bic, sender_participant_member_id, receiver_participant_bic,
@@ -3039,7 +3045,7 @@ public class IPSConnection {
 			if (res.equals("0")) {
 				String status = ipsDao.outwardConsentDataRegister(x_request_id, psuDeviceID,
 						psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessRequest, sender_participant_bic,sender_participant_member_id,
-						receiver_participant_bic, receiver_participant_member_id,publicKey,privateKey,customDeviceID);
+						receiver_participant_bic, receiver_participant_member_id,encryptPublicKey,encryptPrivateKey,encryptCustomDevieID);
 
 				logger.debug("Calling Outward Consent Access Connection Register Status"+status);
 
@@ -3151,16 +3157,16 @@ public class IPSConnection {
 
 					////Create Cryptogram Data
 					Map<String, Object> claimsData = new HashMap<String, Object>();
-					//claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
-					claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id());
+					claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
+					//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id());
 
 					claimsData.put("endToEndId",x_request_id);
 					claimsData.put("consentId", consentID);
 					claimsData.put("href","/accounts-consents/"+consentID+"/authorisations/"+authID );
 			        
-					//String cryptogram=generateJwtToken(claimsData,listener.decrypt(consentDataList.get(0).getPrivate_key(),listener.decryptDid(consentDataList.get(0).getCustom_device_id())));
+					String cryptogram=generateJwtToken(claimsData,listener.decrypt(consentDataList.get(0).getPrivate_key(),listener.decryptDid(consentDataList.get(0).getCustom_device_id())));
 					//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
-					String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
+					//String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
 
 					logger.debug("Calling Outward Consent Access Authorisation IPSXService");
 
@@ -3307,12 +3313,14 @@ public class IPSConnection {
 			
 		////Create Cryptogram Data
 			Map<String, Object> claimsData = new HashMap<String, Object>();
-			claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
+			claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
+			//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
 			claimsData.put("consentId", consentID);
 			claimsData.put("href","/accounts/"+accountID+"/balances" );
 			
-			String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
+			String cryptogram=generateJwtToken(claimsData,listener.decrypt(consentDataList.get(0).getPrivate_key(), listener.decryptDid(consentDataList.get(0).getCustom_device_id())));
+			//String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
 			//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
 
 			
@@ -3384,7 +3392,8 @@ public class IPSConnection {
 	
 		////Create Cryptogram Data
 			Map<String, Object> claimsData = new HashMap<String, Object>();
-			claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
+			claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
+			//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
 			claimsData.put("consentId", consentID);
 			
@@ -3395,7 +3404,9 @@ public class IPSConnection {
 				claimsData.put("href","/accounts/"+accountID+"/transactions" );
 			}
 			
-			String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
+			String cryptogram=generateJwtToken(claimsData,listener.decrypt(consentDataList.get(0).getPrivate_key(), listener.decryptDid(consentDataList.get(0).getCustom_device_id())));
+
+			//String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
 			//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
 
 			String status = ipsDao.outwardConsentDataRegisterTransactionInc(x_request_id, psuDeviceID,
@@ -3455,13 +3466,15 @@ public class IPSConnection {
 		
 			
 			Map<String, Object> claimsData = new HashMap<String, Object>();
-			claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
+			claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
+			//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
 			claimsData.put("consentId", consentID);
 			claimsData.put("href","/accounts/");
 			
+			String cryptogram=generateJwtToken(claimsData,listener.decrypt(consentDataList.get(0).getPrivate_key(), listener.decryptDid(consentDataList.get(0).getCustom_device_id())));
 
-			String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
+			//String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
 			//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
 
 			String status = ipsDao.outwardConsentDataRegisterAccountListInc(x_request_id, psuDeviceID,
@@ -3524,12 +3537,15 @@ public class IPSConnection {
 			
 		////Create Cryptogram Data
 			Map<String, Object> claimsData = new HashMap<String, Object>();
-			claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
+			claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
+			//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
 			claimsData.put("consentId", consentID);
 			claimsData.put("href","/accounts/"+accountID);
 
-			String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
+			String cryptogram=generateJwtToken(claimsData,listener.decrypt(consentDataList.get(0).getPrivate_key(), listener.decryptDid(consentDataList.get(0).getCustom_device_id())));
+
+			//String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
 			//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
 
 			
@@ -3770,7 +3786,15 @@ public class IPSConnection {
 						////Generate JWT Token
 					    ////Create Cryptogram Data
 						Map<String, Object> claimsData = new HashMap<String, Object>();
-						claimsData.put("deviceId",regAccList.get(0).getCustom_device_id());
+						try {
+							claimsData.put("deviceId",listener.decryptDid(regAccList.get(0).getCustom_device_id()));
+						} catch (InvalidKeyException | KeyStoreException | NoSuchAlgorithmException
+								| CertificateException | UnrecoverableEntryException | NoSuchPaddingException
+								| IllegalBlockSizeException | BadPaddingException | IOException e1) {
+							
+							
+							e1.printStackTrace();
+						}
 						claimsData.put("amount",rtpBulkTransferRequest.getBenAccount().get(i).getTrAmt());
 						claimsData.put("currency",rtpBulkTransferRequest.getBenAccount().get(i).getCurrencyCode());
 						claimsData.put("debtorAccount",rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
@@ -3782,7 +3806,9 @@ public class IPSConnection {
 						
 						String cryptogram="";
 						try {
-							cryptogram=generateJwtToken(claimsData,regAccList.get(0).getPrivate_key());
+							cryptogram=generateJwtToken(claimsData,listener.decrypt(regAccList.get(0).getPrivate_key(), listener.decryptDid(regAccList.get(0).getCustom_device_id())));
+
+							//cryptogram=generateJwtToken(claimsData,regAccList.get(0).getPrivate_key());
 							// cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(regAccList.get(0).getCustom_device_id()));
 
 						} catch (Exception e) {
@@ -4006,7 +4032,7 @@ public class IPSConnection {
 			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), "", "True", "DR", "N", "", mcCreditTransferRequest.getMerchantAccount().getMerchantAcctNumber(), tot_tran_amount, mcCreditTransferRequest.getMerchantAccount().getCurrency(),
-						seqUniqueID, mcCreditTransferRequest.getRemitterAccount().getAcctNumber(), mcCreditTransferRequest.getRemitterAccount().getAcctName(), "NRT/RTP",remarks, "", "", "",new Date());
+						seqUniqueID, mcCreditTransferRequest.getRemitterAccount().getAcctNumber(), mcCreditTransferRequest.getRemitterAccount().getAcctName(), "NRT/RTP",remarks, "", "", "",new Date(),"PAYABLE");
 				
 			    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -4355,7 +4381,7 @@ public class IPSConnection {
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 								sysTraceAuditNumber,env.getProperty("cimCBS.incCRChannel"),"","True","CR","N","",
 								acctNumber, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","",new Date());
+								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","",new Date(),"RECEIVABLE");
 						/*response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 								sysTraceAuditNumber,env.getProperty("cimCBS.incCRChannel"),"","True","CR","N","",
@@ -4366,7 +4392,7 @@ public class IPSConnection {
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 								sysTraceAuditNumber,env.getProperty("cimCBS.rtpCRChannel"),"","True","CR","N","",
 								acctNumber, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","",new Date());
+								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","",new Date(),"RECEIVABLE");
 					
 						/*response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),

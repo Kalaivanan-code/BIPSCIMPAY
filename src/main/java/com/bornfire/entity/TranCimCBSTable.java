@@ -46,6 +46,7 @@ public class TranCimCBSTable {
 	private Date entry_time;
 	private String entity_cre_flg;
 	private Date value_date;
+	private String settl_acct_type;
 	private String tran_charge_type;
 	public TranCimCBSTable(String sequence_unique_id, String request_uuid, String channel_id,
 			String service_request_version, String service_request_id, Date message_date_time, String tran_no,
@@ -285,6 +286,12 @@ public class TranCimCBSTable {
 	}
 	public void setTran_charge_type(String tran_charge_type) {
 		this.tran_charge_type = tran_charge_type;
+	}
+	public String getSettl_acct_type() {
+		return settl_acct_type;
+	}
+	public void setSettl_acct_type(String settl_acct_type) {
+		this.settl_acct_type = settl_acct_type;
 	}
 	
 	

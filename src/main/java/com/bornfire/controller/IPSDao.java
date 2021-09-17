@@ -1050,7 +1050,7 @@ public class IPSDao {
 						sequence.generateSystemTraceAuditNumber(), tm.getInit_channel_id(), tm.getReq_unique_id(), "False", "", "",
 						"", tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 						tm.getSequence_unique_id(), tm.getIpsx_account(), tm.getIpsx_account_name(), "NRT", "", "",
-						"Failure", ipsxerrorDesc,new Date());
+						"Failure", ipsxerrorDesc,new Date(),"");
 
 				logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -1234,7 +1234,7 @@ public class IPSDao {
 										env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 										sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
 										tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc,new Date());
+										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc,new Date(),"");
 								
 								logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -5841,7 +5841,7 @@ public class IPSDao {
 			String tran_type,String isReversal,String tran_numberFromCbs, String acctNumber, String trAmt, String currency,
 			String seqUniqueID,  String debrAcctNumber,
 			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
-			String resv_field1,String res_field2,Date valueDate) {
+			String resv_field1,String res_field2,Date valueDate,String settlType) {
 		
 		String response="0";
 		try {
@@ -5873,6 +5873,7 @@ public class IPSDao {
 			tranCimCBSTable.setResv_field_1(resv_field1);
 			tranCimCBSTable.setResv_field_2(res_field2);
 			tranCimCBSTable.setValue_date(valueDate);
+			tranCimCBSTable.setSettl_acct_type(settlType);
 			tranCimCBSTableRep.save(tranCimCBSTable);
 			response="1";
 

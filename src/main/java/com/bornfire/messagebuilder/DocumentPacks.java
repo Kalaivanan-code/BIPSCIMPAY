@@ -893,6 +893,7 @@ public class DocumentPacks implements Serializable{
 		return document;
 	}
 
+
 	public String getRTPPacs_008_001_01Doc(String msgType, SendT request, String bobMsgId,String msgSeq) {
 
 		com.bornfire.jaxb.pain_001_001_09.Document docPacsPain001 = getPain001_001_09UnMarshalDoc(request);
@@ -937,6 +938,8 @@ public class DocumentPacks implements Serializable{
 		creditTransferTransaction391.setPmtId(pmtId);
 		/// Payment Type Information
 		PaymentTypeInformation281 pmtTpInf = new PaymentTypeInformation281();
+		
+		
 		pmtTpInf.setClrChanl(ClearingChannel2Code1.RTNS);/// Clearing Channel like(RTGS,RTNS,MPNS)
 		CategoryPurpose1Choice1 ctgyPurp = new CategoryPurpose1Choice1();
 		ctgyPurp.setPrtry(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getPmtTpInf()
@@ -977,9 +980,100 @@ public class DocumentPacks implements Serializable{
 		/// Debtor name
 		PartyIdentification1351 dbtr = new PartyIdentification1351();
 		dbtr.setNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getNm());
-		PostalAddress241 pstlAdr = new PostalAddress241();
-		pstlAdr.setAdrLine(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr().getAdrLine());
-		dbtr.setPstlAdr(pstlAdr);
+		if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr() != null) {
+			
+			PostalAddress241 pstlAdr = new PostalAddress241();
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr().getAdrLine() != null) {
+				
+				pstlAdr.setAdrLine(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr().getAdrLine());
+				
+				//logger.info("PostalAddress241");
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getBldgNb() != null) {
+				pstlAdr.setBldgNb(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr()
+						.getPstlAdr().getBldgNb());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getBldgNm() != null) {
+				pstlAdr.setBldgNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr()
+						.getPstlAdr().getBldgNm());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getCtry() != null) {
+				pstlAdr.setCtry(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getCtry());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getCtrySubDvsn() != null) {
+				pstlAdr.setCtrySubDvsn(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getCtrySubDvsn());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getDept() != null) {
+				pstlAdr.setDept(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getDept());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getDstrctNm()!= null) {
+				pstlAdr.setDstrctNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getDstrctNm());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getFlr()!= null) {
+				pstlAdr.setFlr(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getFlr());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getPstBx()!= null) {
+				pstlAdr.setPstBx(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getPstBx());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getPstCd()!= null) {
+				pstlAdr.setPstCd(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getPstCd());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getRoom()!= null) {
+				pstlAdr.setRoom(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getRoom());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getStrtNm()!= null) {
+				pstlAdr.setStrtNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getStrtNm());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getSubDept()!= null) {
+				pstlAdr.setSubDept(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getSubDept());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getTwnLctnNm()!= null) {
+				pstlAdr.setTwnLctnNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getTwnLctnNm());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+					.getTwnNm()!= null) {
+				pstlAdr.setTwnNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr()
+						.getTwnNm());
+			}
+			
+			dbtr.setPstlAdr(pstlAdr);
+			
+		
+		} else {
+			//logger.info("PostalAddress241414141");
+		}
+//		PostalAddress241 pstlAdr = new PostalAddress241();
+//		pstlAdr.setAdrLine(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtr().getPstlAdr().getAdrLine());
+//		dbtr.setPstlAdr(pstlAdr);
 		creditTransferTransaction391.setDbtr(dbtr);
 		/// Debtor Account Number
 		CashAccount381 dbtrAcct = new CashAccount381();
@@ -994,7 +1088,7 @@ public class DocumentPacks implements Serializable{
 		FinancialInstitutionIdentification181 fin2 = new FinancialInstitutionIdentification181();
 		//fin2.setBICFI(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtrAgt().getFinInstnId().getBICFI());
 		
-		/*if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtrAgt()!=null) {
+		if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtrAgt()!=null) {
 			if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtrAgt().getFinInstnId()!=null) {
 				if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtrAgt().getFinInstnId().getBICFI()!=null) {
 					fin2.setBICFI(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getDbtrAgt().getFinInstnId().getBICFI());
@@ -1009,9 +1103,9 @@ public class DocumentPacks implements Serializable{
 					
 				}
 			}
-		}*/
+		}
 		
-		fin2.setBICFI(env.getProperty("ipsx.bicfi"));
+		//fin2.setBICFI(env.getProperty("ipsx.bicfi"));
 		dbtrAgt.setFinInstnId(fin2);
 		creditTransferTransaction391.setDbtrAgt(dbtrAgt);
 		/// Debtor Agent Account
@@ -1041,18 +1135,124 @@ public class DocumentPacks implements Serializable{
 		/// Creditor Name
 		PartyIdentification1351 cdtr = new PartyIdentification1351();
 		cdtr.setNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getNm());
-		PostalAddress241 pstlAdr1 = new PostalAddress241();
 		
-		if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
-				.getPstlAdr()!=null) {
-			if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
-					.getPstlAdr().getAdrLine()!=null) {
+		if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr() != null) {
+			PostalAddress241 pstlAdr1 = new PostalAddress241();
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getAdrLine() != null) {
 				pstlAdr1.setAdrLine(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
 						.getPstlAdr().getAdrLine());
-				cdtr.setPstlAdr(pstlAdr1);
 			}
 			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getBldgNb() != null) {
+				pstlAdr1.setBldgNb(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getBldgNb());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getBldgNm() != null) {
+				pstlAdr1.setBldgNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getBldgNm());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getCtry() != null) {
+				pstlAdr1.setCtry(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getCtry());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getCtrySubDvsn() != null) {
+				pstlAdr1.setCtrySubDvsn(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getCtrySubDvsn());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getDept() != null) {
+				pstlAdr1.setDept(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getDept());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getDstrctNm()!= null) {
+				pstlAdr1.setDstrctNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getDstrctNm());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getFlr()!= null) {
+				pstlAdr1.setFlr(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getFlr());
+			}
+			
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getPstBx()!= null) {
+				pstlAdr1.setPstBx(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getPstBx());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getPstCd()!= null) {
+				pstlAdr1.setPstCd(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getPstCd());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getRoom()!= null) {
+				pstlAdr1.setRoom(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getRoom());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getStrtNm()!= null) {
+				pstlAdr1.setStrtNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getStrtNm());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getSubDept()!= null) {
+				pstlAdr1.setSubDept(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getSubDept());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getTwnLctnNm()!= null) {
+				pstlAdr1.setTwnLctnNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getTwnLctnNm());
+			}
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getPstlAdr()
+					.getTwnNm()!= null) {
+				pstlAdr1.setTwnNm(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr()
+						.getPstlAdr().getTwnNm());
+			}
+			
+			
+			cdtr.setPstlAdr(pstlAdr1);
+			
+			
 		}
+		
+		com.bornfire.jaxb.pacs_008_001_08.Party38Choice1 partyChoice=new com.bornfire.jaxb.pacs_008_001_08.Party38Choice1();
+		com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentification291 orgIDData=new com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentification291();
+		List<com.bornfire.jaxb.pacs_008_001_08.GenericOrganisationIdentification11>  othrDataList=new ArrayList<>();
+		
+		if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getId()!=null) {
+			if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getId().getOrgId()!=null) {
+				List<com.bornfire.jaxb.pain_001_001_09.GenericOrganisationIdentification11> datae=docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getCdtr().getId().getOrgId().getOthr();
+				
+				for (com.bornfire.jaxb.pain_001_001_09.GenericOrganisationIdentification11 datsub:datae) {
+					com.bornfire.jaxb.pacs_008_001_08.GenericOrganisationIdentification11  othrData=new com.bornfire.jaxb.pacs_008_001_08.GenericOrganisationIdentification11();
+					othrData.setId(datsub.getId());
+					
+					com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentificationSchemeName1Choice valueData=new com.bornfire.jaxb.pacs_008_001_08.OrganisationIdentificationSchemeName1Choice();
+					valueData.setCd(datsub.getSchmeNm().getCd());
+					valueData.setPrtry(datsub.getSchmeNm().getPrtry());
+					othrData.setSchmeNm(valueData);
+					othrDataList.add(othrData);
+				}
+				if(othrDataList.size()>0) {
+					orgIDData.setOthr(othrDataList);
+					partyChoice.setOrgId(orgIDData);
+					cdtr.setId(partyChoice);
+				}
+			
+			}
+		}
+		
 		
 		creditTransferTransaction391.setCdtr(cdtr);
 		/// Creditor Account Number
@@ -1065,43 +1265,51 @@ public class DocumentPacks implements Serializable{
 		cdtrAcct.setId(id4);
 		creditTransferTransaction391.setCdtrAcct(cdtrAcct);
 
-		if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0)
-				.getRgltryRptg()!=null) {
-			
-			if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0)
-				.getRgltryRptg().size()>0) {
-				RegulatoryReporting31 rgltryRptg = new RegulatoryReporting31();
-				StructuredRegulatoryReporting31 dtls = new StructuredRegulatoryReporting31();
-				dtls.setInf(Collections.singletonList(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0)
-						.getRgltryRptg().get(0).getDtls().getInf().get(0)));
+		RegulatoryReporting31 rgltryRptg = new RegulatoryReporting31();
+		StructuredRegulatoryReporting31 dtls = new StructuredRegulatoryReporting31();
+		
+		if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getRgltryRptg() != null) {
+
+			if (docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf().get(0).getRgltryRptg().size() > 0) {
+
+				dtls.setInf(Collections.singletonList(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf()
+						.get(0).getRgltryRptg().get(0).getDtls().getInf().get(0)));
 				rgltryRptg.setDtls(dtls);
 				creditTransferTransaction391.setRgltryRptg(rgltryRptg);
 			}
+
+		}
+		
+		RemittanceInformation161 rmtInf = new RemittanceInformation161();
+		if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf()
+				.get(0).getRmtInf()!=null) {
+			if(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf()
+					.get(0).getRmtInf().getUstrd().size()>0) {
+				rmtInf.setUstrd(Collections.singletonList(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf()
+						.get(0).getRmtInf().getUstrd().get(0)));
+			}
 			
+			
+			List<StructuredRemittanceInformation161> strd = new ArrayList<StructuredRemittanceInformation161>();
+			StructuredRemittanceInformation161 structuredRemittanceInformation161 = new StructuredRemittanceInformation161();
+			List<ReferredDocumentInformation71> rfrdDocInf = new ArrayList<ReferredDocumentInformation71>();
+			ReferredDocumentInformation71 referredDocumentInformation71 = new ReferredDocumentInformation71();
+			referredDocumentInformation71.setNb(docPacsPain001.getCstmrCdtTrfInitn().getGrpHdr().getMsgId());
+			ReferredDocumentType41 tp = new ReferredDocumentType41();
+			ReferredDocumentType3Choice1 cdOrPrtry = new ReferredDocumentType3Choice1();
+			cdOrPrtry.setPrtry("PAIN");
+			tp.setCdOrPrtry(cdOrPrtry);
+			tp.setIssr(docPacsPain001.getCstmrCdtTrfInitn().getGrpHdr().getInitgPty().getId().getOrgId().getAnyBIC());
+			referredDocumentInformation71.setTp(tp);
+			rfrdDocInf.add(referredDocumentInformation71);
+			structuredRemittanceInformation161.setRfrdDocInf(rfrdDocInf);
+			strd.add(structuredRemittanceInformation161);
+			rmtInf.setStrd(strd);
+			
+			creditTransferTransaction391.setRmtInf(rmtInf);
 		}
 		
 
-		RemittanceInformation161 rmtInf = new RemittanceInformation161();
-		rmtInf.setUstrd(Collections.singletonList(docPacsPain001.getCstmrCdtTrfInitn().getPmtInf().getCdtTrfTxInf()
-				.get(0).getRmtInf().getUstrd().get(0)));
-
-		List<StructuredRemittanceInformation161> strd = new ArrayList<StructuredRemittanceInformation161>();
-		StructuredRemittanceInformation161 structuredRemittanceInformation161 = new StructuredRemittanceInformation161();
-		List<ReferredDocumentInformation71> rfrdDocInf = new ArrayList<ReferredDocumentInformation71>();
-		ReferredDocumentInformation71 referredDocumentInformation71 = new ReferredDocumentInformation71();
-		referredDocumentInformation71.setNb(docPacsPain001.getCstmrCdtTrfInitn().getGrpHdr().getMsgId());
-		ReferredDocumentType41 tp = new ReferredDocumentType41();
-		ReferredDocumentType3Choice1 cdOrPrtry = new ReferredDocumentType3Choice1();
-		cdOrPrtry.setPrtry("PAIN");
-		tp.setCdOrPrtry(cdOrPrtry);
-		tp.setIssr(docPacsPain001.getCstmrCdtTrfInitn().getGrpHdr().getInitgPty().getId().getOrgId().getAnyBIC());
-		referredDocumentInformation71.setTp(tp);
-		rfrdDocInf.add(referredDocumentInformation71);
-		structuredRemittanceInformation161.setRfrdDocInf(rfrdDocInf);
-		strd.add(structuredRemittanceInformation161);
-		rmtInf.setStrd(strd);
-
-		creditTransferTransaction391.setRmtInf(rmtInf);
 
 		cdtTrfTxInf.add(creditTransferTransaction391);
 
@@ -2612,6 +2820,48 @@ public String getCamt053_001_08UnMarshalDocXML(SendT request) {
 		return XMLData;	
 		
 	}
+	
+	public com.bornfire.jaxb.camt_053_001_08.Document test(String request) {
+		String block4 = request;
+		final int start = block4.indexOf("<Document");
+		final int end = block4.indexOf("</Document>");
+		
+		InputStream stream = null;
+		JAXBContext jaxBContext;
+		JAXBElement<com.bornfire.jaxb.camt_053_001_08.Document> jaxbElement = null;
+
+		try {
+			stream = new ByteArrayInputStream(block4.substring(start, end + 11).getBytes("UTF-8"));
+			jaxBContext = JAXBContext.newInstance(com.bornfire.jaxb.camt_053_001_08.Document.class);
+			Unmarshaller unMarshaller = jaxBContext.createUnmarshaller();
+			XMLInputFactory factory = XMLInputFactory.newInstance();
+			XMLEventReader xmlEventReader = factory.createXMLEventReader(stream);
+			jaxbElement = unMarshaller.unmarshal(xmlEventReader, com.bornfire.jaxb.camt_053_001_08.Document.class);
+
+		} catch (JAXBException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (XMLStreamException e) {
+			e.printStackTrace();
+		}
+		com.bornfire.jaxb.camt_053_001_08.Document document = jaxbElement.getValue();
+		//System.out.println(document.getRtrLmt().getRptOrErr().getBizRpt().getCurLmt().get(0).getLmtOrErr().getBizErr().getDesc());
+		return document;
+
+	}
+	
+	public String test1(String request) {
+		String block4 = request;
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+		
+		
+		}
 
 
 }

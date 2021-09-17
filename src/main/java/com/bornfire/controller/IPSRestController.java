@@ -102,6 +102,7 @@ import com.bornfire.exception.ErrorRestResponse;
 import com.bornfire.exception.FieldValidation;
 import com.bornfire.exception.IPSXException;
 import com.bornfire.jaxb.wsdl.SendT;
+import com.bornfire.messagebuilder.DocumentPacks;
 import com.bornfire.messagebuilder.SignDocument;
 import com.bornfire.qrcode.core.isos.Country;
 import com.bornfire.qrcode.core.isos.Currency;
@@ -162,6 +163,10 @@ public class IPSRestController {
 
 	@Autowired
 	ConsentOutwardAccessTableRep consentOutwardAccessTableRep;
+	
+	
+	@Autowired
+	DocumentPacks docPacs;
 
 	/* Credit Fund Transfer Initiated from MConnect Application */
 	/* MConnect Initiate the request */
@@ -1394,6 +1399,99 @@ public class IPSRestController {
 		 * sequence.generateSystemTraceAuditNumber(), sequence.generateSeqUniqueID(),
 		 * "",null,"MPACCNO","CUSTOMER TEST","BARBMUM0");
 		 */
+		
+		String data="<DataPDU xmlns=\"urn:cma:stp:xsd:stp.1.0\">\n" + 
+				"<Body>\n" + 
+				"<AppHdr xmlns=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.01\">\n" + 
+				"<Fr><FIId><FinInstnId><ClrSysMmbId><MmbId>BOMMMUPLIPS</MmbId></ClrSysMmbId></FinInstnId></FIId></Fr>\n" + 
+				"<To><FIId><FinInstnId><BICFI>CFSLMUM0</BICFI></FinInstnId></FIId></To>\n" + 
+				"<BizMsgIdr>210915BOMMMUPLAIPS0001000785</BizMsgIdr>\n" + 
+				"<MsgDefIdr>camt.053.001.08</MsgDefIdr>\n" + 
+				"<BizSvc>ACH</BizSvc>\n" + 
+				"<CreDt>2021-09-15T12:00:25Z</CreDt>\n" + 
+				"</AppHdr>\n" + 
+				"<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.053.001.08\">\n" + 
+				"	<BkToCstmrStmt>\n" + 
+				"		<GrpHdr>\n" + 
+				"			<MsgId>Q214446/986</MsgId>\n" + 
+				"			<CreDtTm>2021-09-15T12:00:24</CreDtTm>\n" + 
+				"		</GrpHdr>\n" + 
+				"		<Stmt>\n" + 
+				"			<Id>Q214446/986</Id>\n" + 
+				"			<StmtPgntn>\n" + 
+				"				<PgNb>1</PgNb>\n" + 
+				"				<LastPgInd>true</LastPgInd>\n" + 
+				"			</StmtPgntn>\n" + 
+				"			<ElctrncSeqNb>47</ElctrncSeqNb>\n" + 
+				"			<CreDtTm>2021-09-15T12:00:24</CreDtTm>\n" + 
+				"			<Acct>\n" + 
+				"				<Id>\n" + 
+				"					<Othr>\n" + 
+				"						<Id>CFSLNRTSLA</Id>\n" + 
+				"					</Othr>\n" + 
+				"				</Id>\n" + 
+				"				<Ownr>\n" + 
+				"					<Id>\n" + 
+				"						<OrgId>\n" + 
+				"							<AnyBIC>CFSLMUM0</AnyBIC>\n" + 
+				"						</OrgId>\n" + 
+				"					</Id>\n" + 
+				"				</Ownr>\n" + 
+				"			</Acct>\n" + 
+				"			<Bal>\n" + 
+				"				<Tp>\n" + 
+				"					<CdOrPrtry>\n" + 
+				"						<Cd>OPBD</Cd>\n" + 
+				"					</CdOrPrtry>\n" + 
+				"				</Tp>\n" + 
+				"				<Amt Ccy=\"MUR\">0.</Amt>\n" + 
+				"				<CdtDbtInd>CRDT</CdtDbtInd>\n" + 
+				"				<Dt>\n" + 
+				"					<Dt>2021-09-15</Dt>\n" + 
+				"				</Dt>\n" + 
+				"			</Bal>\n" + 
+				"			<Bal>\n" + 
+				"				<Tp>\n" + 
+				"					<CdOrPrtry>\n" + 
+				"						<Cd>CLBD</Cd>\n" + 
+				"					</CdOrPrtry>\n" + 
+				"				</Tp>\n" + 
+				"				<Amt Ccy=\"MUR\">0.</Amt>\n" + 
+				"				<CdtDbtInd>CRDT</CdtDbtInd>\n" + 
+				"				<Dt>\n" + 
+				"					<Dt>2021-09-15</Dt>\n" + 
+				"				</Dt>\n" + 
+				"			</Bal>\n" + 
+				"			<Bal>\n" + 
+				"				<Tp>\n" + 
+				"					<CdOrPrtry>\n" + 
+				"						<Cd>FWAV</Cd>\n" + 
+				"					</CdOrPrtry>\n" + 
+				"				</Tp>\n" + 
+				"				<Amt Ccy=\"MUR\">1000000.</Amt>\n" + 
+				"				<CdtDbtInd>CRDT</CdtDbtInd>\n" + 
+				"				<Dt>\n" + 
+				"					<Dt>2021-09-15</Dt>\n" + 
+				"				</Dt>\n" + 
+				"			</Bal>\n" + 
+				"			<AddtlStmtInf>MORNING</AddtlStmtInf>\n" + 
+				"		</Stmt>\n" + 
+				"	</BkToCstmrStmt>\n" + 
+				"</Document>\n" + 
+				"</Body>\n" + 
+				"</DataPDU>";
+		
+	////// Get Camt.053 Document
+				com.bornfire.jaxb.camt_053_001_08.Document docCamt053_001_08 = docPacs
+						.test(data);
+
+				String orglMsgIDCamt053 = docCamt053_001_08.getBkToCstmrStmt().getGrpHdr().getMsgId();
+				String msgIDCamt053 = docCamt053_001_08.getBkToCstmrStmt().getGrpHdr().getMsgId();
+
+				ipsDao.insertTranIPS(orglMsgIDCamt053, msgIDCamt053, "camt.053.001.08", "", "", "", "", "I", "BOMMMUPLAIPS",
+						"CFSLMUM0XXXX", "210915BOMMMUPLAIPS0001000785", "","",docPacs.test1(data));
+
+				ipsDao.registerCamt53Record(docCamt053_001_08);
 
 		return new ResponseEntity<String>("Test", HttpStatus.OK);
 	}

@@ -268,23 +268,44 @@ public class CronJobScheduler {
 
 						//if (balannce.getStatusCode() == HttpStatus.OK) {
 							Optional<SettlementAccount> settlAccount = settlAccountRep.findById(env.getProperty("settl.settlment"));
+							Optional<SettlementAccount> payableAccount = settlAccountRep.findById(env.getProperty("settl.payable"));
+							Optional<SettlementAccount> receivableAccount = settlAccountRep.findById(env.getProperty("settl.receivable"));
 
 							if (settlAccount.isPresent()) {
 
 								logger.info("Settlement Account Balance Updated Successfully");
 
 								SettlementAccount setAccount = settlAccount.get();
+								SettlementAccount setAccountPayable = payableAccount.get();
+								SettlementAccount setAccountReceivable = receivableAccount.get();
 								if (setAccount.getAcct_bal_time() == null) {
 
 									setAccount.setPrev_acct_bal(setAccount.getNot_bal());
-									setAccount.setAcct_bal(
-											new BigDecimal("0"));
+									setAccount.setAcct_bal(setAccount.getNot_bal());
 									setAccount.setNot_bal(
-											new BigDecimal("0"));
+											setAccount.getNot_bal());
 
 									setAccount.setAcct_bal_time(new Date());
 
 									settlAccountRep.save(setAccount);
+									
+									setAccountPayable.setPrev_acct_bal(setAccountPayable.getNot_bal());
+									setAccountPayable.setAcct_bal(setAccountPayable.getNot_bal());
+									setAccountPayable.setNot_bal(
+											setAccountPayable.getNot_bal());
+
+									setAccountPayable.setAcct_bal_time(new Date());
+
+									settlAccountRep.save(setAccountPayable);
+									
+									setAccountReceivable.setPrev_acct_bal(setAccountReceivable.getNot_bal());
+									setAccountReceivable.setAcct_bal(setAccountReceivable.getNot_bal());
+									setAccountReceivable.setNot_bal(
+											setAccountReceivable.getNot_bal());
+
+									setAccountReceivable.setAcct_bal_time(new Date());
+
+									settlAccountRep.save(setAccountReceivable);
 
 									this.setSettleFlg("N");
 
@@ -321,13 +342,28 @@ public class CronJobScheduler {
 										this.setSettleFlg("N");
 									} else {
 										setAccount.setPrev_acct_bal(setAccount.getNot_bal());
-										setAccount.setAcct_bal(
-												new BigDecimal("0"));
-										setAccount.setNot_bal(
-												new BigDecimal("0"));
+										setAccount.setAcct_bal(setAccount.getNot_bal());
+										setAccount.setNot_bal(setAccount.getNot_bal());
 
 										setAccount.setAcct_bal_time(new Date());
 										settlAccountRep.save(setAccount);
+										
+										setAccountPayable.setPrev_acct_bal(setAccountPayable.getNot_bal());
+										setAccountPayable.setAcct_bal(setAccountPayable.getNot_bal());
+										setAccountPayable.setNot_bal(
+												setAccountPayable.getNot_bal());
+
+										setAccountPayable.setAcct_bal_time(new Date());
+
+										settlAccountRep.save(setAccountPayable);
+										
+										setAccountReceivable.setPrev_acct_bal(setAccountReceivable.getNot_bal());
+										setAccountReceivable.setAcct_bal(setAccountReceivable.getNot_bal());
+										setAccountReceivable.setNot_bal(
+												setAccountReceivable.getNot_bal());
+
+										setAccountReceivable.setAcct_bal_time(new Date());
+										settlAccountRep.save(setAccountReceivable);
 
 										this.setSettleFlg("N");
 
