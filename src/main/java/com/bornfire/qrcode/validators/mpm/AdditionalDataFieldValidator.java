@@ -389,9 +389,9 @@ class AdditionalDataFieldValidator extends AbstractValidator<AdditionalDataField
         .withAttempedValue(of(AdditionalDataField::getAdditionalConsumerDataRequest).andThen(TagLengthString::getValue))
         .critical()
 
-      .must(stringSizeLessThanOrEqual(TagLengthString::getValue, 3))
+      .must(stringSizeLessThanOrEqual(TagLengthString::getValue, 25))
         .when(not(nullValue()))
-        .withMessage("AdditionalConsumerDataRequest value must less then or equal size three")
+        .withMessage("AdditionalConsumerDataRequest value must less then or equal size twenty five")
         .withAttempedValue(of(AdditionalDataField::getAdditionalConsumerDataRequest).andThen(TagLengthString::getValue))
         .critical();
 

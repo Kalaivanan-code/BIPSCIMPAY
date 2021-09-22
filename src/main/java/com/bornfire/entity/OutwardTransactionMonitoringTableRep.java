@@ -26,4 +26,7 @@ public interface OutwardTransactionMonitoringTableRep extends JpaRepository<Outw
 	@Query(value="select * from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where master_ref_id=?1",nativeQuery = true)
 	List<OutwardTransactionMonitoringTable> findBulkDebitID(String master_ref_id);
 	
+	@Query(value = "select * from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where instr_id=?1 or end_end_id=?2", nativeQuery = true)
+	List<OutwardTransactionMonitoringTable> getRTPIncomindCreditExist(String instrID,String endToEndID008);
+	
 }

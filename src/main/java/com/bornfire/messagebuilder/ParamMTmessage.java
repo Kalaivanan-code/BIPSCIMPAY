@@ -55,7 +55,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
 		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID)));
-		paramMtMsg.setBlock4(dataPDUs.getDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID));
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID)));
 
 		return paramMtMsg;
 		
@@ -88,7 +88,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
 		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID)));
-		paramMtMsg.setBlock4(dataPDUs.getMerchantDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID, lclInstr, ctgyPurp, chrBearer, rmtInfo,tot_tran_amount));
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getMerchantDataPDUPacs008(msgType,request,msgId,mcCreditTransferRequest,othBankAgent,msgSeq,endToEndID, lclInstr, ctgyPurp, chrBearer, rmtInfo,tot_tran_amount)));
 
 		return paramMtMsg;
 		
@@ -120,7 +120,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
 		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs002(msgType,request,msgId,creditStatusType,creditStatusCode,creditStatusDesc,msgSeq)));
-		paramMtMsg.setBlock4(dataPDUs.getDataPDUPacs002(msgType,request,msgId,creditStatusType,creditStatusCode,creditStatusDesc,msgSeq));
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPacs002(msgType,request,msgId,creditStatusType,creditStatusCode,creditStatusDesc,msgSeq)));
 
 		return paramMtMsg;
 	}
@@ -150,7 +150,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
 		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getRTPDataPDUPacs008(msgType,request,bobMsgID,msgSeq)));
-		paramMtMsg.setBlock4(dataPDUs.getRTPDataPDUPacs008(msgType,request,bobMsgID,msgSeq));
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getRTPDataPDUPacs008(msgType,request,bobMsgID,msgSeq)));
 
 		return paramMtMsg;
 	}
@@ -179,7 +179,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
 		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPain002(msgType,request,bobMsgID,CreditStatusCode,CreditStatusDesc,msgSeq)));
-		paramMtMsg.setBlock4(dataPDUs.getDataPDUPain002(msgType,request,bobMsgID,CreditStatusCode,CreditStatusDesc,msgSeq));
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPain002(msgType,request,bobMsgID,CreditStatusCode,CreditStatusDesc,msgSeq)));
 
 		return paramMtMsg;
 	}
@@ -209,7 +209,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
 		//paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUCamt011(msgType,bobMsgID,msgSeq)));
-		paramMtMsg.setBlock4(dataPDUs.getDataPDUCamt011(msgType,bobMsgID,msgSeq));
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUCamt011(msgType,bobMsgID,msgSeq)));
 
 
 		return paramMtMsg;
@@ -239,7 +239,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(dataPDUs.getDataPDUCamt009(msgType,bobMsgID,msgSeq));
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUCamt009(msgType,bobMsgID,msgSeq)));
 
 		return paramMtMsg;
 	}
@@ -269,7 +269,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(dataPDUs.getDataPDUBulkCreditPacs008(msgType,request,msgId,frAccountName,frAccountNumber,toAccountName,toAccountNumber,trAmt,trCurrency,othBankAgent, msgSeq,endToEndID));
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUBulkCreditPacs008(msgType,request,msgId,frAccountName,frAccountNumber,toAccountName,toAccountNumber,trAmt,trCurrency,othBankAgent, msgSeq,endToEndID)));
 
 		return paramMtMsg;
 		
@@ -301,7 +301,7 @@ public class ParamMTmessage {
 		paramMtMsg.setMsgPacResult("");
 		paramMtMsg.setMsgPdm("N");
 		paramMtMsg.setFormat("MX");
-		paramMtMsg.setBlock4(dataPDUs.getDataPDUBulkDebitPacs008(msgType,request,msgId,frAccountName,frAccountNumber,toAccountName,toAccountNumber,trAmt,trCurrency,othBankAgent, msgSeq,endToEndID));
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUBulkDebitPacs008(msgType,request,msgId,frAccountName,frAccountNumber,toAccountName,toAccountNumber,trAmt,trCurrency,othBankAgent, msgSeq,endToEndID)));
 
 		return paramMtMsg;
 		
@@ -372,11 +372,11 @@ public class ParamMTmessage {
 				 bank_agent,  bank_agent_account,  benName,  benAcctNumber,  trAmt,
 				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir)));*/
 		
-		paramMtMsg.setBlock4(dataPDUs.getDataPDUPain001(msgType,request,acctName, acctNumber,  currencyCode,
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUPain001(msgType,request,acctName, acctNumber,  currencyCode,
 				  benName,  benAcctNumber,  trAmt,
 				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir,cryptogram,
 				 instgAgent,instdAgent,debtorAgent,
-					debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp, chargeBearer));
+					debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp, chargeBearer)));
 
 
 		return paramMtMsg;
@@ -414,11 +414,11 @@ public class ParamMTmessage {
 				 bank_agent,  bank_agent_account,  benName,  benAcctNumber,  trAmt,
 				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir)));*/
 		
-		paramMtMsg.setBlock4(dataPDUs.getDataPDUMerchantPain001(msgType,request,acctName, acctNumber,  currencyCode,
+		paramMtMsg.setBlock4(signDoc.parseDoc(dataPDUs.getDataPDUMerchantPain001(msgType,request,acctName, acctNumber,  currencyCode,
 				  benName,  benAcctNumber,  trAmt,
 				 trRmks,  seqUniqueID,  cimMsgID,  msgSeq,  endTOEndID,  msgNetMir,cryptogram,
 				 instgAgent,instdAgent,debtorAgent,
-					debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp, chargeBearer,cimMerchantRequest,rmtInfo));
+					debtorAgentAcct,CreditorAgent,CreditorAgentAcct,lclInstr,ctgyPurp, chargeBearer,cimMerchantRequest,rmtInfo)));
 
 
 		return paramMtMsg;

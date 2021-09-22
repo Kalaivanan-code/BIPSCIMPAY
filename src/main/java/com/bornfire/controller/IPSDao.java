@@ -43,6 +43,7 @@ import com.bornfire.config.Listener;
 import com.bornfire.config.SequenceGenerator;
 import com.bornfire.entity.BankAgentTable;
 import com.bornfire.entity.BankAgentTableRep;
+import com.bornfire.entity.BenAccount;
 import com.bornfire.entity.BukCreditTransferRequest;
 import com.bornfire.entity.C24FTResponseBalance;
 import com.bornfire.entity.CIMCreditTransferRequest;
@@ -1232,9 +1233,9 @@ public class IPSDao {
 								
 								String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 										env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-										sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),tm.getReq_unique_id(),"False","","","",
+										sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),tm.getResv_field1(),"False","","","",
 										tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"NRT/RTP","","","FAILURE",ipsxerrorDesc,new Date(),"");
+										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"RTP","","","FAILURE",ipsxerrorDesc,new Date(),"");
 								
 								logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -1625,7 +1626,7 @@ public class IPSDao {
 				////// update Registration income message sometimes RJCT Message comes first
 				////// ,When disconnecting STPA adapter.
 
-				TransactionMonitor tranManitorTable = otm.get();
+				/*TransactionMonitor tranManitorTable = otm.get();
 				tranManitorTable.setMsg_type(TranMonitorStatus.INCOMING.toString());
 				tranManitorTable.setTran_audit_number(sysTraceNumber);
 				tranManitorTable.setBob_message_id(bobMsgID);
@@ -1680,7 +1681,7 @@ public class IPSDao {
 
 				logger.info(tranManitorTable.toString());
 				tranRep.save(tranManitorTable);
-				tranRep.flush();
+				tranRep.flush();*/
 				return "0";
 			} else {
 				TransactionMonitor tranManitorTable = new TransactionMonitor();
@@ -2775,17 +2776,45 @@ public class IPSDao {
 			Optional<BankAgentTable> otm = bankAgentTableRep.findById(bankCode);
 
 			if (otm.isPresent()) {
-				if(otm.get().getBank_agent().equals(env.getProperty("ipsx.bicfi"))) {
+				if(otm.get().getBank_agent().equals(env.getProperty("ipsx.bicfi"))||
+						otm.get().getDel_flg().equals("Y")) {
 					valid = true;
 				}else {
 					valid = false;
 				}
-				valid = false;
 			} else {
 				valid = true;
 			}
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
+		}
+
+		return valid;
+	}
+	
+	public boolean invalidRTPBenBankCode(List<BenAccount> benBankCodeList) {
+		boolean valid = true;
+		try {
+			
+			for(BenAccount benAccount:benBankCodeList) {
+				Optional<BankAgentTable> otm = bankAgentTableRep.findById(benAccount.getBankCode());
+
+				if (otm.isPresent()) {
+					if(otm.get().getDel_flg().equals("Y")){
+						valid = true;
+						return valid;
+					}else {
+						valid = false;
+					}
+				} else {
+					valid = true;
+					return valid;
+				}
+			}
+			
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			return valid;
 		}
 
 		return valid;
@@ -5942,6 +5971,11 @@ public class IPSDao {
 		}
 		
 	}
+	
+	public List<OutwardTransactionMonitoringTable> checkExistOutwardRTP(String instrID, String endToEndID) {
+		List<OutwardTransactionMonitoringTable> data1=outwardTranRep.getRTPIncomindCreditExist(instrID,endToEndID);
+		return data1;
+	}
 
 	public boolean checkConvenienceFeeValidation(CIMMerchantDirectFndRequest mcCreditTransferRequest) {
 		
@@ -6097,6 +6131,7 @@ public class IPSDao {
 		
 		if (tranDate.equals(currentDate)) {
 			List<OutwardTransactionMonitoringTable> list=outwardTranRep.getExistData(sequence_unique_id);
+			
 		}else {
 			List<OutwardTransactionMonitoringTable> list=outwardTranHistRep.getExistData(sequence_unique_id);
 		}

@@ -8,9 +8,11 @@ PURPOSE		: IPS Rest Controller
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.text.DecimalFormat;
@@ -19,6 +21,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.management.monitor.Monitor;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -1027,7 +1032,7 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
-			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType) throws NoSuchAlgorithmException {
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType) throws NoSuchAlgorithmException, InvalidKeyException, KeyStoreException, CertificateException, UnrecoverableEntryException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
 
 		logger.debug("Calling Outward Consent Delete");
 		if (ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
@@ -1194,21 +1199,27 @@ public class IPSRestController {
 
 		if (ipsDao.invalidP_ID(p_id)) {
 			if (!ipsDao.invalidBankCode(rtpBulkTransferRequest.getRemitterAccount().getBankCode())) {
-				List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
-						.getAccountNumber(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
-				if (regAccList.size() > 0) {
-					
-					if(regAccList.get(0).getReceiverparticipant_bic().equals
-							(ipsDao.getOtherBankAgent(rtpBulkTransferRequest.getRemitterAccount().getBankCode()).getBank_agent())) {
-						response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID,
-								rtpBulkTransferRequest, p_id, channelID, resvfield1, resvfield2);
-					}else {
-						String responseStatus = errorCode.validationError("BIPS22");
+				
+				if(!ipsDao.invalidRTPBenBankCode(rtpBulkTransferRequest.getBenAccount())) {
+					List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
+							.getAccountNumber(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
+					if (regAccList.size() > 0) {
+						
+						if(regAccList.get(0).getReceiverparticipant_bic().equals
+								(ipsDao.getOtherBankAgent(rtpBulkTransferRequest.getRemitterAccount().getBankCode()).getBank_agent())) {
+							response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID,
+									rtpBulkTransferRequest, p_id, channelID, resvfield1, resvfield2);
+						}else {
+							String responseStatus = errorCode.validationError("BIPS22");
+							throw new IPSXException(responseStatus);
+						}
+						
+					} else {
+						String responseStatus = errorCode.validationError("BIPS15");
 						throw new IPSXException(responseStatus);
 					}
-					
-				} else {
-					String responseStatus = errorCode.validationError("BIPS15");
+				}else {
+					String responseStatus = errorCode.validationError("BIPS23");
 					throw new IPSXException(responseStatus);
 				}
 

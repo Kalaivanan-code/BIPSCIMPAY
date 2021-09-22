@@ -465,10 +465,6 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			logger.info("BOB Message ID" + bobMsgID008);
 			logger.info("IPS Message ID" + ipsxMsgID008);
 
-			///// Update Tran IPS Table
-			logger.info(seqUniqueID008 + " :Register Initial Incoming Fund Transfer Record to table");
-			ipsDao.insertTranIPS(seqUniqueID008, seqUniqueID008, "pacs.008.001.08", "INCOMING", "", "", "", "I",
-					msgSender, msgReceiver, msgNetMIR, userReference,endToEndID008,docPacs.getPacs_008_001_01UnMarshalDocXML(request));
 			///// Register InComing Message
 			String status = ipsDao.RegisterInMsgRecord(sysTraceNumber008, bobMsgID008, ipsxMsgID008, seqUniqueID008,
 					debtorAccount008, creditorAccount008, trAmount008, trCurrency008,
@@ -477,216 +473,227 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					ctgy_purp_pacs008,debtorAgent008,debtorAgentAcc008,creditorAgent008,creditorAgentAcc008,chrgBr008,
 					clr_chnnl_pacs008,reg_rep_pacs008,rmt_info_pacs008,rmt_info_issuer_pacs008,rmt_info_nb_pacs008);
 
-			///Update TranID to Outward tran Table
-			ipsDao.updateAuditTranID(sysTraceNumber008, instr_id_pacs008);
-
 			
-			String CreditStatusType = null;
-			String CreditStatusCode = null;
-			String CreditStatusDesc = null;
-
-			
-			
-			
-			logger.info(seqUniqueID008 + " :Table Update Status" + status);
-			
-			List<TranIPSTable> listTranTR = tranIPSTableRep.getCustomResult(seqUniqueID008);
-
-			if (listTranTR.size() > 0) {
-				if (listTranTR.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
-					ipsDao.updateIPSXStatusResponseRJCT(listTranTR.get(0).getSequence_unique_id(),
-							listTranTR.get(0).getResponse_error_desc(), listTranTR.get(0).getMsg_id(),
-							TranMonitorStatus.FAILURE.toString(),
-							TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
-							listTranTR.get(0).getResponse_status(), listTranTR.get(0).getResponse_error_code(),"pacs.008.001.08");
-				}
-
-			}else {
-			///// Calling Connect 24 and Validation
-				String responseIncomeMsg = "";
-				if(ctgy_purp_pacs008.equals("102")) {
-					responseIncomeMsg=errorCode.ErrorCode("AG01");
-				}else {
-					responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,
-							trAmount008.toString(), trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
-							debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008);
-
-				}
-				if (responseIncomeMsg.split(":")[0].equals("CIM0")) {
-					logger.info(seqUniqueID008 + " :Connect24 Processed Successfully");
-					logger.info(seqUniqueID008 + " :Update CBS Credit OK Status to Table");
-
-					CreditStatusType = TranMonitorStatus.ACSP.toString();
-					ipsDao.updateCBSStatus(seqUniqueID008, TranMonitorStatus.CBS_CREDIT_OK.toString(),
-							TranMonitorStatus.IN_PROGRESS.toString());
-
-				} else {
-
-					logger.info(seqUniqueID008 + " :Connect24 Process Failed");
-					logger.info(seqUniqueID008 + " :Update CBS Credit Error Status to Table");
-
-					CreditStatusType = TranMonitorStatus.RJCT.toString();
-
-					CreditStatusDesc = responseIncomeMsg.split(":")[1];
-					CreditStatusCode = responseIncomeMsg.split(":")[0];
-					
-					ipsDao.updateCBSStatusError(seqUniqueID008,
-							TranMonitorStatus.CBS_CREDIT_ERROR.toString(),
-							CreditStatusDesc,
-							TranMonitorStatus.FAILURE.toString());
-
-				}
+			if(status.equals("1")) {
+				
+			///// Update Tran IPS Table
+				logger.info(seqUniqueID008 + " :Register Initial Incoming Fund Transfer Record to table");
+				ipsDao.insertTranIPS(seqUniqueID008, seqUniqueID008, "pacs.008.001.08", "INCOMING", "", "", "", "I",
+						msgSender, msgReceiver, msgNetMIR, userReference,endToEndID008,docPacs.getPacs_008_001_01UnMarshalDocXML(request));
+				
+				
+				///Update TranID to Outward tran Table
+				ipsDao.updateAuditTranID(sysTraceNumber008, instr_id_pacs008);
 
 				
-				try {
-					
-					List<TranIPSTable> list = tranIPSTableRep.getCustomResult(seqUniqueID008);
+				String CreditStatusType = null;
+				String CreditStatusCode = null;
+				String CreditStatusDesc = null;
 
-					if (list.size() > 0) {
-						if (list.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
-							ipsDao.updateIPSXStatusResponseRJCT(list.get(0).getSequence_unique_id(),
-									list.get(0).getResponse_error_desc(), list.get(0).getMsg_id(),
-									TranMonitorStatus.FAILURE.toString(),
-									TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
-									list.get(0).getResponse_status(), list.get(0).getResponse_error_code(),"pacs.008.001.08");
-						}
+				
+				
+				
+				logger.info(seqUniqueID008 + " :Table Update Status" + status);
+				
+				List<TranIPSTable> listTranTR = tranIPSTableRep.getCustomResult(seqUniqueID008);
 
+				if (listTranTR.size() > 0) {
+					if (listTranTR.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
+						ipsDao.updateIPSXStatusResponseRJCT(listTranTR.get(0).getSequence_unique_id(),
+								listTranTR.get(0).getResponse_error_desc(), listTranTR.get(0).getMsg_id(),
+								TranMonitorStatus.FAILURE.toString(),
+								TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+								listTranTR.get(0).getResponse_status(), listTranTR.get(0).getResponse_error_code(),"pacs.008.001.08");
+					}
+
+				}else {
+				///// Calling Connect 24 and Validation
+					String responseIncomeMsg = "";
+					if(ctgy_purp_pacs008.equals("102")) {
+						responseIncomeMsg=errorCode.ErrorCode("AG01");
 					}else {
+						responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,
+								trAmount008.toString(), trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
+								debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008);
+
+					}
+					if (responseIncomeMsg.split(":")[0].equals("CIM0")) {
+						logger.info(seqUniqueID008 + " :Connect24 Processed Successfully");
+						logger.info(seqUniqueID008 + " :Update CBS Credit OK Status to Table");
+
+						CreditStatusType = TranMonitorStatus.ACSP.toString();
+						ipsDao.updateCBSStatus(seqUniqueID008, TranMonitorStatus.CBS_CREDIT_OK.toString(),
+								TranMonitorStatus.IN_PROGRESS.toString());
+
+					} else {
+
+						logger.info(seqUniqueID008 + " :Connect24 Process Failed");
+						logger.info(seqUniqueID008 + " :Update CBS Credit Error Status to Table");
+
+						CreditStatusType = TranMonitorStatus.RJCT.toString();
+
+						CreditStatusDesc = responseIncomeMsg.split(":")[1];
+						CreditStatusCode = responseIncomeMsg.split(":")[0];
 						
-					    //// Out Message Sequence
-						String msgSeqPacs002 = sequence.generateMsgSequence();
-						//// Out MsgNetMir
-						String msgOutPacs002NteMIR = new SimpleDateFormat("yyMMdd").format(new Date())
-								+ env.getProperty("ipsx.user") + "0001" + msgSeqPacs002;
+						ipsDao.updateCBSStatusError(seqUniqueID008,
+								TranMonitorStatus.CBS_CREDIT_ERROR.toString(),
+								CreditStatusDesc,
+								TranMonitorStatus.FAILURE.toString());
 
-						///// Create Pacs.002 Package
-						SendT sendRequest008 = new SendT();
-						logger.info(seqUniqueID008 + " :Creating pacs.002.001.10 msg from response pacs.008.001.08");
-						sendRequest008.setMessage(paramMTMsgs.getParamMTmsgPacs002(DocType.pacs_002_001_10.getDocs(), request,
-								bobMsgID008, CreditStatusType, CreditStatusCode, CreditStatusDesc, msgSeqPacs002));
+					}
 
-						ipsDao.insertTranIPS(seqUniqueID008, bobMsgID008, "pacs.002.001.10", "", "", "", "", "O",
-								env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgOutPacs002NteMIR, "",endToEndID008,docPacs.getPacs_002_001_10UnMarshalDocXML(sendRequest008));
-
-						///// Send Pacs.002 Pacs to IPSX
-						com.bornfire.jaxb.wsdl.ObjectFactory obj008 = new com.bornfire.jaxb.wsdl.ObjectFactory();
-						JAXBElement<SendT> jaxbElement008 = obj008.createSend(sendRequest008);
-
-						JAXBElement<SendResponse> response008 = null;
+					
+					try {
 						
-						List<TranIPSTable> listNex = tranIPSTableRep.getCustomResult(seqUniqueID008);
+						List<TranIPSTable> list = tranIPSTableRep.getCustomResult(seqUniqueID008);
 
-						if (listNex.size() > 0) {
-							if (listNex.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
-								ipsDao.updateIPSXStatusResponseRJCT(listNex.get(0).getSequence_unique_id(),
-										listNex.get(0).getResponse_error_desc(), listNex.get(0).getMsg_id(),
+						if (list.size() > 0) {
+							if (list.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
+								ipsDao.updateIPSXStatusResponseRJCT(list.get(0).getSequence_unique_id(),
+										list.get(0).getResponse_error_desc(), list.get(0).getMsg_id(),
 										TranMonitorStatus.FAILURE.toString(),
 										TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
-										listNex.get(0).getResponse_status(), listNex.get(0).getResponse_error_code(),"pacs.008.001.08");
+										list.get(0).getResponse_status(), list.get(0).getResponse_error_code(),"pacs.008.001.08");
 							}
 
 						}else {
-							response008 = (JAXBElement<SendResponse>) getWebServiceTemplate().marshalSendAndReceive(jaxbElement008);
+							
+						    //// Out Message Sequence
+							String msgSeqPacs002 = sequence.generateMsgSequence();
+							//// Out MsgNetMir
+							String msgOutPacs002NteMIR = new SimpleDateFormat("yyMMdd").format(new Date())
+									+ env.getProperty("ipsx.user") + "0001" + msgSeqPacs002;
 
-							logger.info(
-									seqUniqueID008 + " :Getting ACK/NAK" + response008.getValue().getData().getType().toString());
-							///// Get ACK,NAK Msg from IPSX
-							if (response008.getValue().getData().getType().toString().equals("ACK")) {
+							///// Create Pacs.002 Package
+							SendT sendRequest008 = new SendT();
+							logger.info(seqUniqueID008 + " :Creating pacs.002.001.10 msg from response pacs.008.001.08");
+							sendRequest008.setMessage(paramMTMsgs.getParamMTmsgPacs002(DocType.pacs_002_001_10.getDocs(), request,
+									bobMsgID008, CreditStatusType, CreditStatusCode, CreditStatusDesc, msgSeqPacs002));
 
-								ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_ACK_RECEIVED.toString(),
-										TranMonitorStatus.IN_PROGRESS.toString());
-								
-								String NetMIR = response008.getValue().getData().getMir();
-								String UserRef = response008.getValue().getData().getRef();
+							ipsDao.insertTranIPS(seqUniqueID008, bobMsgID008, "pacs.002.001.10", "", "", "", "", "O",
+									env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgOutPacs002NteMIR, "",endToEndID008,docPacs.getPacs_002_001_10UnMarshalDocXML(sendRequest008));
 
-								ipsDao.updateTranIPSACK(seqUniqueID008, bobMsgID008, "O", "SUCCESS", NetMIR, UserRef);
+							///// Send Pacs.002 Pacs to IPSX
+							com.bornfire.jaxb.wsdl.ObjectFactory obj008 = new com.bornfire.jaxb.wsdl.ObjectFactory();
+							JAXBElement<SendT> jaxbElement008 = obj008.createSend(sendRequest008);
 
-								logger.info(seqUniqueID008 + " :update IN Message ACK to Table");
+							JAXBElement<SendResponse> response008 = null;
+							
+							List<TranIPSTable> listNex = tranIPSTableRep.getCustomResult(seqUniqueID008);
 
-								if (CreditStatusType.equals(TranMonitorStatus.ACSP.toString())) {
-								
+							if (listNex.size() > 0) {
+								if (listNex.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
+									ipsDao.updateIPSXStatusResponseRJCT(listNex.get(0).getSequence_unique_id(),
+											listNex.get(0).getResponse_error_desc(), listNex.get(0).getMsg_id(),
+											TranMonitorStatus.FAILURE.toString(),
+											TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+											listNex.get(0).getResponse_status(), listNex.get(0).getResponse_error_code(),"pacs.008.001.08");
+								}
+
+							}else {
+								response008 = (JAXBElement<SendResponse>) getWebServiceTemplate().marshalSendAndReceive(jaxbElement008);
+
+								logger.info(
+										seqUniqueID008 + " :Getting ACK/NAK" + response008.getValue().getData().getType().toString());
+								///// Get ACK,NAK Msg from IPSX
+								if (response008.getValue().getData().getType().toString().equals("ACK")) {
+
+									ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_ACK_RECEIVED.toString(),
+											TranMonitorStatus.IN_PROGRESS.toString());
 									
-									List<TranIPSTable> listtyp = tranIPSTableRep.getCustomResult(seqUniqueID008);
+									String NetMIR = response008.getValue().getData().getMir();
+									String UserRef = response008.getValue().getData().getRef();
 
-									if (listtyp.size() > 0) {
-										if (listtyp.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
-											ipsDao.updateIPSXStatusResponseRJCT(listtyp.get(0).getSequence_unique_id(),
-													listtyp.get(0).getResponse_error_desc(), listtyp.get(0).getMsg_id(),
-													TranMonitorStatus.FAILURE.toString(),
-													TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
-													listtyp.get(0).getResponse_status(), listtyp.get(0).getResponse_error_code(),"pacs.008.001.08");
+									ipsDao.updateTranIPSACK(seqUniqueID008, bobMsgID008, "O", "SUCCESS", NetMIR, UserRef);
+
+									logger.info(seqUniqueID008 + " :update IN Message ACK to Table");
+
+									if (CreditStatusType.equals(TranMonitorStatus.ACSP.toString())) {
+									
+										
+										List<TranIPSTable> listtyp = tranIPSTableRep.getCustomResult(seqUniqueID008);
+
+										if (listtyp.size() > 0) {
+											if (listtyp.get(0).getResponse_status().equals(TranMonitorStatus.RJCT.toString())) {
+												ipsDao.updateIPSXStatusResponseRJCT(listtyp.get(0).getSequence_unique_id(),
+														listtyp.get(0).getResponse_error_desc(), listtyp.get(0).getMsg_id(),
+														TranMonitorStatus.FAILURE.toString(),
+														TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+														listtyp.get(0).getResponse_status(), listtyp.get(0).getResponse_error_code(),"pacs.008.001.08");
+											}
+
 										}
+
+										
+									} else {
+										ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_ACK_RECEIVED.toString(),
+												TranMonitorStatus.FAILURE.toString());
 
 									}
 
-									
+									// ipsDao.reverseCreditOKAccount(seqUniqueID008);
 								} else {
-									ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_ACK_RECEIVED.toString(),
-											TranMonitorStatus.FAILURE.toString());
+									String NetMIR = response008.getValue().getData().getMir();
+									String UserRef = response008.getValue().getData().getRef();
+									String error=response008.getValue().getData().getDescription();
+
+									ipsDao.updateTranIPSACK(seqUniqueID008, bobMsgID008, "O", "FAILURE", NetMIR, UserRef);
+
+									logger.info(seqUniqueID008 + " :update IN Message NAK to Table");
+
+									if (CreditStatusType.equals(TranMonitorStatus.ACSP.toString())) {
+										ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_NAK_RECEICED.toString(),
+												TranMonitorStatus.IN_PROGRESS.toString());
+
+										taskExecutor.execute(new Runnable() {
+											@Override
+											public void run() {
+												logger.info(seqUniqueID008 + " :update CBS credit reverse to Table");
+
+												logger.info(seqUniqueID008 + " :Calling Connect24 For Reverse Fund Transfer");
+												connect24Service.cdtReverseFundRequest(creditorAccount008, trAmount008.toString(),
+														trCurrency008, sequence.generateSystemTraceAuditNumber(), seqUniqueID008,"RT/"+error);
+											}
+										});
+
+									} else {
+										ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_NAK_RECEICED.toString(),
+												TranMonitorStatus.FAILURE.toString());
+									}
 
 								}
-
-								// ipsDao.reverseCreditOKAccount(seqUniqueID008);
-							} else {
-								String NetMIR = response008.getValue().getData().getMir();
-								String UserRef = response008.getValue().getData().getRef();
-								String error=response008.getValue().getData().getDescription();
-
-								ipsDao.updateTranIPSACK(seqUniqueID008, bobMsgID008, "O", "FAILURE", NetMIR, UserRef);
-
-								logger.info(seqUniqueID008 + " :update IN Message NAK to Table");
-
-								if (CreditStatusType.equals(TranMonitorStatus.ACSP.toString())) {
-									ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_NAK_RECEICED.toString(),
-											TranMonitorStatus.IN_PROGRESS.toString());
-
-									taskExecutor.execute(new Runnable() {
-										@Override
-										public void run() {
-											logger.info(seqUniqueID008 + " :update CBS credit reverse to Table");
-
-											logger.info(seqUniqueID008 + " :Calling Connect24 For Reverse Fund Transfer");
-											connect24Service.cdtReverseFundRequest(creditorAccount008, trAmount008.toString(),
-													trCurrency008, sequence.generateSystemTraceAuditNumber(), seqUniqueID008,"RT/"+error);
-										}
-									});
-
-								} else {
-									ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_INMSG_NAK_RECEICED.toString(),
-											TranMonitorStatus.FAILURE.toString());
-								}
-
 							}
+						
 						}
-					
+						
+					} catch (Exception e) {
+
+						if (CreditStatusType.equals(TranMonitorStatus.ACSP.toString())) {
+
+							ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
+									TranMonitorStatus.IN_PROGRESS.toString());
+
+							taskExecutor.execute(new Runnable() {
+								@Override
+								public void run() {
+									ipsDao.updateIPSXStatusResponseRJCT(seqUniqueID008,
+											TranMonitorStatus.IPSX_NOT_CONNECTED.toString(), ipsxMsgID008,
+											TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_ERROR.toString(),
+											"", SERVER_ERROR_CODE,"pacs.008.001.08");
+
+								}
+							});
+
+						} else {
+							ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
+									TranMonitorStatus.FAILURE.toString());
+						}
+
+						logger.info(e.getLocalizedMessage());
 					}
-					
-				} catch (Exception e) {
-
-					if (CreditStatusType.equals(TranMonitorStatus.ACSP.toString())) {
-
-						ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
-								TranMonitorStatus.IN_PROGRESS.toString());
-
-						taskExecutor.execute(new Runnable() {
-							@Override
-							public void run() {
-								ipsDao.updateIPSXStatusResponseRJCT(seqUniqueID008,
-										TranMonitorStatus.IPSX_NOT_CONNECTED.toString(), ipsxMsgID008,
-										TranMonitorStatus.IN_PROGRESS.toString(), TranMonitorStatus.IPSX_ERROR.toString(),
-										"", SERVER_ERROR_CODE,"pacs.008.001.08");
-
-							}
-						});
-
-					} else {
-						ipsDao.updateIPSXStatus(seqUniqueID008, TranMonitorStatus.IPSX_NOT_CONNECTED.toString(),
-								TranMonitorStatus.FAILURE.toString());
-					}
-
-					logger.info(e.getLocalizedMessage());
 				}
 			}
+
 			
 			break;
 
@@ -1186,6 +1193,11 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					lcl_instrm_pain001,ctgy_purp_pain001,debtorAgentPain001,debtorAgentAccPain001,creditorAgentPain001,creditorAgentAccPain001);
 			logger.info(seqUniqueID + " :Status Of RTP" + stat);
 
+			
+			String CreditStatusType = null;
+			String CreditStatusCode = null;
+			String CreditStatusDesc = null;
+			
 			List<TranIPSTable> listPainVal = tranIPSTableRep.getCustomResultPain002(seqUniqueID);
 
 			if (listPainVal.size() > 0) {
