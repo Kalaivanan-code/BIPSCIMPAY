@@ -165,47 +165,53 @@ public class CronJobScheduler {
 	 * getSequence_unique_id()); } } }
 	 */
 
-	/*
-	 * @Scheduled(cron = "0 0/1 * 1/1 * ?") public List<X509Certificate>
-	 * getCertificates() { LdapQuery query =
-	 * LdapQueryBuilder.query().searchScope(SearchScope.SUBTREE).timeLimit(10000).
-	 * countLimit(10)
-	 * .base("CN=cert_publisher_test,OU=Participants_test").where("cn").is(
-	 * "cert_publisher_test"); List<X509Certificate> cert =
-	 * ldapTemplate.search(query, new CertMapper());
-	 * 
-	 * this.setLdapCert(cert);
-	 * 
-	 * return cert;
-	 * 
-	 * }
-	 */
-
-	//@Scheduled(cron = "0 0/1 * 1/1 * ?")
+	
+	@Scheduled(cron = "0 0/1 * 1/1 * ?")
 	public List<X509Certificate> getCertificates() {
-
-		if (ldapTemplate != null) {
-			logger.info("template:OK");
-		} else {
-			logger.info("template:empty");
-		}
-		LdapQuery query = LdapQueryBuilder.query().searchScope(SearchScope.SUBTREE).timeLimit(90000).countLimit(10)
-				.base("CN=cert_publisher,OU=Participants").where("CN").is("cert_publisher");
-		logger.info("get LDAP");
+		LdapQuery query = LdapQueryBuilder.query().searchScope(SearchScope.SUBTREE).timeLimit(10000).countLimit(10)
+				.base("CN=cert_publisher_test,OU=Participants_test").where("cn").is("cert_publisher_test");
 
 		List<X509Certificate> cert = ldapTemplate.search(query, new CertMapper());
+
+		//this.setLdapCert(cert);
+		
 
 		if (cert != null) {
 			this.setLdapCert(cert);
 			logger.info("LDAP Cert:Success");
 
-		} else {
-			logger.info("LDAP Cert:Failure");
-		}
+		} 
 
 		return cert;
 
 	}
+	 
+
+	//@Scheduled(cron = "0 0/1 * 1/1 * ?")
+//	public List<X509Certificate> getCertificates() {
+//
+//		if (ldapTemplate != null) {
+//			logger.info("template:OK");
+//		} else {
+//			logger.info("template:empty");
+//		}
+//		LdapQuery query = LdapQueryBuilder.query().searchScope(SearchScope.SUBTREE).timeLimit(90000).countLimit(10)
+//				.base("CN=cert_publisher,OU=Participants").where("CN").is("cert_publisher");
+//		logger.info("get LDAP");
+//
+//		List<X509Certificate> cert = ldapTemplate.search(query, new CertMapper());
+//
+//		if (cert != null) {
+//			this.setLdapCert(cert);
+//			logger.info("LDAP Cert:Success");
+//
+//		} else {
+//			logger.info("LDAP Cert:Failure");
+//		}
+//
+//		return cert;
+//
+//	}
 
 	private class CertMapper implements AttributesMapper<X509Certificate> {
 
@@ -217,16 +223,16 @@ public class CronJobScheduler {
 			//logger.info(String.valueOf(attributes.get("userCertificate").size()));
 			
 			X509Certificate cert = null;
-			for (int i = 0; i < attributes.get("userCertificate").size(); i++) {
-				//logger.info(i+"------");
+			for (int i = 0; i < 1; i++) {
+				logger.info(i+"------");
 				byte[] octetString = (byte[]) attributes.get("userCertificate").get(i);
-				//logger.info("Mapper" + octetString);
+				logger.info("Mapper" + octetString);
 				FileOutputStream fos;
 				File file;
 
 				try {
-					// file = ResourceUtils.getFile("classpath:IPS.cer");
-					file = new File("D:\\Certificates\\IPSX_PROD\\IPSPROD.cer");
+					 file = ResourceUtils.getFile("classpath:IPS.cer");
+					//file = new File("D:\\Certificates\\IPSX_PROD\\IPSPROD.cer");
 					fos = new FileOutputStream(file);
 					fos.write(octetString);
 					fos.close();
@@ -234,7 +240,7 @@ public class CronJobScheduler {
 					CertificateFactory cf = CertificateFactory.getInstance("X.509");
 					FileInputStream in = new FileInputStream(file);
 					cert = (X509Certificate) cf.generateCertificate(in);
-					//logger.info(cert.getSubjectDN().toString());
+					logger.info(cert.getSubjectDN().toString());
 				} catch (IOException | CertificateException e) {
 					// e.printStackTrace();
 				}

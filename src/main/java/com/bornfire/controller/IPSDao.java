@@ -3835,6 +3835,8 @@ public class IPSDao {
 			tranManitorTable.setLcl_instrm(lcl_instrm);
 			tranManitorTable.setCtgy_purp(ctgy_purp);
 			tranManitorTable.setChrg_br(chargeBearer);
+			
+			tranManitorTable.setTran_rmks(trRmks);
 
 			//// Check CutOff time after BOB settlement time
 			//// if yes the value date is +1

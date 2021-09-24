@@ -247,13 +247,14 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 		String msgNetMIR = request.getMessage().getMsgNetMir();
 		String userReference = request.getMessage().getMsgUserReference();
+		logger.info("SignVerify"+signDocument.verifySignParseDoc(request.getMessage().getBlock4()).toString());
 
 		switch (request.getMessage().getMsgType()) {
 
 		case "pacs.008.001.08":
 
 			logger.info("Processing  pacs.008.001.08 received from IPSX");
-
+			logger.info("SignVerify"+signDocument.verifySignParseDoc(request.getMessage().getBlock4()).toString());
 			///// Pacs.008 document from IPSX
 			Document doc008 = docPacs.getPacs_008_001_01UnMarshalDoc(request);
 

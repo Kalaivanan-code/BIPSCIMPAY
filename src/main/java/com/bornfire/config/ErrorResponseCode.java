@@ -111,6 +111,8 @@ public class ErrorResponseCode {
 			responseDesc = "BIPS23:Invalid Beneficiary Bank Code";
 		}else if(code.equals("BIPS22")){
 			responseDesc = "BIPS22:Remitter Account Number doesn't match with Remitter Bank Code";
+		}else if(code.equals("BIPS23")){
+			responseDesc = "BIPS23:Reversal Transaction already exist";
 		}
 		
 		return responseDesc;

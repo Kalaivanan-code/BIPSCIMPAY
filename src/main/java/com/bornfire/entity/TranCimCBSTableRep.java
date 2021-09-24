@@ -30,6 +30,12 @@ public interface TranCimCBSTableRep extends JpaRepository<TranCimCBSTable, Strin
 	
 	@Query(value = "select * from BIPS_TRAN_CIM_CBS_TABLE Where tran_no=?1", nativeQuery = true)
 	TranCimCBSTable getTranData(String tran_no);
+
+	@Query(value = "select * from BIPS_TRAN_CIM_CBS_TABLE Where sequence_unique_id=?1 and POST_TO_CBS='True' and tran_type='CR' and isreversal='Y' and status='SUCCESS'", nativeQuery = true)
+	List<TranCimCBSTable> reverseDebitExist(String seqNumber);
+	
+	@Query(value = "select * from BIPS_TRAN_CIM_CBS_TABLE Where sequence_unique_id=?1 and POST_TO_CBS='True' and tran_type='DR' and isreversal='Y' and status='SUCCESS'", nativeQuery = true)
+	List<TranCimCBSTable> reverseCreditExist(String seqNumber);
 	
 	
 }

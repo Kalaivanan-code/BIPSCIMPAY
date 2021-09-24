@@ -1974,68 +1974,74 @@ public class IPSConnection {
 			//// Store ESB Registration Data
 			//// Register ESB Data
 
-			
-			String settlPayableAccount = settlAccountRep.findById("04").get().getAccount_number();
 
-			ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
-					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
-					sysTraceNumber, env.getProperty("cimCBS.outDBChannel"),cbsData.getTran_no(), "True", "CR", "Y", "",
-					cbsData.getFrom_account_no(), cbsData.getTran_amt().toString(), cbsData.getTran_currency(),
-					cbsData.getSequence_unique_id(),settlPayableAccount,
-					cbsData.getCustomer_name(), "NRT",
-					"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
+			List<TranCimCBSTable> cbsList=tranCimCBStableRep.reverseDebitExist(cbsData.getSequence_unique_id());
+			if(cbsList.size()>0) {
+				String settlPayableAccount = settlAccountRep.findById("04").get().getAccount_number();
 
-			///// Call ESB Connection
-			ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
+				ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"),cbsData.getTran_no(), "True", "CR", "Y", "",
+						cbsData.getFrom_account_no(), cbsData.getTran_amt().toString(), cbsData.getTran_currency(),
+						cbsData.getSequence_unique_id(),settlPayableAccount,
+						cbsData.getCustomer_name(), "NRT",
+						"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
 
-			logger.debug("CBS Data:"+connect24Response.toString());
-			if (connect24Response.getStatusCode() == HttpStatus.OK) {
-				
+				///// Call ESB Connection
+				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
 
-				if(!connect24Response.toString().equals("<200 OK OK,[]>")){
-					if (connect24Response.getBody().getStatus().getIsSuccess()) {
-						
-						////Update ESB Data
-						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
-								connect24Response.getBody().getStatus().getStatusCode(),
-								connect24Response.getBody().getStatus().getMessage(),
-								connect24Response.getBody().getData().getTransactionNoFromCBS());
-						
-						
-						ipsDao.updateOutwardCBSStatusManual(tranCBSTable.getSequence_unique_id(), TranMonitorStatus.CBS_DEBIT_REVERSE_OK.toString(),
-								TranMonitorStatus.FAILURE.toString());
-						
-						ipsDao.updateSettlAmtTable(cbsData);
-
-						return "Success";
-					} else {
-						
-						//// Update ESB Data
-						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
-								connect24Response.getBody().getStatus().getStatusCode(),
-								connect24Response.getBody().getStatus().getMessage(),
-								connect24Response.getBody().getData().getTransactionNoFromCBS());
-
-						throw new Connect24Exception(connect24Response.getBody().getStatus().getMessage() + ":"
-								+ connect24Response.getBody().getStatus().getStatusCode());
+				logger.debug("CBS Data:"+connect24Response.toString());
+				if (connect24Response.getStatusCode() == HttpStatus.OK) {
 					
+
+					if(!connect24Response.toString().equals("<200 OK OK,[]>")){
+						if (connect24Response.getBody().getStatus().getIsSuccess()) {
+							
+							////Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+							
+							
+							ipsDao.updateOutwardCBSStatusManual(tranCBSTable.getSequence_unique_id(), TranMonitorStatus.CBS_DEBIT_REVERSE_OK.toString(),
+									TranMonitorStatus.FAILURE.toString());
+							
+							ipsDao.updateSettlAmtTable(cbsData);
+
+							return "Success";
+						} else {
+							
+							//// Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+
+							throw new Connect24Exception(connect24Response.getBody().getStatus().getStatusCode() + ":"
+									+ connect24Response.getBody().getStatus().getMessage());
+						
+						}
+					}else {
+						//// Update ESB Data to CIM Table
+						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
+								"No Response return from CBS","");
+						throw new ServerErrorException(SERVER_ERROR);
+
 					}
-				}else {
+					
+				} else {
 					//// Update ESB Data to CIM Table
 					ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
-							"No Response return from CBS","");
+							"Internal Server Error","");
 					throw new ServerErrorException(SERVER_ERROR);
 
 				}
-				
-			} else {
-				//// Update ESB Data to CIM Table
-				ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
-						"Internal Server Error","");
-				throw new ServerErrorException(SERVER_ERROR);
 
+			}else {
+				throw new Connect24Exception(errorCode.ErrorCode("BIPS23"));
 			}
-			
+						
 			
 		} catch (RemoteAccessException e) {
 			throw new ServerErrorException(SERVER_ERROR);
@@ -2064,81 +2070,87 @@ public class IPSConnection {
 			//// Store ESB Registration Data
 			//// Register ESB Data
 
-			
-			String settlReceivableAccount = settlAccountRep.findById("03").get().getAccount_number();
+			List<TranCimCBSTable> cbsList=tranCimCBStableRep.reverseCreditExist(cbsData.getSequence_unique_id());
+			if(cbsList.size()>0) {
+				String settlReceivableAccount = settlAccountRep.findById("03").get().getAccount_number();
 
-			ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
-					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
-					sysTraceNumber, env.getProperty("cimCBS.outDBChannel"),cbsData.getTran_no(), "True", "DR", "Y", "",
-					settlReceivableAccount, cbsData.getTran_amt().toString(), cbsData.getTran_currency(),
-					cbsData.getSequence_unique_id(),cbsData.getFrom_account_no(),
-					cbsData.getCustomer_name(), "NRT",
-					tranCBSTable.getDebit_remarks(),"", "", "",cbsData.getTran_date(),"RECEIVABLE");
+				ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"),cbsData.getTran_no(), "True", "DR", "Y", "",
+						settlReceivableAccount, cbsData.getTran_amt().toString(), cbsData.getTran_currency(),
+						cbsData.getSequence_unique_id(),cbsData.getFrom_account_no(),
+						cbsData.getCustomer_name(), "NRT",
+						tranCBSTable.getDebit_remarks(),"", "", "",cbsData.getTran_date(),"RECEIVABLE");
 
-			///// Call ESB Connection
-			ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
+				///// Call ESB Connection
+				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
 
-			logger.debug("CBS Data:"+connect24Response.toString());
-			if (connect24Response.getStatusCode() == HttpStatus.OK) {
-				
-				if(!connect24Response.toString().equals("<200 OK OK,[]>")){
-					if (connect24Response.getBody().getStatus().getIsSuccess()) {
-						
-						////Update ESB Data
-						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
-								connect24Response.getBody().getStatus().getStatusCode(),
-								connect24Response.getBody().getStatus().getMessage(),
-								connect24Response.getBody().getData().getTransactionNoFromCBS());
-						
-						
-						ipsDao.updateCBSStatusManual(tranCBSTable.getSequence_unique_id(), TranMonitorStatus.CBS_DEBIT_REVERSE_OK.toString(),
-								TranMonitorStatus.FAILURE.toString());
-						
-						ipsDao.updateSettlAmtTable(cbsData);
-
-						return "Success";
-					} else {
-						
-						//// Update ESB Data
-						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
-								connect24Response.getBody().getStatus().getStatusCode(),
-								connect24Response.getBody().getStatus().getMessage(),
-								connect24Response.getBody().getData().getTransactionNoFromCBS());
-
-						throw new Connect24Exception(connect24Response.getBody().getStatus().getMessage() + ":"
-								+ connect24Response.getBody().getStatus().getStatusCode());
+				logger.debug("CBS Data:"+connect24Response.toString());
+				if (connect24Response.getStatusCode() == HttpStatus.OK) {
 					
+					if(!connect24Response.toString().equals("<200 OK OK,[]>")){
+						if (connect24Response.getBody().getStatus().getIsSuccess()) {
+							
+							////Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+							
+							
+							ipsDao.updateCBSStatusManual(tranCBSTable.getSequence_unique_id(), TranMonitorStatus.CBS_DEBIT_REVERSE_OK.toString(),
+									TranMonitorStatus.FAILURE.toString());
+							
+							ipsDao.updateSettlAmtTable(cbsData);
+
+							return "Success";
+						} else {
+							
+							//// Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+
+							throw new Connect24Exception(connect24Response.getBody().getStatus().getMessage() + ":"
+									+ connect24Response.getBody().getStatus().getStatusCode());
+						
+						}
+					}else {
+					    //// Update ESB Data to CIM Table
+						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
+								"No Response return from CBS","");
+						throw new ServerErrorException(SERVER_ERROR);
 					}
-				}else {
-				    //// Update ESB Data to CIM Table
+					
+				} else {
+					//// Update ESB Data to CIM Table
 					ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
-							"No Response return from CBS","");
+							"Internal Server Error","");
 					throw new ServerErrorException(SERVER_ERROR);
+
 				}
-				
-			} else {
-				//// Update ESB Data to CIM Table
-				ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
-						"Internal Server Error","");
-				throw new ServerErrorException(SERVER_ERROR);
 
+				/*//// Generate Audit Number
+				String AuditNumber = sequence.generateSystemTraceAuditNumber();
+
+				////Calling Connect 24 for Reverce CreditTransaction
+				ResponseEntity<C24FTResponse> connect24Response = connect24Service.ManualCdtReverseFundRequest(
+						tranCBSTable.getBob_account(), AuditNumber, tranCBSTable.getTran_currency(),
+						tranCBSTable.getTran_amount().toString(), tranCBSTable.getSequence_unique_id(), userID,"TR/"+ipsDao.getIPSXStatusError(tranCBSTable.getSequence_unique_id()));
+				if (connect24Response.getStatusCode() == HttpStatus.OK) {
+					return "Success";
+				} else if (connect24Response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+					throw new ServerErrorException(SERVER_ERROR);
+				} else {
+					throw new Connect24Exception(connect24Response.getBody().getError() + ":"
+							+ connect24Response.getBody().getError_desc().get(0));
+				}*/
+
+			}else {
+				throw new Connect24Exception(errorCode.ErrorCode("BIPS23"));
 			}
-
-			/*//// Generate Audit Number
-			String AuditNumber = sequence.generateSystemTraceAuditNumber();
-
-			////Calling Connect 24 for Reverce CreditTransaction
-			ResponseEntity<C24FTResponse> connect24Response = connect24Service.ManualCdtReverseFundRequest(
-					tranCBSTable.getBob_account(), AuditNumber, tranCBSTable.getTran_currency(),
-					tranCBSTable.getTran_amount().toString(), tranCBSTable.getSequence_unique_id(), userID,"TR/"+ipsDao.getIPSXStatusError(tranCBSTable.getSequence_unique_id()));
-			if (connect24Response.getStatusCode() == HttpStatus.OK) {
-				return "Success";
-			} else if (connect24Response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-				throw new ServerErrorException(SERVER_ERROR);
-			} else {
-				throw new Connect24Exception(connect24Response.getBody().getError() + ":"
-						+ connect24Response.getBody().getError_desc().get(0));
-			}*/
+			
 		} catch (RemoteAccessException e) {
 			throw new ServerErrorException(SERVER_ERROR);
 		}
@@ -2168,85 +2180,91 @@ public class IPSConnection {
 			//// Store ESB Registration Data
 			//// Register ESB Data
 
-			
-			String settlPayableAccount = settlAccountRep.findById("04").get().getAccount_number();
+			List<TranCimCBSTable> cbsList=tranCimCBStableRep.reverseCreditExist(tranCBSTable.getSequence_unique_id());
+			if(cbsList.size()>0) {
+				String settlPayableAccount = settlAccountRep.findById("04").get().getAccount_number();
 
 
-			ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
-					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
-					sysTraceNumber, env.getProperty("cimCBS.outDBChannel"),cbsData.getTran_no(), "True", "CR", "Y", "",
-					cbsData.getFrom_account_no(), tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
-					cbsData.getSequence_unique_id(),settlPayableAccount,
-					cbsData.getCustomer_name(), "NRT",
-					"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
+				ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"),cbsData.getTran_no(), "True", "CR", "Y", "",
+						cbsData.getFrom_account_no(), tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
+						tranCBSTable.getSequence_unique_id(),settlPayableAccount,
+						cbsData.getCustomer_name(), "NRT",
+						"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
 
-			///// Call ESB Connection
-			ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
+				///// Call ESB Connection
+				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
 
-			logger.debug("CBS Data:"+connect24Response.toString());
-			if (connect24Response.getStatusCode() == HttpStatus.OK) {
-				
-
-				if(!connect24Response.toString().equals("<200 OK OK,[]>")){
-					if (connect24Response.getBody().getStatus().getIsSuccess()) {
-						
-						////Update ESB Data
-						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
-								connect24Response.getBody().getStatus().getStatusCode(),
-								connect24Response.getBody().getStatus().getMessage(),
-								connect24Response.getBody().getData().getTransactionNoFromCBS());
-						
-						
-						ipsDao.updateOutwardCBSStatusManual(tranCBSTable.getSequence_unique_id(), TranMonitorStatus.CBS_DEBIT_REVERSE_OK.toString(),
-								TranMonitorStatus.FAILURE.toString());
-						
-						ipsDao.updateSettlAmtTable(cbsData);
-
-						return "Success";
-					} else {
-						
-						//// Update ESB Data
-						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
-								connect24Response.getBody().getStatus().getStatusCode(),
-								connect24Response.getBody().getStatus().getMessage(),
-								connect24Response.getBody().getData().getTransactionNoFromCBS());
-
-						throw new Connect24Exception(connect24Response.getBody().getStatus().getMessage() + ":"
-								+ connect24Response.getBody().getStatus().getStatusCode());
+				logger.debug("CBS Data:"+connect24Response.toString());
+				if (connect24Response.getStatusCode() == HttpStatus.OK) {
 					
+
+					if(!connect24Response.toString().equals("<200 OK OK,[]>")){
+						if (connect24Response.getBody().getStatus().getIsSuccess()) {
+							
+							////Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+							
+							
+							ipsDao.updateOutwardCBSStatusManual(tranCBSTable.getSequence_unique_id(), TranMonitorStatus.CBS_DEBIT_REVERSE_OK.toString(),
+									TranMonitorStatus.FAILURE.toString());
+							
+							ipsDao.updateSettlAmtTable(cbsData);
+
+							return "Success";
+						} else {
+							
+							//// Update ESB Data
+							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
+									connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(),
+									connect24Response.getBody().getData().getTransactionNoFromCBS());
+
+							throw new Connect24Exception(connect24Response.getBody().getStatus().getMessage() + ":"
+									+ connect24Response.getBody().getStatus().getStatusCode());
+						
+						}
+					}else {
+					    //// Update ESB Data to CIM Table
+						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
+								"No Response return from CBS","");
+						throw new ServerErrorException(SERVER_ERROR);
 					}
-				}else {
-				    //// Update ESB Data to CIM Table
+					
+				} else {
+					//// Update ESB Data to CIM Table
 					ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
-							"No Response return from CBS","");
+							"Internal Server Error","");
 					throw new ServerErrorException(SERVER_ERROR);
+
 				}
 				
-			} else {
-				//// Update ESB Data to CIM Table
-				ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
-						"Internal Server Error","");
-				throw new ServerErrorException(SERVER_ERROR);
 
+
+				/*//// Generate Audit Number
+				String AuditNumber = sequence.generateSystemTraceAuditNumber();
+
+				////calling Connect 24 for reversal Transaction
+				ResponseEntity<C24FTResponse> connect24Response = connect24Service.ManualdbtReverseBulkCreditFundRequest(
+						tranCBSTable.getBob_account(), AuditNumber, tranCBSTable.getTran_currency(),
+						tranCBSTable.getTran_amount().toString(), tranCBSTable.getSequence_unique_id(), userID,"TR/"+ipsDao.getIPSXStatusError(tranCBSTable.getSequence_unique_id()));
+				if (connect24Response.getStatusCode() == HttpStatus.OK) {
+					return "Success";
+				} else if (connect24Response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+					throw new ServerErrorException(SERVER_ERROR);
+				} else {
+					throw new Connect24Exception(connect24Response.getBody().getError() + ":"
+							+ connect24Response.getBody().getError_desc().get(0));
+				}*/
+
+			}else {
+				throw new Connect24Exception(errorCode.ErrorCode("BIPS23"));
 			}
-			
-
-
-			/*//// Generate Audit Number
-			String AuditNumber = sequence.generateSystemTraceAuditNumber();
-
-			////calling Connect 24 for reversal Transaction
-			ResponseEntity<C24FTResponse> connect24Response = connect24Service.ManualdbtReverseBulkCreditFundRequest(
-					tranCBSTable.getBob_account(), AuditNumber, tranCBSTable.getTran_currency(),
-					tranCBSTable.getTran_amount().toString(), tranCBSTable.getSequence_unique_id(), userID,"TR/"+ipsDao.getIPSXStatusError(tranCBSTable.getSequence_unique_id()));
-			if (connect24Response.getStatusCode() == HttpStatus.OK) {
-				return "Success";
-			} else if (connect24Response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-				throw new ServerErrorException(SERVER_ERROR);
-			} else {
-				throw new Connect24Exception(connect24Response.getBody().getError() + ":"
-						+ connect24Response.getBody().getError_desc().get(0));
-			}*/
+					
 		} catch (RemoteAccessException e) {
 			throw new ServerErrorException(SERVER_ERROR);
 		}
@@ -2273,83 +2291,88 @@ public class IPSConnection {
 					//// Store ESB Registration Data
 					//// Register ESB Data
 
-					
-					String settlPayableAccount = settlAccountRep.findById("04").get().getAccount_number();
+					List<TranCimCBSTable> cbsList=tranCimCBStableRep.reverseCreditExist(tranCBSTable.getSequence_unique_id());
+					if(cbsList.size()>0) {
+						String settlPayableAccount = settlAccountRep.findById("04").get().getAccount_number();
 
 
-					ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
-							env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
-							sysTraceNumber, env.getProperty("cimCBS.outDBChannel"),cbsData.getTran_no(), "True", "CR", "Y", "",
-							cbsData.getFrom_account_no(), tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
-							cbsData.getSequence_unique_id(),settlPayableAccount,
-							cbsData.getCustomer_name(), "NRT",
-							"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
+						ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+								env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+								sysTraceNumber, env.getProperty("cimCBS.outDBChannel"),cbsData.getTran_no(), "True", "CR", "Y", "",
+								cbsData.getFrom_account_no(), tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
+								tranCBSTable.getSequence_unique_id(),settlPayableAccount,
+								cbsData.getCustomer_name(), "NRT",
+								"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
 
-					///// Call ESB Connection
-					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
+						///// Call ESB Connection
+						ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
 
-					logger.debug("CBS Data:"+connect24Response.toString());
-					if (connect24Response.getStatusCode() == HttpStatus.OK) {
-						
-						if(!connect24Response.toString().equals("<200 OK OK,[]>")){
-							if (connect24Response.getBody().getStatus().getIsSuccess()) {
-								
-								////Update ESB Data
-								ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
-										connect24Response.getBody().getStatus().getStatusCode(),
-										connect24Response.getBody().getStatus().getMessage(),
-										connect24Response.getBody().getData().getTransactionNoFromCBS());
-								
-								
-								ipsDao.updateOutwardCBSStatusManual(tranCBSTable.getSequence_unique_id(), TranMonitorStatus.CBS_DEBIT_REVERSE_OK.toString(),
-										TranMonitorStatus.FAILURE.toString());
-								
-								ipsDao.updateSettlAmtTable(cbsData);
-
-								return "Success";
-							} else {
-								
-								//// Update ESB Data
-								ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
-										connect24Response.getBody().getStatus().getStatusCode(),
-										connect24Response.getBody().getStatus().getMessage(),
-										connect24Response.getBody().getData().getTransactionNoFromCBS());
-
-								throw new Connect24Exception(connect24Response.getBody().getStatus().getMessage() + ":"
-										+ connect24Response.getBody().getStatus().getStatusCode());
+						logger.debug("CBS Data:"+connect24Response.toString());
+						if (connect24Response.getStatusCode() == HttpStatus.OK) {
 							
+							if(!connect24Response.toString().equals("<200 OK OK,[]>")){
+								if (connect24Response.getBody().getStatus().getIsSuccess()) {
+									
+									////Update ESB Data
+									ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
+											connect24Response.getBody().getStatus().getStatusCode(),
+											connect24Response.getBody().getStatus().getMessage(),
+											connect24Response.getBody().getData().getTransactionNoFromCBS());
+									
+									
+									ipsDao.updateOutwardCBSStatusManual(tranCBSTable.getSequence_unique_id(), TranMonitorStatus.CBS_DEBIT_REVERSE_OK.toString(),
+											TranMonitorStatus.FAILURE.toString());
+									
+									ipsDao.updateSettlAmtTable(cbsData);
+
+									return "Success";
+								} else {
+									
+									//// Update ESB Data
+									ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(),
+											connect24Response.getBody().getStatus().getStatusCode(),
+											connect24Response.getBody().getStatus().getMessage(),
+											connect24Response.getBody().getData().getTransactionNoFromCBS());
+
+									throw new Connect24Exception(connect24Response.getBody().getStatus().getMessage() + ":"
+											+ connect24Response.getBody().getStatus().getStatusCode());
+								
+								}
+							}else {
+							    //// Update ESB Data to CIM Table
+								ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
+										"No Response return from CBS","");
+								throw new ServerErrorException(SERVER_ERROR);
 							}
-						}else {
-						    //// Update ESB Data to CIM Table
+
+							
+						} else {
+							//// Update ESB Data to CIM Table
 							ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
-									"No Response return from CBS","");
+									"Internal Server Error","");
 							throw new ServerErrorException(SERVER_ERROR);
+
 						}
 
-						
-					} else {
-						//// Update ESB Data to CIM Table
-						ipsDao.updateCIMcbsData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
-								"Internal Server Error","");
-						throw new ServerErrorException(SERVER_ERROR);
+				/*/// Generate Audit Number
+				String AuditNumber = sequence.generateSystemTraceAuditNumber();
 
+				ResponseEntity<C24FTResponse> connect24Response = connect24Service.ManualBulkdbtReverseFundRequest(
+						tranCBSTable.getBob_account(), AuditNumber, tranCBSTable.getTran_currency(),
+						tranCBSTable.getTran_amount().toString(), tranCBSTable.getSequence_unique_id(), userID,"TR/"+ipsDao.getIPSXStatusError(tranCBSTable.getSequence_unique_id()));
+				if (connect24Response.getStatusCode() == HttpStatus.OK) {
+					
+					return "Success";
+				} else if (connect24Response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+					throw new ServerErrorException(SERVER_ERROR);
+				} else {
+					throw new Connect24Exception(connect24Response.getBody().getError() + ":"
+							+ connect24Response.getBody().getError_desc().get(0));
+				}*/
+					}else {
+						throw new Connect24Exception(errorCode.ErrorCode("BIPS23"));
 					}
-
-			/*/// Generate Audit Number
-			String AuditNumber = sequence.generateSystemTraceAuditNumber();
-
-			ResponseEntity<C24FTResponse> connect24Response = connect24Service.ManualBulkdbtReverseFundRequest(
-					tranCBSTable.getBob_account(), AuditNumber, tranCBSTable.getTran_currency(),
-					tranCBSTable.getTran_amount().toString(), tranCBSTable.getSequence_unique_id(), userID,"TR/"+ipsDao.getIPSXStatusError(tranCBSTable.getSequence_unique_id()));
-			if (connect24Response.getStatusCode() == HttpStatus.OK) {
-				
-				return "Success";
-			} else if (connect24Response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-				throw new ServerErrorException(SERVER_ERROR);
-			} else {
-				throw new Connect24Exception(connect24Response.getBody().getError() + ":"
-						+ connect24Response.getBody().getError_desc().get(0));
-			}*/
+					
 		} catch (RemoteAccessException e) {
 			throw new ServerErrorException(SERVER_ERROR);
 		}
@@ -3706,7 +3729,7 @@ public class IPSConnection {
 			RTPbulkTransferRequest rtpBulkTransferRequest,String p_id,String channelID,String resvfield1,String resvfield2) {
 		
 		String master_ref_id = env.getProperty("ipsx.userS") + sequence.generateSystemTraceAuditNumber();
-
+		String seqUniqueID1 = sequence.generateSeqUniqueID();
 		
 		RTPbulkTransferResponse rtpbulkTransferResponse = null;
 		
@@ -3722,7 +3745,7 @@ public class IPSConnection {
 						////// Generate System Trace Audit Number
 						String sysTraceNumber = "";
 						////// Generate Sequence Unique ID
-						String seqUniqueID = sequence.generateSeqUniqueID()+"/"+data;
+						String seqUniqueID =seqUniqueID1+"/"+data;
 						///// Generate CIM Message ID
 						String cimMsgID = seqUniqueID;
 						///// Generate Msg Sequence
@@ -3805,7 +3828,7 @@ public class IPSConnection {
 						claimsData.put("endToEndId",endTOEndID);
 						claimsData.put("consentId", regAccList.get(0).getConsent_id());
 				        
-						//String cryptogram="eyJhbGciOiJSUzUxMiJ9.eyJjb25zZW50SWQiOiI4LWh0ZEkyQVR3V1czazRFYzAxQldRIiwiaHJlZiI6Ii9hY2NvdW50cy1jb25zZW50cy84LWh0ZEkyQVR3V1czazRFYzAxQldRL2F1dGhvcmlzYXRpb25zLy1YUmRVb3EwUkxxMDNkdGpWMUhNdUEiLCJlbmRUb0VuZElkIjoiQ0lNMTAwUkVHMDAwMzciLCJkZXZpY2VJZCI6ImE3M2JhN2IyLWMxYTItNTA1Ny1iM2ViLTA5ZGFlOWZlNjBhYyJ9.f6zfIvv70rq1T2HxWq0b5UGS1rZdRp0LZZwHpDAKZGCvuDfhzHRF3xaEL3T3OJ0X1nCg43xPYaJh79OfkMVLsCLn2EtdgSC_j1jBpY7yOckPI9qo8b8hhGID-NLEYoRkBUoVbH0AnX2zhWIkTJyQCwD6RXHctObSt-vozFzKRBM";
+					    //String cryptogram="eyJhbGciOiJSUzUxMiJ9.eyJjb25zZW50SWQiOiI4LWh0ZEkyQVR3V1czazRFYzAxQldRIiwiaHJlZiI6Ii9hY2NvdW50cy1jb25zZW50cy84LWh0ZEkyQVR3V1czazRFYzAxQldRL2F1dGhvcmlzYXRpb25zLy1YUmRVb3EwUkxxMDNkdGpWMUhNdUEiLCJlbmRUb0VuZElkIjoiQ0lNMTAwUkVHMDAwMzciLCJkZXZpY2VJZCI6ImE3M2JhN2IyLWMxYTItNTA1Ny1iM2ViLTA5ZGFlOWZlNjBhYyJ9.f6zfIvv70rq1T2HxWq0b5UGS1rZdRp0LZZwHpDAKZGCvuDfhzHRF3xaEL3T3OJ0X1nCg43xPYaJh79OfkMVLsCLn2EtdgSC_j1jBpY7yOckPI9qo8b8hhGID-NLEYoRkBUoVbH0AnX2zhWIkTJyQCwD6RXHctObSt-vozFzKRBM";
 						
 						String cryptogram="";
 						try {
@@ -4393,9 +4416,15 @@ public class IPSConnection {
 					List<OutwardTransactionMonitoringTable> outTranList=ipsDao.checkExistOutwardRTP(instrId,endToEndID);
 					
 					if(outTranList.size()>0) {
+						String initTranNumber="";
+						if(outTranList.get(0).getResv_field1()!=null) {
+							initTranNumber=outTranList.get(0).getResv_field1();
+						}else {
+							initTranNumber=outTranList.get(0).getP_id();
+						}
 						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-								sysTraceAuditNumber,outTranList.get(0).getInit_channel_id(),outTranList.get(0).getResv_field1(),"True","CR","N","",
+								sysTraceAuditNumber,outTranList.get(0).getInit_channel_id(),initTranNumber,"True","CR","N","",
 								acctNumber, trAmt, currency,
 								SeqUniqueID,settlReceivableAccount,debtAcctName,"RTP","",rmtInfo,"","",new Date(),"RECEIVABLE");
 					}else {
