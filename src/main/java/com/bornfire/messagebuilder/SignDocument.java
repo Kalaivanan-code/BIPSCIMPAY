@@ -279,7 +279,7 @@ public class SignDocument {
         }
         Node nodeSignature = nodes.item(0);
         
-        logger.info(String.valueOf(cronJobScheduler.getLdapCert().size()));
+       // logger.info(String.valueOf(cronJobScheduler.getLdapCert().size()));
 
         final KeySelector mockKeySelector = new KeySelector() {
 

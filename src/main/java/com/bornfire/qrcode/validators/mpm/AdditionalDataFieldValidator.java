@@ -320,37 +320,37 @@ class AdditionalDataFieldValidator extends AbstractValidator<AdditionalDataField
 
       .must(not(stringEmptyOrNull(TagLengthString::getTag)))
         .when(not(nullValue()))
-        .withMessage("TerminalLabel tag is mandatory")
+        .withMessage("PurposeTransaction tag is mandatory")
         .withAttempedValue(of(AdditionalDataField::getPurposeTransaction).andThen(TagLengthString::getTag))
         .critical()
 
       .must(stringSize(TagLengthString::getTag, 2))
         .when(not(nullValue()))
-        .withMessage("TerminalLabel tag must be size equal two")
+        .withMessage("PurposeTransaction tag must be size equal two")
         .withAttempedValue(of(AdditionalDataField::getPurposeTransaction).andThen(TagLengthString::getTag))
         .critical()
 
       .must(isNumeric(TagLengthString::getTag))
         .when(not(nullValue()))
-        .withMessage("TerminalLabel tag must be number")
+        .withMessage("PurposeTransaction tag must be number")
         .withAttempedValue(of(AdditionalDataField::getPurposeTransaction).andThen(TagLengthString::getTag))
         .critical()
 
       .must(stringEquals(TagLengthString::getTag, AdditionalDataFieldCodes.ID_PURPOSE_TRANSACTION))
         .when(not(nullValue()))
-        .withMessage(String.format("TerminalLabel tag must be '%s'", AdditionalDataFieldCodes.ID_PURPOSE_TRANSACTION))
+        .withMessage(String.format("PurposeTransaction tag must be '%s'", AdditionalDataFieldCodes.ID_PURPOSE_TRANSACTION))
         .withAttempedValue(of(AdditionalDataField::getPurposeTransaction).andThen(TagLengthString::getTag))
         .critical()
 
       .must(not(stringEmptyOrNull(TagLengthString::getValue)))
         .when(not(nullValue()))
-        .withMessage("TerminalLabel value is mandatory")
+        .withMessage("PurposeTransaction value is mandatory")
         .withAttempedValue(of(AdditionalDataField::getPurposeTransaction).andThen(TagLengthString::getValue))
         .critical()
 
       .must(stringSizeLessThanOrEqual(TagLengthString::getValue, 25))
         .when(not(nullValue()))
-        .withMessage("TerminalLabel value must less then or equal size twenty-five")
+        .withMessage("PurposeTransaction value must less then or equal size twenty-five")
         .withAttempedValue(of(AdditionalDataField::getPurposeTransaction).andThen(TagLengthString::getValue))
         .critical();
 

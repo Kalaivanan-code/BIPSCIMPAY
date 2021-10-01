@@ -1330,6 +1330,8 @@ public class IPSRestController {
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 
 		logger.info("Service Starts generate QR Code");
+		
+		System.out.println(mcCreditTransferRequest.toString());
 
 		CimMerchantResponse response = null;
 

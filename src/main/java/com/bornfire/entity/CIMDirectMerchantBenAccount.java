@@ -43,13 +43,17 @@ public class CIMDirectMerchantBenAccount {
 	private String TrAmt;
 	
 	
-	@NotNull(message="ConvenienceIndicator required(true or false)")
+	/*@NotNull(message="ConvenienceIndicator required(true or false)")
 	private boolean ConvenienceIndicator;
 	
 	
-	private String ConvenienceIndicatorFeeType;
+	private String ConvenienceIndicatorFeeType;*/
+	
+	private String TipOrConvenienceIndicator;
     
 	private String ConvenienceIndicatorFee;
+	
+	private String TipAmt;
 	
 	@NotBlank(message="City Required")
 	@Size(max = 15, message = "City should not exceed 15 characters")
@@ -117,7 +121,7 @@ public class CIMDirectMerchantBenAccount {
 	public void setTrAmt(String trAmt) {
 		TrAmt = trAmt;
 	}
-	public boolean isConvenienceIndicator() {
+	/*public boolean isConvenienceIndicator() {
 		return ConvenienceIndicator;
 	}
 	public void setConvenienceIndicator(boolean convenienceIndicator) {
@@ -128,9 +132,25 @@ public class CIMDirectMerchantBenAccount {
 	}
 	public void setConvenienceIndicatorFeeType(String convenienceIndicatorFeeType) {
 		ConvenienceIndicatorFeeType = convenienceIndicatorFeeType;
-	}
+	}*/
+	
+	
 	public String getConvenienceIndicatorFee() {
 		return ConvenienceIndicatorFee;
+	}
+	public String getTipOrConvenienceIndicator() {
+		return TipOrConvenienceIndicator;
+	}
+	public void setTipOrConvenienceIndicator(String tipOrConvenienceIndicator) {
+		TipOrConvenienceIndicator = tipOrConvenienceIndicator;
+	}
+	
+	
+	public String getTipAmt() {
+		return TipAmt;
+	}
+	public void setTipAmt(String tipAmt) {
+		TipAmt = tipAmt;
 	}
 	public void setConvenienceIndicatorFee(String convenienceIndicatorFee) {
 		ConvenienceIndicatorFee = convenienceIndicatorFee;

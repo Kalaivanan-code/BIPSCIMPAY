@@ -122,6 +122,8 @@ import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.entity.MCCreditTransferResponse;
 import com.bornfire.entity.ManualFndTransferRequest;
 import com.bornfire.entity.McConsentOutwardAccessResponse;
+import com.bornfire.entity.MerchantQRRegistration;
+import com.bornfire.entity.MerchantQrCodeRegRep;
 import com.bornfire.entity.OtherBankDetResponse;
 import com.bornfire.entity.OutwardTransactionMonitoringTable;
 import com.bornfire.entity.RTPbulkTransferRequest;
@@ -256,6 +258,9 @@ public class IPSConnection {
 	@Autowired 
 	TranCimCBSTableRep tranCimCBStableRep;
 	
+	@Autowired
+	MerchantQrCodeRegRep merchantQrCodeRegRep;
+	
 	/////Fund Transfer Connection
 	////Debit Customer Account Credit Settl Account(Connect 24)
 	////Send Packages to IPSX,Credit to IPSX Account
@@ -346,7 +351,8 @@ public class IPSConnection {
 			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber,channelID,p_id, "True", "DR", "N", "", settlPayableAccount, mcCreditTransferRequest.getTrAmt(), mcCreditTransferRequest.getCurrencyCode(),
-						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT",mcCreditTransferRequest.getTrRmks(), "", "", "",new Date(),"PAYABLE");
+						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT",mcCreditTransferRequest.getTrRmks(), "", "", "",new Date(),"PAYABLE",
+						"","","");
 				
 			    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -534,7 +540,8 @@ public class IPSConnection {
 			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), p_id, "True", "DR", "N", "",settlPayableAccount, manualFundTransferRequest.get(i).getTrAmt(), manualFundTransferRequest.get(i).getCurrencyCode(),
-						seqUniqueID, manualFundTransferRequest.get(i).getRemitterAcctNumber(), manualFundTransferRequest.get(i).getRemitterName(), "NRT",manualFundTransferRequest.get(i).getTrRmks(), "", "", "",new Date(),"PAYABLE");
+						seqUniqueID, manualFundTransferRequest.get(i).getRemitterAcctNumber(), manualFundTransferRequest.get(i).getRemitterName(), "NRT",manualFundTransferRequest.get(i).getTrRmks(), "", "", "",new Date(),"PAYABLE",
+						"","","");
 				
 			    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -712,7 +719,8 @@ public class IPSConnection {
 			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), p_id, "True", "DR", "N", "", settlPayableAccount, mcCreditTransferRequest.getTotAmt(), mcCreditTransferRequest.getCurrencyCode(),
-						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT",mcCreditTransferRequest.getToAccountList().get(0).getTrRmks(), "", "", "",new Date(),"PAYABLE");
+						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT",mcCreditTransferRequest.getToAccountList().get(0).getTrRmks(), "", "", "",new Date(),"PAYABLE",
+						"","","");
 				
 			    /////Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -901,7 +909,8 @@ public class IPSConnection {
 				    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 							env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 							sysTraceNumber1, env.getProperty("cimCBS.outDBChannel"), p_id, "True", "DR", "N", "", settlPayableAccount, bulkDebitFndTransferRequest.getRemitterAccount().get(i).getTrAmt(), bulkDebitFndTransferRequest.getRemitterAccount().get(i).getCurrencyCode(),
-							seqUniqueID+"/"+srlNo, bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterAcctNumber(), bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterName(), "NRT",bulkDebitFndTransferRequest.getRemitterAccount().get(i).getTrRmks(), "", "", "",new Date(),"PAYABLE");
+							seqUniqueID+"/"+srlNo, bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterAcctNumber(), bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterName(), "NRT",bulkDebitFndTransferRequest.getRemitterAccount().get(i).getTrRmks(), "", "", "",new Date(),"PAYABLE",
+							"","","");
 					
 				    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -1985,7 +1994,8 @@ public class IPSConnection {
 						cbsData.getFrom_account_no(), cbsData.getTran_amt().toString(), cbsData.getTran_currency(),
 						cbsData.getSequence_unique_id(),settlPayableAccount,
 						cbsData.getCustomer_name(), "NRT",
-						"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
+						"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE",
+						"","","");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2079,8 +2089,9 @@ public class IPSConnection {
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"),cbsData.getTran_no(), "True", "DR", "Y", "",
 						settlReceivableAccount, cbsData.getTran_amt().toString(), cbsData.getTran_currency(),
 						cbsData.getSequence_unique_id(),cbsData.getFrom_account_no(),
-						cbsData.getCustomer_name(), "NRT",
-						tranCBSTable.getDebit_remarks(),"", "", "",cbsData.getTran_date(),"RECEIVABLE");
+						cbsData.getCustomer_name(), cbsData.getTran_particular_code(),
+						tranCBSTable.getDebit_remarks(),"", "", "",cbsData.getTran_date(),"RECEIVABLE",
+						cbsData.getInit_sub_tran_no(),"","");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2191,7 +2202,8 @@ public class IPSConnection {
 						cbsData.getFrom_account_no(), tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
 						tranCBSTable.getSequence_unique_id(),settlPayableAccount,
 						cbsData.getCustomer_name(), "NRT",
-						"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
+						"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE",
+						"","","");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2302,7 +2314,8 @@ public class IPSConnection {
 								cbsData.getFrom_account_no(), tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
 								tranCBSTable.getSequence_unique_id(),settlPayableAccount,
 								cbsData.getCustomer_name(), "NRT",
-								"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE");
+								"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE",
+								"","","");
 
 						///// Call ESB Connection
 						ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -3939,19 +3952,28 @@ public class IPSConnection {
 						!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getPointOfInitiationFormat()).equals("")) {
 					remInfo.append("01/"+mcCreditTransferRequest.getMerchantAccount().getPointOfInitiationFormat()+"/");
 				}
-				if(mcCreditTransferRequest.getMerchantAccount().isConvenienceIndicator()) {
+				if(!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("null") && 
+						!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("")){
 					
-					if(String.valueOf(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFeeType()).equals("Fixed")) {
+					if(String.valueOf(mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("02")) {
 						remInfo.append("55/02/56/"+mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
 						
 						Double sumData=Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee())+(Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getTrAmt()));
 						tot_tran_amount=sumData.toString();
-					}else if(String.valueOf(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFeeType()).equals("Percentage")) {
+					}else if(String.valueOf(mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("03")) {
 						remInfo.append("55/03/57/"+mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
 					
 						Double convFee=(((Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getTrAmt()))*(Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee())))/100);
 						Double sumData=convFee+(Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getTrAmt()));
 						tot_tran_amount=sumData.toString();
+					
+					}else if(String.valueOf(mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("01")) {
+						//remInfo.append("55/01/57/"+mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
+						remInfo.append("55/01/");
+					
+						//Double convFee=(((Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getTrAmt()))*(Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee())))/100);
+						//Double sumData=convFee+(Double.parseDouble(mcCreditTransferRequest.getMerchantAccount().getTrAmt()));
+						//tot_tran_amount=sumData.toString();
 					
 					}
 				}
@@ -4015,11 +4037,11 @@ public class IPSConnection {
 						}
 					}
 					
-					remInfo.append("//RQ/");
+					
 					
 				}
 				
-				
+				remInfo.append("//RQ/");
 				logger.debug("RemitterInfo->"+remInfo.toString());
 				//////Register Data to Master Table
 				ipsDao.RegisterMerchantOutgoingMasterRecord(psuDeviceID, psuIpAddress, sysTraceNumber, cimMsgID,
@@ -4058,7 +4080,8 @@ public class IPSConnection {
 			    ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), "", "True", "DR", "N", "", mcCreditTransferRequest.getMerchantAccount().getMerchantAcctNumber(), tot_tran_amount, mcCreditTransferRequest.getMerchantAccount().getCurrency(),
-						seqUniqueID, mcCreditTransferRequest.getRemitterAccount().getAcctNumber(), mcCreditTransferRequest.getRemitterAccount().getAcctName(), "NRT",remarks, "", "", "",new Date(),"PAYABLE");
+						seqUniqueID, mcCreditTransferRequest.getRemitterAccount().getAcctNumber(), mcCreditTransferRequest.getRemitterAccount().getAcctName(), "NRT",remarks, "", "", "",new Date(),"PAYABLE",
+			            "","","");
 				
 			    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -4231,7 +4254,32 @@ public class IPSConnection {
 								!String.valueOf(cimMerchantRequest.getMerchantAccount().getPointOfInitiationFormat()).equals("")) {
 							remInfo.append("01/"+cimMerchantRequest.getMerchantAccount().getPointOfInitiationFormat()+"/");
 						}
-						if(cimMerchantRequest.getMerchantAccount().isConvenienceIndicator()) {
+						
+						if(!String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("null") && 
+								!String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("")){
+							
+							if(String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("02")) {
+								remInfo.append("55/02/56/"+cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
+								
+								Double sumData=Double.parseDouble(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee())+(Double.parseDouble(cimMerchantRequest.getMerchantAccount().getTrAmt()));
+								tot_tran_amount=sumData.toString();
+							}else if(String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("03")) {
+								remInfo.append("55/03/57/"+cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
+							
+								Double convFee=(((Double.parseDouble(cimMerchantRequest.getMerchantAccount().getTrAmt()))*(Double.parseDouble(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee())))/100);
+								Double sumData=convFee+(Double.parseDouble(cimMerchantRequest.getMerchantAccount().getTrAmt()));
+								tot_tran_amount=sumData.toString();
+							
+							}else if(String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("01")) {
+								remInfo.append("55/01/");
+							
+								//Double convFee=(((Double.parseDouble(cimMerchantRequest.getMerchantAccount().getTrAmt()))*(Double.parseDouble(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee())))/100);
+								//Double sumData=convFee+(Double.parseDouble(cimMerchantRequest.getMerchantAccount().getTrAmt()));
+								//tot_tran_amount=sumData.toString();
+							
+							}
+						}
+						/*if(cimMerchantRequest.getMerchantAccount().isConvenienceIndicator()) {
 							
 							if(String.valueOf(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee()).equals("Fixed")) {
 								remInfo.append("55/02/56/"+cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee()+"/");
@@ -4246,7 +4294,7 @@ public class IPSConnection {
 								tot_tran_amount=sumData.toString();
 							
 							}
-						}
+						}*/
 						
 						if(cimMerchantRequest.getAdditionalDataInformation()!=null) {
 							if((!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getBillNumber()).equals("null")&&!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getBillNumber()).equals(""))||
@@ -4306,11 +4354,12 @@ public class IPSConnection {
 								}
 							}
 							
-							remInfo.append("//RQ/");
 							
-							logger.debug("RemitterInfo->"+remInfo.toString());
 						
 						}
+						remInfo.append("//RQ/");
+						
+						logger.debug("RemitterInfo->"+remInfo.toString());
 							
 						
 						ipsDao.RegisterMerchantRTPRecord(psuDeviceID, psuIpAddress, sysTraceNumber,
@@ -4426,13 +4475,15 @@ public class IPSConnection {
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 								sysTraceAuditNumber,outTranList.get(0).getInit_channel_id(),initTranNumber,"True","CR","N","",
 								acctNumber, trAmt, currency,
-								SeqUniqueID,settlReceivableAccount,debtAcctName,"RTP","",rmtInfo,"","",new Date(),"RECEIVABLE");
+								SeqUniqueID,settlReceivableAccount,debtAcctName,"RTP","",rmtInfo,"","",new Date(),"RECEIVABLE",
+								outTranList.get(0).getReq_unique_id(),"","");
 					}else {
 						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 								sysTraceAuditNumber,env.getProperty("cimCBS.incCRChannel"),endToEndID,"True","CR","N","",
 								acctNumber, trAmt, currency,
-								SeqUniqueID,settlReceivableAccount,debtAcctName,"NRT","",rmtInfo,"","",new Date(),"RECEIVABLE");
+								SeqUniqueID,settlReceivableAccount,debtAcctName,"NRT","",rmtInfo,"","",new Date(),"RECEIVABLE",
+								"","","");
 					}
 					/*if(ctgyPurp.equals("100")) {
 						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
@@ -4547,20 +4598,38 @@ public class IPSConnection {
 
 		CimMerchantResponse response=new CimMerchantResponse();
 
-		EncodeQRFormatResponse encodeQRresponse=encodeQRCodeFormat(qrrequest);
-							
-		if(encodeQRresponse.isSuccess()) {
-			String[] displayText= {qrrequest.getMerchantName(),""};
-			String[] titletextDesc= {"Scan here to pay"};
-			String qrImageCode=generateQRCode(encodeQRresponse.getQrMsg(),displayText,titletextDesc,350,350);
-			response.setBase64QR(qrImageCode);
-			return response;
-		}else {
-			//String responseStatus = errorCode.validationError("BIPS17");
+		
+		String status=ipsDao.regMerchantQR(p_id,psuDeviceID,psuIpAddress,channelID,qrrequest);
+		if(status.equals("1")) {
 			
-			System.out.println("QR Code Error:"+encodeQRresponse.getError_desc().get(0).toString());
-			throw new IPSXException("BIPS17:"+encodeQRresponse.getError_desc().get(0));
+		   /* Optional<MerchantQRRegistration> data=merchantQrCodeRegRep.findById(qrrequest.getMerchantAcctInformation().getMerchantAcctNumber());
+		    
+		    if(data.isPresent()) {*/
+		    	EncodeQRFormatResponse encodeQRresponse=encodeQRCodeFormat(qrrequest);
+				
+				if(encodeQRresponse.isSuccess()) {
+					String[] displayText= {qrrequest.getMerchantName(),""};
+					String[] titletextDesc= {"Scan here to pay"};
+					String qrImageCode=generateQRCode(encodeQRresponse.getQrMsg(),displayText,titletextDesc,350,350);
+					response.setBase64QR(qrImageCode);
+					
+					ipsDao.updateMerchantQRData(p_id,"SUCCESS",qrImageCode);
+					return response;
+				}else {
+					//String responseStatus = errorCode.validationError("BIPS17");
+					
+					System.out.println("QR Code Error:"+encodeQRresponse.getError_desc().get(0).toString());
+					ipsDao.updateMerchantQRData(p_id,"FAILURE",encodeQRresponse.getError_desc().get(0).toString());
+					throw new IPSXException("BIPS17:"+encodeQRresponse.getError_desc().get(0));
+				}
+		   /* }else {
+				throw new IPSXException("BIPS17:Merchant Details Not Found");
+		    }*/
+			
+		}else {
+			throw new IPSXException("BIPS500:Internel Error");
 		}
+		
 		
 	}
 
@@ -4711,7 +4780,7 @@ public class IPSConnection {
 		}
 
 		
-		if(qrReuest.isConvenienceIndicator()) {
+		/*if(qrReuest.isConvenienceIndicator()) {
 			if(String.valueOf(qrReuest.getConvenienceIndicatorFeeType()).equals("Fixed")) {
 
 				////Tip or Convenience Indicator(55)
@@ -4721,6 +4790,32 @@ public class IPSConnection {
 				merchantPresentMode.setValueOfConvenienceFeeFixed(qrReuest.getConvenienceIndicatorFee());
 
 			}else if(String.valueOf(qrReuest.getConvenienceIndicatorFeeType()).equals("Percentage")) {			
+
+				//// Tip or Convenience Indicator(55)
+				merchantPresentMode.setTipOrConvenienceIndicator("03");
+
+				//// Convenience Indicator Fee Percentage(57)
+				 merchantPresentMode.setValueOfConvenienceFeePercentage(qrReuest.getConvenienceIndicatorFee());
+			}
+		}*/
+		
+		if(!String.valueOf(qrReuest.getTipOrConvenienceIndicator()).equals("null")&&
+				!String.valueOf(qrReuest.getTipOrConvenienceIndicator()).equals("")) {
+			
+			if(String.valueOf(qrReuest.getTipOrConvenienceIndicator()).equals("01")) {
+
+				////Tip or Convenience Indicator(55)
+				merchantPresentMode.setTipOrConvenienceIndicator("01");
+
+			}else if(String.valueOf(qrReuest.getTipOrConvenienceIndicator()).equals("02")) {
+
+				////Tip or Convenience Indicator(55)
+				merchantPresentMode.setTipOrConvenienceIndicator("02");
+
+				///Convenience Indicator Fee Fixed(56)
+				merchantPresentMode.setValueOfConvenienceFeeFixed(qrReuest.getConvenienceIndicatorFee());
+
+			}else if(String.valueOf(qrReuest.getTipOrConvenienceIndicator()).equals("03")) {			
 
 				//// Tip or Convenience Indicator(55)
 				merchantPresentMode.setTipOrConvenienceIndicator("03");
@@ -4778,7 +4873,7 @@ public class IPSConnection {
 
 				if (!String.valueOf(qrReuest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")
 						&& !String.valueOf(qrReuest.getAdditionalDataInformation().getPurposeOfTransaction())
-								.equals("null")) {
+								.equals("")) {
 					additionalDataFieldValue
 							.setPurposeTransaction(qrReuest.getAdditionalDataInformation().getPurposeOfTransaction());
 
@@ -4805,9 +4900,11 @@ public class IPSConnection {
 
 				}
 				
+				
 				if(!String.valueOf(qrReuest.getAdditionalDataInformation().getTerminalLabel()).equals("null")&&
 						!String.valueOf(qrReuest.getAdditionalDataInformation().getTerminalLabel()).equals("")
 						) {
+					System.out.println(qrReuest.getAdditionalDataInformation().getTerminalLabel());
 					additionalDataFieldValue.setTerminalLabel(qrReuest.getAdditionalDataInformation().getTerminalLabel());
 
 				}
@@ -5033,14 +5130,14 @@ public class IPSConnection {
 						response.setCurrency(Currency.entryOf1(merchantPresentedMode.getTransactionCurrency().getValue()).getCode());
 					}
 			
-			System.out.println(merchantPresentedMode.getTransactionAmount().getValue());
+			//System.out.println(merchantPresentedMode.getTransactionAmount().getValue());
 			if(!String.valueOf(merchantPresentedMode.getTransactionAmount()).equals("null")&&
 			!String.valueOf(merchantPresentedMode.getTransactionAmount()).equals("")){
 				response.setTrAmt(merchantPresentedMode.getTransactionAmount().getValue());
 			}
 			
 			
-			if(!String.valueOf(merchantPresentedMode.getTipOrConvenienceIndicator()).equals("null")&&
+			/*if(!String.valueOf(merchantPresentedMode.getTipOrConvenienceIndicator()).equals("null")&&
 			!String.valueOf(merchantPresentedMode.getTipOrConvenienceIndicator()).equals(""))
 			{
 				if(merchantPresentedMode.getTipOrConvenienceIndicator().getValue().equals("02")) {
@@ -5055,7 +5152,26 @@ public class IPSConnection {
 				}else {
 					response.setConvenienceIndicator(false);
 				}
+			}*/
+			
+			if(!String.valueOf(merchantPresentedMode.getTipOrConvenienceIndicator()).equals("null")&&
+					!String.valueOf(merchantPresentedMode.getTipOrConvenienceIndicator()).equals(""))
+					{
+				if (merchantPresentedMode.getTipOrConvenienceIndicator().getValue().equals("01")) {
+					response.setTipOrConvenienceIndicator("01");
+				} else if (merchantPresentedMode.getTipOrConvenienceIndicator().getValue().equals("02")) {
+					response.setTipOrConvenienceIndicator("02");
+					response.setConvenienceIndicatorFee(
+							merchantPresentedMode.getValueOfConvenienceFeeFixed().getValue());
+				} else if (merchantPresentedMode.getTipOrConvenienceIndicator().getValue().equals("03")) {
+					response.setTipOrConvenienceIndicator("03");
+					response.setConvenienceIndicatorFee(
+							merchantPresentedMode.getValueOfConvenienceFeePercentage().getValue());
+				} else {
+					// response.setConvenienceIndicator(false);
+				}
 			}
+			
 			
 			
 			response.setCountryCode(merchantPresentedMode.getCountryCode().getValue());

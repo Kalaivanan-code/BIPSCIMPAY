@@ -78,6 +78,8 @@ import com.bornfire.entity.IPSFlowTableRep;
 import com.bornfire.entity.Links;
 import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.entity.ManualFndTransferRequest;
+import com.bornfire.entity.MerchantQrGenTable;
+import com.bornfire.entity.MerchantQrGenTablerep;
 import com.bornfire.entity.OTPGenTable;
 import com.bornfire.entity.OTPGenTableRep;
 import com.bornfire.entity.OtherBankDetResponse;
@@ -257,6 +259,9 @@ public class IPSDao {
 	
 	@Autowired
 	Listener listener;
+	
+	@Autowired
+	MerchantQrGenTablerep mercantQrGenTableRep;
 
 	private static final Logger logger = LoggerFactory.getLogger(IPSXClient.class);
 
@@ -1051,7 +1056,7 @@ public class IPSDao {
 						sequence.generateSystemTraceAuditNumber(), tm.getInit_channel_id(), tm.getReq_unique_id(), "False", "", "",
 						"", tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 						tm.getSequence_unique_id(), tm.getIpsx_account(), tm.getIpsx_account_name(), "NRT", "", "",
-						"Failure", ipsxerrorDesc,new Date(),"");
+						"Failure", ipsxerrorDesc,new Date(),"","","","");
 
 				logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -1231,11 +1236,19 @@ public class IPSDao {
 								////Generate RequestUUID
 								String requestUUID=sequence.generateRequestUUId();
 								
+								String init_tran_no="";
+								if(tm.getResv_field1()!=null) {
+									init_tran_no=tm.getResv_field1();
+								}else {
+									init_tran_no=tm.getP_id();
+								}
+								
 								String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 										env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-										sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),tm.getResv_field1(),"False","","","",
+										sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),init_tran_no,"False","","","",
 										tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"RTP","","","FAILURE",ipsxerrorDesc,new Date(),"");
+										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"RTP","","","","",new Date(),"",tm.getReq_unique_id(),
+										"FAILURE",ipsxerrorDesc);
 								
 								logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -3618,10 +3631,27 @@ public class IPSDao {
 			tranManitorTable.setPoint_init(cimMerchantRequest.getMerchantAccount().getPointOfInitiationFormat());
 			tranManitorTable.setMerchant_id(cimMerchantRequest.getMerchantAccount().getMerchantID());
 			tranManitorTable.setMcc(cimMerchantRequest.getMerchantAccount().getMCC());
-			if(cimMerchantRequest.getMerchantAccount().isConvenienceIndicator()) {
+			/*if(!String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("null")&&
+					!String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("")) {
 				tranManitorTable.setConv_flg("Y");
-				tranManitorTable.setConv_fee_type(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFeeType());
+				//tranManitorTable.setConv_fee_type(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFeeType());
 				tranManitorTable.setConv_fee(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee());
+			}*/
+			
+			if(!String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("null")&&
+					!String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("")) {
+				
+				if(String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("01")) {
+					tranManitorTable.setTip_or_conv_indicator("01");
+					tranManitorTable.setTip_amount(cimMerchantRequest.getMerchantAccount().getTipAmt());
+				}else if(String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("02")) {
+					tranManitorTable.setTip_or_conv_indicator("02");
+					tranManitorTable.setConv_amount(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee());
+				}else if(String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("03")) {
+					tranManitorTable.setTip_or_conv_indicator("03");
+					tranManitorTable.setConv_amount(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee());
+				}
+				
 			}
 			
 			tranManitorTable.setMerchant_city(cimMerchantRequest.getMerchantAccount().getCity());
@@ -3930,10 +3960,26 @@ public class IPSDao {
 			tranManitorTable.setPoint_init(cimMerchantRequest.getMerchantAccount().getPointOfInitiationFormat());
 			tranManitorTable.setMerchant_id(cimMerchantRequest.getMerchantAccount().getMerchantID());
 			tranManitorTable.setMcc(cimMerchantRequest.getMerchantAccount().getMCC());
-			if(cimMerchantRequest.getMerchantAccount().isConvenienceIndicator()) {
+			/*if(cimMerchantRequest.getMerchantAccount().isConvenienceIndicator()) {
 				tranManitorTable.setConv_flg("Y");
 				tranManitorTable.setConv_fee_type(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFeeType());
 				tranManitorTable.setConv_fee(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee());
+			}*/
+			
+			if(!String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("null")&&
+					!String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("")) {
+				
+				if(String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("01")) {
+					tranManitorTable.setTip_or_conv_indicator("01");
+					tranManitorTable.setTip_amount(cimMerchantRequest.getMerchantAccount().getTipAmt());
+				}else if(String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("02")) {
+					tranManitorTable.setTip_or_conv_indicator("02");
+					tranManitorTable.setConv_amount(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee());
+				}else if(String.valueOf(cimMerchantRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("03")) {
+					tranManitorTable.setTip_or_conv_indicator("03");
+					tranManitorTable.setConv_amount(cimMerchantRequest.getMerchantAccount().getConvenienceIndicatorFee());
+				}
+				
 			}
 			
 			tranManitorTable.setMerchant_city(cimMerchantRequest.getMerchantAccount().getCity());
@@ -5872,7 +5918,8 @@ public class IPSDao {
 			String tran_type,String isReversal,String tran_numberFromCbs, String acctNumber, String trAmt, String currency,
 			String seqUniqueID,  String debrAcctNumber,
 			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
-			String resv_field1,String res_field2,Date valueDate,String settlType) {
+			String resv_field1,String res_field2,Date valueDate,String settlType,
+			String init_sub_tran_no,String error_code,String error_msg) {
 		
 		String response="0";
 		try {
@@ -5905,6 +5952,9 @@ public class IPSDao {
 			tranCimCBSTable.setResv_field_2(res_field2);
 			tranCimCBSTable.setValue_date(valueDate);
 			tranCimCBSTable.setSettl_acct_type(settlType);
+			tranCimCBSTable.setInit_sub_tran_no(init_sub_tran_no);
+			tranCimCBSTable.setError_code(error_code);
+			tranCimCBSTable.setError_msg(error_msg);
 			tranCimCBSTableRep.save(tranCimCBSTable);
 			response="1";
 
@@ -5981,7 +6031,7 @@ public class IPSDao {
 
 	public boolean checkConvenienceFeeValidation(CIMMerchantDirectFndRequest mcCreditTransferRequest) {
 		
-		if (mcCreditTransferRequest.getMerchantAccount().isConvenienceIndicator()) {
+		/*if (mcCreditTransferRequest.getMerchantAccount().isConvenienceIndicator()) {
 				if (!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFeeType())
 						.equals("null")
 						&& !String.valueOf(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFeeType())
@@ -6024,8 +6074,53 @@ public class IPSDao {
 				}
 			}else {
 				return true;
-			}
+			}*/
 	
+		if(!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("null")&&
+				!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator()).equals("")) {
+			if(mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator().equals("01")||
+					mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator().equals("02")||
+					mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator().equals("03")) {
+				
+				if(!mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator().equals("01")) {
+					if (!String.valueOf(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee())
+							.equals("null")
+							&& !String.valueOf(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee())
+									.equals("")) {
+						if (String.valueOf(mcCreditTransferRequest.getMerchantAccount().getTipOrConvenienceIndicator())
+								.equals("02")) {
+							if(String.valueOf(mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee()).length()<=15){
+								return true;
+
+							}else {
+								throw new IPSXException(errorCode.validationError("BIPS15-5"));
+							}
+						} else {
+							if (String.valueOf(
+									mcCreditTransferRequest.getMerchantAccount().getConvenienceIndicatorFee())
+									.length() <= 5) {
+								return true;
+
+							} else {
+								throw new IPSXException(errorCode.validationError("BIPS15-6"));
+							}
+						}
+						
+					}else {
+						throw new IPSXException(errorCode.validationError("BIPS15-4"));
+					}
+				}else {
+					return true;
+				}
+
+				
+			}else {
+				throw new IPSXException(errorCode.validationError("BIPS15-9"));
+			}
+		}else {
+			return true;
+		}
+
 			
 	
 
@@ -6035,7 +6130,7 @@ public class IPSDao {
 
 	public boolean checkConvenienceFeeValidationQR(CIMMerchantQRcodeRequest mcCreditTransferRequest) {
 		
-		if (mcCreditTransferRequest.isConvenienceIndicator()) {
+		/*if (mcCreditTransferRequest.isConvenienceIndicator()) {
 				if (!String.valueOf(mcCreditTransferRequest.getConvenienceIndicatorFeeType())
 						.equals("null")
 						&& !String.valueOf(mcCreditTransferRequest.getConvenienceIndicatorFeeType())
@@ -6078,9 +6173,53 @@ public class IPSDao {
 				}
 			}else {
 				return true;
-			}
-	
+			}*/
+
 			
+		if(!String.valueOf(mcCreditTransferRequest.getTipOrConvenienceIndicator()).equals("null")&&
+				!String.valueOf(mcCreditTransferRequest.getTipOrConvenienceIndicator()).equals("")) {
+			if(mcCreditTransferRequest.getTipOrConvenienceIndicator().equals("01")||
+					mcCreditTransferRequest.getTipOrConvenienceIndicator().equals("02")||
+					mcCreditTransferRequest.getTipOrConvenienceIndicator().equals("03")) {
+				
+				if(!mcCreditTransferRequest.getTipOrConvenienceIndicator().equals("01")) {
+					if (!String.valueOf(mcCreditTransferRequest.getConvenienceIndicatorFee())
+							.equals("null")
+							&& !String.valueOf(mcCreditTransferRequest.getConvenienceIndicatorFee())
+									.equals("")) {
+						if (String.valueOf(mcCreditTransferRequest.getTipOrConvenienceIndicator())
+								.equals("02")) {
+							if(String.valueOf(mcCreditTransferRequest.getConvenienceIndicatorFee()).length()<=15){
+								return true;
+
+							}else {
+								throw new IPSXException(errorCode.validationError("BIPS15-5"));
+							}
+						} else {
+							if (String.valueOf(
+									mcCreditTransferRequest.getConvenienceIndicatorFee())
+									.length() <= 5) {
+								return true;
+
+							} else {
+								throw new IPSXException(errorCode.validationError("BIPS15-6"));
+							}
+						}
+						
+					}else {
+						throw new IPSXException(errorCode.validationError("BIPS15-4"));
+					}
+				}else {
+					return true;
+				}
+
+				
+			}else {
+				throw new IPSXException(errorCode.validationError("BIPS15-9"));
+			}
+		}else {
+			return true;
+		}
 	
 
 	}
@@ -6168,6 +6307,90 @@ public class IPSDao {
 			}
 		}
 		
+	}
+
+	public String regMerchantQR(String p_id, String psuDeviceID, String psuIpAddress, String channelID,
+			CIMMerchantQRcodeRequest qrrequest) {
+		String status="0";
+		try {
+			MerchantQrGenTable merchantQrGenTable=new MerchantQrGenTable();
+			merchantQrGenTable.setP_id(p_id);
+			merchantQrGenTable.setPsu_device_id(psuDeviceID);
+			merchantQrGenTable.setPsu_ip_address(psuIpAddress);
+			merchantQrGenTable.setPsu_channel(channelID);
+			
+			merchantQrGenTable.setPayload_format_indicator(qrrequest.getPayloadFormatIndiator());
+			merchantQrGenTable.setPoi_method(qrrequest.getPointOfInitiationFormat());
+			merchantQrGenTable.setGlobal_unique_id(qrrequest.getMerchantAcctInformation().getGlobalID());
+			merchantQrGenTable.setPayee_participant_code(qrrequest.getMerchantAcctInformation().getPayeeParticipantCode());
+			merchantQrGenTable.setMerchant_acct_no(qrrequest.getMerchantAcctInformation().getMerchantAcctNumber());
+			merchantQrGenTable.setMerchant_id(qrrequest.getMerchantAcctInformation().getMerchantID());
+			merchantQrGenTable.setMerchant_category_code(qrrequest.getMCC());
+			merchantQrGenTable.setTransaction_crncy(qrrequest.getCurrency());
+			merchantQrGenTable.setTip_or_conv_indicator(qrrequest.getTipOrConvenienceIndicator());
+			merchantQrGenTable.setValue_conv_fees(qrrequest.getConvenienceIndicatorFee());
+			merchantQrGenTable.setCountry(qrrequest.getCountryCode());
+			merchantQrGenTable.setMerchant_name(qrrequest.getMerchantName());
+			merchantQrGenTable.setCity(qrrequest.getCity());
+			merchantQrGenTable.setZip_code(qrrequest.getPostalCode());
+			merchantQrGenTable.setBill_number(qrrequest.getAdditionalDataInformation().getBillNumber());
+			merchantQrGenTable.setMobile(qrrequest.getAdditionalDataInformation().getMobileNumber());
+			merchantQrGenTable.setReference_label(qrrequest.getAdditionalDataInformation().getReferenceLabel());
+			merchantQrGenTable.setCustomer_label(qrrequest.getAdditionalDataInformation().getCustomerLabel());
+			merchantQrGenTable.setTerminal_label(qrrequest.getAdditionalDataInformation().getTerminalLabel());
+			merchantQrGenTable.setPurpose_of_tran(qrrequest.getAdditionalDataInformation().getPurposeOfTransaction());
+			merchantQrGenTable.setStore_label(qrrequest.getAdditionalDataInformation().getStoreLabel());
+			merchantQrGenTable.setLoyalty_number(qrrequest.getAdditionalDataInformation().getLoyaltyNumber());
+			merchantQrGenTable.setAdditional_details(qrrequest.getAdditionalDataInformation().getAddlDataRequest());
+			
+			mercantQrGenTableRep.save(merchantQrGenTable);
+			status="1";
+		}catch(Exception e){
+			status="0";
+		}
+		return status;
+		
+	}
+
+	public void updateMerchantQRData(String p_id, String status, String reason) {
+		Optional<MerchantQrGenTable> data=mercantQrGenTableRep.findById(p_id);
+		if(data.isPresent()) {
+			MerchantQrGenTable subData=data.get();
+			subData.setStatus(status);
+			if(status.equals("SUCCESS")) {
+				byte[] decodedBytesQR = Base64.getDecoder().decode(reason);
+				subData.setQr_code(decodedBytesQR);
+			}else {
+				subData.setReason(reason);
+			}
+			
+			mercantQrGenTableRep.save(subData);
+		}
+		
+	}
+
+	public boolean checkBankAgentExistIncomingMsg(String debtorAgent008) {
+		boolean status =false;
+		
+		try {
+			Optional<BankAgentTable> data=bankAgentTableRep.findByCustomBankName(debtorAgent008);
+			if(data.isPresent()) {
+				if(!data.get().getDel_flg().equals("Y")&&!data.get().getDisable_flg().equals("Y")) {
+					status =true;
+					return status;
+				}else {
+					status =false;
+					return status;
+				}
+			}else {
+				status =false;
+				return status;
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			status=false;
+		}
+		return false;
 	}
 	
 

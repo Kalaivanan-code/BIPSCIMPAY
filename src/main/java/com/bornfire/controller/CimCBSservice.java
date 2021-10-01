@@ -74,6 +74,7 @@ public class CimCBSservice {
 		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
 		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
 		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequestHeader.setCountryCode(env.getProperty("cimCBS.countryCode"));
 		cimCBSrequest.setHeader(cimCBSrequestHeader);
 		
 		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
@@ -102,6 +103,11 @@ public class CimCBSservice {
 		cimCBSrequestData.setDebitRemarks((data.getDebit_remarks()==null)?"":data.getDebit_remarks());
 		cimCBSrequestData.setReservedField1((data.getResv_field_1()==null)?"":data.getResv_field_1());
 		cimCBSrequestData.setReservedField2((data.getResv_field_2()==null)?"":data.getResv_field_2());
+		
+		cimCBSrequestData.setInitatorSubTransactionNo((data.getInit_sub_tran_no()==null)?"":data.getInit_sub_tran_no());
+		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
+		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
+
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 	
@@ -151,6 +157,7 @@ public class CimCBSservice {
 		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
 		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
 		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequestHeader.setCountryCode(env.getProperty("cimCBS.countryCode"));
 		cimCBSrequest.setHeader(cimCBSrequestHeader);
 		
 		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
@@ -179,6 +186,11 @@ public class CimCBSservice {
 		cimCBSrequestData.setDebitRemarks((data.getDebit_remarks()==null)?"":data.getDebit_remarks());
 		cimCBSrequestData.setReservedField1((data.getResv_field_1()==null)?"":data.getResv_field_1());
 		cimCBSrequestData.setReservedField2((data.getResv_field_2()==null)?"":data.getResv_field_2());
+		
+		cimCBSrequestData.setInitatorSubTransactionNo((data.getInit_sub_tran_no()==null)?"":data.getInit_sub_tran_no());
+		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
+		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
+
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 		logger.debug(cimCBSrequest.toString());
@@ -222,6 +234,7 @@ public class CimCBSservice {
 		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
 		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
 		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequestHeader.setCountryCode(env.getProperty("cimCBS.countryCode"));
 		cimCBSrequest.setHeader(cimCBSrequestHeader);
 		
 		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
@@ -243,6 +256,11 @@ public class CimCBSservice {
 		cimCBSrequestData.setDebitRemarks("");
 		cimCBSrequestData.setReservedField1(data.getResv_field_1());
 		cimCBSrequestData.setReservedField2(data.getResv_field_2());
+		
+		cimCBSrequestData.setInitatorSubTransactionNo((data.getInit_sub_tran_no()==null)?"":data.getInit_sub_tran_no());
+		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
+		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
+
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 
@@ -287,6 +305,7 @@ public class CimCBSservice {
 		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
 		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
 		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequestHeader.setCountryCode(env.getProperty("cimCBS.countryCode"));
 		cimCBSrequest.setHeader(cimCBSrequestHeader);
 		
 		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
@@ -315,6 +334,11 @@ public class CimCBSservice {
 		cimCBSrequestData.setDebitRemarks((data.getDebit_remarks()==null)?"":data.getDebit_remarks());
 		cimCBSrequestData.setReservedField1((data.getResv_field_1()==null)?"":data.getResv_field_1());
 		cimCBSrequestData.setReservedField2((data.getResv_field_2()==null)?"":data.getResv_field_2());
+		cimCBSrequestData.setInitatorSubTransactionNo((data.getInit_sub_tran_no()==null)?"":data.getInit_sub_tran_no());
+		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
+		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
+
+		
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 		logger.debug(cimCBSrequest.toString());

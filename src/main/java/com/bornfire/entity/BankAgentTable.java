@@ -22,6 +22,7 @@ public class BankAgentTable {
 	private Date del_time;
 	private String del_flg;
 	private String entity_cre_flg;
+	private String disable_flg;
 	public BankAgentTable() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -114,6 +115,12 @@ public class BankAgentTable {
 	}
 	public void setEntity_cre_flg(String entity_cre_flg) {
 		this.entity_cre_flg = entity_cre_flg;
+	}
+	public String getDisable_flg() {
+		return disable_flg;
+	}
+	public void setDisable_flg(String disable_flg) {
+		this.disable_flg = disable_flg;
 	}
 	
 	

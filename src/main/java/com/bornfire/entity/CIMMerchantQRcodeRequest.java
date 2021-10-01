@@ -34,11 +34,11 @@ public class CIMMerchantQRcodeRequest {
 	private String TrAmt;
 	
 	
-	@NotNull(message="ConvenienceIndicator required(true or false)")
-	private boolean ConvenienceIndicator;
+	//@NotNull(message="ConvenienceIndicator required(true or false)")
+	private String TipOrConvenienceIndicator;
 	
 	
-	private String ConvenienceIndicatorFeeType;
+	//private String ConvenienceIndicatorFeeType;
     
 	private String ConvenienceIndicatorFee;
 	
@@ -108,7 +108,7 @@ public class CIMMerchantQRcodeRequest {
 		TrAmt = trAmt;
 	}
 
-	public boolean isConvenienceIndicator() {
+	/*public boolean isConvenienceIndicator() {
 		return ConvenienceIndicator;
 	}
 
@@ -122,10 +122,20 @@ public class CIMMerchantQRcodeRequest {
 
 	public void setConvenienceIndicatorFeeType(String convenienceIndicatorFeeType) {
 		ConvenienceIndicatorFeeType = convenienceIndicatorFeeType;
-	}
+	}*/
+	
+	
 
 	public String getConvenienceIndicatorFee() {
 		return ConvenienceIndicatorFee;
+	}
+
+	public String getTipOrConvenienceIndicator() {
+		return TipOrConvenienceIndicator;
+	}
+
+	public void setTipOrConvenienceIndicator(String tipOrConvenienceIndicator) {
+		TipOrConvenienceIndicator = tipOrConvenienceIndicator;
 	}
 
 	public void setConvenienceIndicatorFee(String convenienceIndicatorFee) {
@@ -170,6 +180,16 @@ public class CIMMerchantQRcodeRequest {
 
 	public void setAdditionalDataInformation(CIMMerchantQRAddlInfo additionalDataInformation) {
 		AdditionalDataInformation = additionalDataInformation;
+	}
+
+	@Override
+	public String toString() {
+		return "CIMMerchantQRcodeRequest [PayloadFormatIndiator=" + PayloadFormatIndiator + ", PointOfInitiationFormat="
+				+ PointOfInitiationFormat + ", merchantAcctInformation=" + merchantAcctInformation + ", MCC=" + MCC
+				+ ", Currency=" + Currency + ", TrAmt=" + TrAmt + ", TipOrConvenienceIndicator="
+				+ TipOrConvenienceIndicator + ", ConvenienceIndicatorFee=" + ConvenienceIndicatorFee + ", CountryCode="
+				+ CountryCode + ", MerchantName=" + MerchantName + ", City=" + City + ", PostalCode=" + PostalCode
+				+ ", AdditionalDataInformation=" + AdditionalDataInformation + "]";
 	}
 
 }

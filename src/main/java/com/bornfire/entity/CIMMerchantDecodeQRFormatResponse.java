@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({"payloadFormatIndiator","pointOfInitiationFormat","merchantAcctInformation","mcc","currency",
-	"trAmt","convenienceIndicator","convenienceIndicatorFeeType","convenienceIndicatorFee",
+	"trAmt","tipOrConvenienceIndicator","convenienceIndicatorFee",
 	"countryCode","merchantName","city","postalCode","additionalDataInformation"})
 public class CIMMerchantDecodeQRFormatResponse {
 
@@ -22,9 +22,9 @@ public class CIMMerchantDecodeQRFormatResponse {
 	
 	private String TrAmt;
 
-    private boolean ConvenienceIndicator;
+    private String TipOrConvenienceIndicator;
 	
-	private String ConvenienceIndicatorFeeType;
+	//private String ConvenienceIndicatorFeeType;
     
 	private String ConvenienceIndicatorFee;
 	
@@ -86,7 +86,7 @@ public class CIMMerchantDecodeQRFormatResponse {
 		TrAmt = trAmt;
 	}
 
-	public boolean isConvenienceIndicator() {
+	/*public boolean isConvenienceIndicator() {
 		return ConvenienceIndicator;
 	}
 
@@ -101,9 +101,19 @@ public class CIMMerchantDecodeQRFormatResponse {
 	public void setConvenienceIndicatorFeeType(String convenienceIndicatorFeeType) {
 		ConvenienceIndicatorFeeType = convenienceIndicatorFeeType;
 	}
-
+*/
+	
+	
 	public String getConvenienceIndicatorFee() {
 		return ConvenienceIndicatorFee;
+	}
+
+	public String getTipOrConvenienceIndicator() {
+		return TipOrConvenienceIndicator;
+	}
+
+	public void setTipOrConvenienceIndicator(String tipOrConvenienceIndicator) {
+		TipOrConvenienceIndicator = tipOrConvenienceIndicator;
 	}
 
 	public void setConvenienceIndicatorFee(String convenienceIndicatorFee) {

@@ -150,6 +150,11 @@ public class OutwardTransactionMonitoringTable {
 	private String merchant_customer_label;
 	private String merchant_terminal_label;
 	private String merchant_addl_data_request;
+	
+	
+	private String tip_or_conv_indicator;
+	private String tip_amount;
+	private String conv_amount;
 
 	
 	public String getP_id() {
@@ -1054,6 +1059,30 @@ public class OutwardTransactionMonitoringTable {
 
 	public void setMerchant_addl_data_request(String merchant_addl_data_request) {
 		this.merchant_addl_data_request = merchant_addl_data_request;
+	}
+
+	public String getTip_or_conv_indicator() {
+		return tip_or_conv_indicator;
+	}
+
+	public void setTip_or_conv_indicator(String tip_or_conv_indicator) {
+		this.tip_or_conv_indicator = tip_or_conv_indicator;
+	}
+
+	public String getTip_amount() {
+		return tip_amount;
+	}
+
+	public void setTip_amount(String tip_amount) {
+		this.tip_amount = tip_amount;
+	}
+
+	public String getConv_amount() {
+		return conv_amount;
+	}
+
+	public void setConv_amount(String conv_amount) {
+		this.conv_amount = conv_amount;
 	}
 	
 }

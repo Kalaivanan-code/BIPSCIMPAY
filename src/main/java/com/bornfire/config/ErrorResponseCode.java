@@ -95,6 +95,8 @@ public class ErrorResponseCode {
 			responseDesc = "BIPS15:Convenience Indicator required";
 		}else if(code.equals("BIPS15-8")) {
 			responseDesc = "BIPS15:Invalid PayeeParticipantCode";
+		}else if(code.equals("BIPS15-9")) {
+			responseDesc = "BIPS15:Tip Or Convenience Indicator Allowed Input(01,02,03)";
 		}else if(code.equals("BIPS16")) {
 			responseDesc = "BIPS15:Invalid Document Type";
 		}else if(code.equals("BIPS17")) {

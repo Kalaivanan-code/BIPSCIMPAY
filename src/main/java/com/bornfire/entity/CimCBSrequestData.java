@@ -20,6 +20,9 @@ public class CimCBSrequestData {
 	@JsonProperty("initatorTransactionNo")
 	private String initatorTransactionNo;
 	
+	@JsonProperty("initatorSubTransactionNo")
+	private String initatorSubTransactionNo;
+	
 	@JsonProperty("postToCBS")
 	private Boolean PostToCBS;
 	
@@ -65,6 +68,12 @@ public class CimCBSrequestData {
 	
 	@JsonProperty("reservedField2")
 	private String reservedField2;
+	
+	@JsonProperty("errorCode")
+	private String errorCode;
+	
+	@JsonProperty("errorMessage")
+	private String errorMessage;
 
 	public String getTransactionNo() {
 		return transactionNo;
@@ -208,6 +217,33 @@ public class CimCBSrequestData {
 
 	public void setReservedField2(String reservedField2) {
 		this.reservedField2 = reservedField2;
+	}
+	
+	
+
+	public String getInitatorSubTransactionNo() {
+		return initatorSubTransactionNo;
+	}
+
+	public void setInitatorSubTransactionNo(String initatorSubTransactionNo) {
+		this.initatorSubTransactionNo = initatorSubTransactionNo;
+	}
+
+	
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
 	}
 
 	@Override

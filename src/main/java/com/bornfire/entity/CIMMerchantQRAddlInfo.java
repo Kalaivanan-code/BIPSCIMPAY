@@ -75,6 +75,13 @@ public class CIMMerchantQRAddlInfo {
 	public void setAddlDataRequest(String addlDataRequest) {
 		AddlDataRequest = addlDataRequest;
 	}
+	@Override
+	public String toString() {
+		return "CIMMerchantQRAddlInfo [BillNumber=" + BillNumber + ", MobileNumber=" + MobileNumber + ", StoreLabel="
+				+ StoreLabel + ", LoyaltyNumber=" + LoyaltyNumber + ", ReferenceLabel=" + ReferenceLabel
+				+ ", CustomerLabel=" + CustomerLabel + ", TerminalLabel=" + TerminalLabel + ", PurposeOfTransaction="
+				+ PurposeOfTransaction + ", AddlDataRequest=" + AddlDataRequest + "]";
+	}
 
 
 }

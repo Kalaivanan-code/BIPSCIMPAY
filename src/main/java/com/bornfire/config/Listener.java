@@ -138,12 +138,22 @@ public class Listener {
 		String ctgyPurp = "";
 
 		if (instgAgent.equals(creditorAgent)) {
-			ctgyPurp = "101";
+			
+			if(debtorName.equals(creditorName)) {
+				ctgyPurp = "101";
+			}else {
+				ctgyPurp = "103";
+			}
 		} else {
 			if (debtorAgent.equals(creditorAgent)) {
-				ctgyPurp = "102";
-			} else {
 				ctgyPurp = "103";
+			} else {
+				if(isRegiteredPISP) {
+					ctgyPurp = "102";
+				}else {
+					ctgyPurp = "103";
+				}
+				
 			}
 		}
 		return ctgyPurp;

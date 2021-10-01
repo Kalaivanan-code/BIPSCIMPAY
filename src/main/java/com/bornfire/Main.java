@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -37,12 +38,20 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		try {
 			char[] pwdArray = "Passw0rd$".toCharArray();// ->JKS password
-			InputStream ins = new FileInputStream(
+			
+			BigDecimal trAmount008=new BigDecimal("10.00");
+			BigDecimal totInttBkSettlAmtPacs008= new BigDecimal("10.00");
+			if(Double.parseDouble(trAmount008.toString())!=Double.parseDouble(totInttBkSettlAmtPacs008.toString())){
+				System.out.println("Ok");
+			}else {
+				System.out.println("Not");
+			}
+			/*InputStream ins = new FileInputStream(
 					"C:\\softlib\\Certificates\\cim_wildcard.jks");
 			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
 			ks.load(ins, pwdArray);
 			KeyStore.PasswordProtection keyPassword = new KeyStore.PasswordProtection(pwdArray);
-
+*/
 			/*KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
 			keyPairGenerator.initialize(4096);
 			KeyPair keyPair = keyPairGenerator.generateKeyPair();
@@ -56,15 +65,15 @@ public class Main {
 			System.out.println( "PublicKey:"+Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()));
 			System.out.println("Private Key:"+ Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()));
 */
-			KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) ks.getEntry("32303a73-3696-5b6c-a3bd-c8b0b172eb2c", keyPassword);
-			Certificate origCert = privateKeyEntry.getCertificate();
+/*			KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) ks.getEntry("32303a73-3696-5b6c-a3bd-c8b0b172eb2c", keyPassword);
+*/			/*Certificate origCert = privateKeyEntry.getCertificate();
 			PublicKey publickey = origCert.getPublicKey();
 
 			PrivateKey privateKey = privateKeyEntry.getPrivateKey();
 			
 			System.out.println( "PublicKey:"+Base64.getEncoder().encodeToString(publickey.getEncoded()));
 			System.out.println("Private Key:"+ Base64.getEncoder().encodeToString(privateKey.getEncoded()));
-			
+			*/
 			/*System.out.println(DatatypeConverter.printHexBinary(publickey.getEncoded()));
 			System.out.println(DatatypeConverter.printHexBinary(privateKey.getEncoded()));
 			String message = "hello";

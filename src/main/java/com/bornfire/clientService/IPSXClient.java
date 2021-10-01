@@ -61,6 +61,7 @@ import com.bornfire.jaxb.pacs_002_001_010.PaymentTransaction1101;
 import com.bornfire.jaxb.pacs_002_001_010.StatusReason6Choice1;
 import com.bornfire.jaxb.pacs_002_001_010.StatusReasonInformation121;
 import com.bornfire.jaxb.pacs_008_001_08.AccountIdentification4Choice1;
+import com.bornfire.jaxb.pacs_008_001_08.ActiveCurrencyAndAmount;
 import com.bornfire.jaxb.pacs_008_001_08.BranchAndFinancialInstitutionIdentification61;
 import com.bornfire.jaxb.pacs_008_001_08.CashAccount381;
 import com.bornfire.jaxb.pacs_008_001_08.ChargeBearerType1Code;
@@ -71,6 +72,7 @@ import com.bornfire.jaxb.pacs_008_001_08.Document;
 import com.bornfire.jaxb.pacs_008_001_08.FIToFICustomerCreditTransferV08;
 import com.bornfire.jaxb.pacs_008_001_08.FinancialInstitutionIdentification181;
 import com.bornfire.jaxb.pacs_008_001_08.GenericAccountIdentification11;
+import com.bornfire.jaxb.pacs_008_001_08.GroupHeader931;
 import com.bornfire.jaxb.pacs_008_001_08.PartyIdentification1351;
 import com.bornfire.jaxb.pacs_008_001_08.PaymentTypeInformation281;
 import com.bornfire.jaxb.pacs_008_001_08.ReferredDocumentInformation71;
@@ -266,6 +268,17 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			///// Get Orgl Msg ID from IPSX
 			String ipsxMsgID008 = doc008.getFIToFICstmrCdtTrf().getGrpHdr().getMsgId();
 			String seqUniqueID008 = ipsxMsgID008;
+			
+			String totInttBkSettlCcyPacs008 = Optional.ofNullable(doc008)
+					.map(Document::getFIToFICstmrCdtTrf).map(FIToFICustomerCreditTransferV08::getGrpHdr)
+					.map(GroupHeader931::getTtlIntrBkSttlmAmt)
+					.map(ActiveCurrencyAndAmount::getCcy).orElse("");
+			
+			BigDecimal totInttBkSettlAmtPacs008 = Optional.ofNullable(doc008)
+					.map(Document::getFIToFICstmrCdtTrf).map(FIToFICustomerCreditTransferV08::getGrpHdr)
+					.map(GroupHeader931::getTtlIntrBkSttlmAmt)
+					.map(ActiveCurrencyAndAmount::getValue).orElse(new BigDecimal("0"));
+
 
 			List<CreditTransferTransaction391> cdtTrfTxInf = Optional.ofNullable(doc008)
 					.map(Document::getFIToFICstmrCdtTrf).map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf).get();
@@ -511,6 +524,12 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				///// Calling Connect 24 and Validation
 					String responseIncomeMsg = "";
 					if(ctgy_purp_pacs008.equals("102")) {
+						responseIncomeMsg=errorCode.ErrorCode("AG01");
+					}else if(!ipsDao.checkBankAgentExistIncomingMsg(debtorAgent008)){
+						responseIncomeMsg=errorCode.ErrorCode("AG01");
+					}else if(!trCurrency008.equals("MUR")||!totInttBkSettlCcyPacs008.equals("MUR")){
+						responseIncomeMsg=errorCode.ErrorCode("AM11");
+					}else if(Double.parseDouble(trAmount008.toString())!=Double.parseDouble(totInttBkSettlAmtPacs008.toString())){
 						responseIncomeMsg=errorCode.ErrorCode("AG01");
 					}else {
 						responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,

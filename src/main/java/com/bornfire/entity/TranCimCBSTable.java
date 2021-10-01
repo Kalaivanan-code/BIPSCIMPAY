@@ -48,6 +48,10 @@ public class TranCimCBSTable {
 	private Date value_date;
 	private String settl_acct_type;
 	private String tran_charge_type;
+	private String init_sub_tran_no;
+	private String error_code;
+	private String error_msg;
+	
 	public TranCimCBSTable(String sequence_unique_id, String request_uuid, String channel_id,
 			String service_request_version, String service_request_id, Date message_date_time, String tran_no,
 			String init_channel, String init_tran_no, String post_to_cbs, String tran_type, String isreversal,
@@ -292,6 +296,24 @@ public class TranCimCBSTable {
 	}
 	public void setSettl_acct_type(String settl_acct_type) {
 		this.settl_acct_type = settl_acct_type;
+	}
+	public String getInit_sub_tran_no() {
+		return init_sub_tran_no;
+	}
+	public void setInit_sub_tran_no(String init_sub_tran_no) {
+		this.init_sub_tran_no = init_sub_tran_no;
+	}
+	public String getError_code() {
+		return error_code;
+	}
+	public void setError_code(String error_code) {
+		this.error_code = error_code;
+	}
+	public String getError_msg() {
+		return error_msg;
+	}
+	public void setError_msg(String error_msg) {
+		this.error_msg = error_msg;
 	}
 	
 	
