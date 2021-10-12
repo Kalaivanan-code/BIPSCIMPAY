@@ -19,6 +19,7 @@ import org.springframework.core.env.Environment;
 
 import com.bornfire.entity.TranCimCBSTableRep;
 
+import antlr.StringUtils;
 import ch.qos.logback.classic.Logger;
 
 public class SequenceGenerator {
@@ -336,6 +337,57 @@ public class SequenceGenerator {
 	    	UUID customDeviceID=SequenceGenerator.getSha256Uuid(namespace, input);
 	    	return customDeviceID.toString();
 	    }
+	    
+	    
+	public boolean endToEndValidation(String endToEndID,String DbtrAgent,String cdtrAgent) {
+		
+		
+			if(endToEndID.length()==22) {
+				
+				String bankAgent=endToEndID.substring(0,8);
+				String currentData=endToEndID.substring(8,16);
+				String seq=endToEndID.substring(16,22);
+				
+				
+				if((bankAgent.equals(DbtrAgent)||bankAgent.equals(cdtrAgent))&&
+						currentData.equals(new SimpleDateFormat("yyyyMMdd").format(new Date()))) {
+					System.out.println("TEST INWARD TRANSACTION STEP 1");
+					if(isNumeric(seq)) {
+						System.out.println("TEST INWARD TRANSACTION STEP 2");
+						return true;
+					}else {
+						return false;
+					}
+					
+				}else {
+					return false;
+				}
+				
+			}else {
+				return false;
+			}
+	}
+	
+	public  boolean isNumeric(String strNum) {
+	    if (strNum == null) {
+	        return false;
+	    }
+	    try {
+	    	if(strNum.contains(".")) {
+	    		return false;
+	    	}else {
+	    		double d = Double.parseDouble(strNum);
+		        if(d<0) {
+		        	return false;
+		        }else {
+		        	return true;
+		        }
+	    	}
+	        
+	    } catch (NumberFormatException nfe) {
+	        return false;
+	    }
+	}
 	/// Production SMS Server
 	public String sms(String otp, String MobNum) {
 

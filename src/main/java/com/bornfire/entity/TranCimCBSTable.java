@@ -51,6 +51,7 @@ public class TranCimCBSTable {
 	private String init_sub_tran_no;
 	private String error_code;
 	private String error_msg;
+	private String ips_master_ref_id;
 	
 	public TranCimCBSTable(String sequence_unique_id, String request_uuid, String channel_id,
 			String service_request_version, String service_request_id, Date message_date_time, String tran_no,
@@ -314,6 +315,12 @@ public class TranCimCBSTable {
 	}
 	public void setError_msg(String error_msg) {
 		this.error_msg = error_msg;
+	}
+	public String getIps_master_ref_id() {
+		return ips_master_ref_id;
+	}
+	public void setIps_master_ref_id(String ips_master_ref_id) {
+		this.ips_master_ref_id = ips_master_ref_id;
 	}
 	
 	

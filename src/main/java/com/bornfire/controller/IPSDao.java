@@ -16,11 +16,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -87,6 +94,7 @@ import com.bornfire.entity.OutwardTransHistMonitorTable;
 import com.bornfire.entity.OutwardTransHistMonitoringTableRep;
 import com.bornfire.entity.OutwardTransactionMonitoringTable;
 import com.bornfire.entity.OutwardTransactionMonitoringTableRep;
+import com.bornfire.entity.RTPbulkTransferRequest;
 import com.bornfire.entity.RegPublicKey;
 import com.bornfire.entity.RegPublicKeyRep;
 import com.bornfire.entity.RegPublicKeyTmp;
@@ -95,6 +103,7 @@ import com.bornfire.entity.SCAAthenticationResponse;
 import com.bornfire.entity.SCAAuthenticatedData;
 import com.bornfire.entity.SettlementAccountAmtRep;
 import com.bornfire.entity.SettlementAccountAmtTable;
+import com.bornfire.entity.SettlementAccountRep;
 import com.bornfire.entity.SettlementLimitReportRep;
 import com.bornfire.entity.SettlementLimitReportTable;
 import com.bornfire.entity.SettlementReport;
@@ -262,6 +271,9 @@ public class IPSDao {
 	
 	@Autowired
 	MerchantQrGenTablerep mercantQrGenTableRep;
+	
+	@Autowired
+	SettlementAccountRep settlAccountRep;
 
 	private static final Logger logger = LoggerFactory.getLogger(IPSXClient.class);
 
@@ -356,6 +368,8 @@ public class IPSDao {
 		}
 
 	}
+	
+	
 
 	public void updateCBSStatusError(String seqUniqueID, String cbsStatus, String error_desc, String tranStatus) {
 		try {
@@ -374,6 +388,49 @@ public class IPSDao {
 		}
 
 	}
+	
+	public void updateCBSStatusRTP(String sysTraceNumber008, String endToEndID008,String seqUniqueID, String cbsStatus, String tranStatus) {
+		List<OutwardTransactionMonitoringTable> data1=outwardTranRep.getExistData(endToEndID008);
+		if(data1.size()>0) {
+			OutwardTransactionMonitoringTable data2=data1.get(0);
+			
+			data2.setCbs_status(cbsStatus);
+			data2.setCbs_response_time(new Date());
+			// tm.setCbs_status_error("");
+			//data2.setTran_status(tranStatus);
+			
+			
+			outwardTranRep.save(data2);
+		}
+
+	}
+	
+	public void updateCBSStatusRTPError(String sysTraceNumber008, String endToEndID008,String seqUniqueID, String cbsStatus, String error_desc, String tranStatus) {
+		try {
+			
+			
+			List<OutwardTransactionMonitoringTable> data1=outwardTranRep.getExistData(endToEndID008);
+			if(data1.size()>0) {
+				OutwardTransactionMonitoringTable data2=data1.get(0);
+				
+				data2.setCbs_status(cbsStatus);
+				data2.setCbs_status_error(error_desc);
+				data2.setCbs_response_time(new Date());
+				//data2.setTran_status(tranStatus);
+				
+				
+				outwardTranRep.save(data2);
+			}
+			
+			
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+
+	}
+	
+
+
 
 	public void updateIPSXStatus(String seqUniqueID, String ipsStatus, String tranStatus) {
 		try {
@@ -396,13 +453,16 @@ public class IPSDao {
 					tm.setIpsx_status(ipsStatus);
 					tm.setTran_status(tranStatus);
 					tm.setIpsx_response_time(new Date());
+					tranRep.save(tm);
 				} else {
 					if (tm.getResponse_status().equals(TranMonitorStatus.ACSP.toString())) {
-						tm.setTran_status(TranMonitorStatus.SUCCESS.toString());
+						//tm.setTran_status(TranMonitorStatus.SUCCESS.toString());
+						//tranRep.save(tm);
 					} else {
 						tm.setIpsx_status(ipsStatus);
 						tm.setTran_status(tranStatus);
 						tm.setIpsx_response_time(new Date());
+						tranRep.save(tm);
 					}
 				}
 
@@ -1056,7 +1116,7 @@ public class IPSDao {
 						sequence.generateSystemTraceAuditNumber(), tm.getInit_channel_id(), tm.getReq_unique_id(), "False", "", "",
 						"", tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 						tm.getSequence_unique_id(), tm.getIpsx_account(), tm.getIpsx_account_name(), "NRT", "", "",
-						"Failure", ipsxerrorDesc,new Date(),"","","","");
+						"Failure", ipsxerrorDesc,new Date(),"","","","","");
 
 				logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -1243,12 +1303,14 @@ public class IPSDao {
 									init_tran_no=tm.getP_id();
 								}
 								
+								String settlReceivableAccount=settlAccountRep.findById("03").get().getAccount_number();
+
 								String response=registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 										env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
 										sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),init_tran_no,"False","","","",
 										tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-										tm.getSequence_unique_id(),tm.getCim_account(),tm.getIpsx_account_name(),"RTP","","","","",new Date(),"",tm.getReq_unique_id(),
-										"FAILURE",ipsxerrorDesc);
+										tm.getSequence_unique_id(),settlReceivableAccount,tm.getCim_account_name(),"RTP","","","","",new Date(),"RECEIVABLE",tm.getReq_unique_id(),
+										ipsxErrorCode,ipsxerrorDesc,tm.getMaster_ref_id());
 								
 								logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -2805,6 +2867,36 @@ public class IPSDao {
 		return valid;
 	}
 	
+	public boolean invalidRTPCurrencyCode(RTPbulkTransferRequest rtpBulkRequest) {
+		boolean valid = true;
+		try {
+			
+			if(rtpBulkRequest.getRemitterAccount().getCurrencyCode().equals("MUR")&&
+					rtpBulkRequest.getBenAccount().get(0).getCurrencyCode().equals("MUR")) {
+				
+				for(BenAccount benAcc:rtpBulkRequest.getBenAccount()) {
+					if(!benAcc.getCurrencyCode().equals("MUR")) {
+						valid = true;
+						return valid;
+					}else {
+						valid=false;
+					}
+					
+				}
+			}else {
+				valid=true;
+				return valid;
+			}
+			
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			return valid;
+		}
+
+		return valid;
+	}
+
+	
 	public boolean invalidRTPBenBankCode(List<BenAccount> benBankCodeList) {
 		boolean valid = true;
 		try {
@@ -2833,6 +2925,53 @@ public class IPSDao {
 		return valid;
 	}
 	
+	public boolean invalidMerchantRTPCurrencyCode(CIMMerchantDirectFndRequest rtpBulkRequest) {
+		boolean valid = true;
+		try {
+			
+			if(rtpBulkRequest.getRemitterAccount().getCurrencyCode().equals("MUR")&&
+					rtpBulkRequest.getMerchantAccount().getCurrency().equals("MUR")) {
+				
+				valid=false;
+				return valid;
+			}else {
+				valid=true;
+				return valid;
+			}
+			
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			return valid;
+		}
+	}
+	
+	public boolean invalidMerchantRTPBenBankCode(String bankAgent) {
+		boolean valid = true;
+		try {
+			
+			Optional<BankAgentTable> otm = bankAgentTableRep.findByCustomBankName(bankAgent.replace("XXXX", ""));
+
+			if (otm.isPresent()) {
+				if(otm.get().getDel_flg().equals("Y")) {
+					valid = true;
+				}else {
+					valid = false;
+				}
+			} else {
+				valid = true;
+			}
+			
+			
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			return valid;
+		}
+
+		return valid;
+	}
+
+
+	
 	public boolean existDocType(String docType) {
 		boolean valid = true;
 		
@@ -2844,6 +2983,38 @@ public class IPSDao {
 		
 		return valid;
 	}
+	
+	public boolean existConsentSchmType(String schmType) {
+		boolean valid = true;
+		
+		if(schmType.equals("BBAN")||schmType.equals("IPAN")){
+			 valid = false;
+		}else{
+			 valid = true;
+		}
+		
+		return valid;
+	}
+	
+	public boolean existConsentPermission(List<String> permission) {
+		boolean valid = true;
+		
+		for(String data:permission) {
+			if(data.equals(TranMonitorStatus.DebitAccount.toString())||
+					data.equals(TranMonitorStatus.ReadBalances.toString())||
+							data.equals(TranMonitorStatus.ReadAccountsDetails.toString())||
+									data.equals(TranMonitorStatus.ReadTransactionsDetails.toString())){
+				 valid = false;
+			}else{
+				 valid = true;
+				 return valid;
+			}
+		}
+		
+		
+		return valid;
+	}
+	
 	
 	public boolean invalidP_ID(String pid) {
 		boolean valid = false;
@@ -5550,7 +5721,7 @@ public class IPSDao {
 				consentAccessID.setRead_tran_details(list.get(0).getRead_tran_details());
 				consentAccessID.setRead_debit_acct(list.get(0).getRead_debit_acct());
 				consentAccessID.setAcct_name(list.get(0).getAcct_name());
-				
+				consentAccessID.setDel_flg("N");
 				consentOutwardAccessTableRep.save(consentAccessID);
 
 			}else {
@@ -5584,6 +5755,7 @@ public class IPSDao {
 				consentAccessID.setRead_tran_details(list.get(0).getRead_tran_details());
 				consentAccessID.setRead_debit_acct(list.get(0).getRead_debit_acct());
 				consentAccessID.setAcct_name(list.get(0).getAcct_name());
+				consentAccessID.setDel_flg("N");
 				consentOutwardAccessTableRep.save(consentAccessID);
 			}
 			
@@ -5606,6 +5778,7 @@ public class IPSDao {
 		if(data.size()>0) {
 			ConsentOutwardAccessTable consetTable=data.get(0);
 			consetTable.setDel_flg("Y");
+			consetTable.setDel_time(new Date());
 			consentOutwardAccessTableRep.save(consetTable);
 		}
 		
@@ -5919,7 +6092,7 @@ public class IPSDao {
 			String seqUniqueID,  String debrAcctNumber,
 			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
 			String resv_field1,String res_field2,Date valueDate,String settlType,
-			String init_sub_tran_no,String error_code,String error_msg) {
+			String init_sub_tran_no,String error_code,String error_msg,String ipsMasterRefId) {
 		
 		String response="0";
 		try {
@@ -5955,6 +6128,7 @@ public class IPSDao {
 			tranCimCBSTable.setInit_sub_tran_no(init_sub_tran_no);
 			tranCimCBSTable.setError_code(error_code);
 			tranCimCBSTable.setError_msg(error_msg);
+			tranCimCBSTable.setIps_master_ref_id(ipsMasterRefId);
 			tranCimCBSTableRep.save(tranCimCBSTable);
 			response="1";
 
@@ -6392,6 +6566,30 @@ public class IPSDao {
 		}
 		return false;
 	}
+
+	@SuppressWarnings("unchecked")
+	public boolean checkReqUniqueId(RTPbulkTransferRequest rtpBulkTransferRequest) {
+		
+		return rtpBulkTransferRequest.getBenAccount()
+        .stream()
+        .filter(distinctByKeys(BenAccount::getReqUniqueId))
+        .collect(Collectors.toList()).size()==rtpBulkTransferRequest.getBenAccount().size();
+		
+	}
+	
+	private static <T> Predicate<T> distinctByKeys(@SuppressWarnings("unchecked") Function<? super T, ?>... keyExtractors) 
+	  {
+	    final Map<List<?>, Boolean> seen = new ConcurrentHashMap<>();
+	     
+	    return t -> 
+	    {
+	      final List<?> keys = Arrays.stream(keyExtractors)
+	                  .map(ke -> ke.apply(t))
+	                  .collect(Collectors.toList());
+	       
+	      return seen.putIfAbsent(keys, Boolean.TRUE) == null;
+	    };
+	  }
 	
 
 

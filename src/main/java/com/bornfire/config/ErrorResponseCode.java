@@ -21,25 +21,65 @@ public class ErrorResponseCode {
 			responseDesc = "CIM0:Success";
 		} else if (code.equals("AC01")) {
 			responseDesc = "AC01:Incorrect Account Number";
-		} else if (code.equals("AM04")) {
-			responseDesc = "AM04:Insufficient Funds";
-		} else if (code.equals("AG01")) {
-			responseDesc = "AG01:Transaction Forbidden";
+		} else if (code.equals("AC03")) {
+			responseDesc = "AC03:Invalid Creditor Account Number";
+			//responseDesc = "AC03:Invalid Account Number";
 		} else if (code.equals("AC04")) {
 			responseDesc = "AC04:Closed Account Number";
 		} else if (code.equals("AC06")) {
 			responseDesc = "AC06:Blocked Account";
-		} else if (code.equals("AM01")) {
+		} else if (code.equals("AC09")) {
+			responseDesc = "AC09:Invalid Account Currency";
+		}else if (code.equals("AG01")) {
+			responseDesc = "AG01:Transaction Forbidden";
+		}else if (code.equals("AG02")) {
+			responseDesc = "AG02:Invalid Bank Operation Code";
+		}else if (code.equals("AG03")) {
+			responseDesc = "AG03:Transaction Not Supported";
+		}else if (code.equals("AGNT")) {
+			responseDesc = "AGNT:Incorrect Agent";
+		}else if (code.equals("AM01")) {
 			responseDesc = "AM01:Zero Amount";
-		} else if (code.equals("RR01")) {
-			responseDesc = "RR01:Missing Debtor Account or Identification";
+		}else if (code.equals("AM02")) {
+			responseDesc = "AM02:Not Allowed Amount";
+		} else if (code.equals("AM04")) {
+			responseDesc = "AM04:Insufficient Funds";
+		}else if (code.equals("AM05")) {
+			responseDesc = "AM05:Duplication";
+		}else if (code.equals("AM09")) {
+			responseDesc = "AM09:Wrong Amount";
 		}else if (code.equals("AM11")) {
 			responseDesc = "AM11:Invalid Transaction Currency";
-		}else if (code.equals("AC03")) {
-			//responseDesc = "AC03:Invalid Creditor Account Number";
-			responseDesc = "AC03:Invalid Account Number";
-		}else if (code.equals("AC01")) {
-			responseDesc = "AC01:Incorrect Account Number";
+		}else if (code.equals("AM12")) {
+			responseDesc = "AM12:Invalid Amount";
+		}else if (code.equals("ARDT")) {
+			responseDesc = "ARDT:Already Returned Transaction";
+		}else if (code.equals("CUST")) {
+			responseDesc = "CUST:Requested By Customer";
+		}else if (code.equals("DUPL")) {
+			responseDesc = "DUPL:Duplicate Payment";
+		}else if (code.equals("MS02")) {
+			responseDesc = "MS02:Not Specified Reason Customer Generated";
+		}else if (code.equals("MS03")) {
+			responseDesc = "MS03:Not Specified Reason Agent Generated";
+		}else if (code.equals("NOAS")) {
+			responseDesc = "NOAS:No Answer From Customer";
+		}else if (code.equals("NOOR")) {
+			responseDesc = "NOOR:No Original Transaction Received";
+		}else if (code.equals("RC01")) {
+			responseDesc = "RC01:Bank Identifier Incorrect";
+		}else if (code.equals("RR01")) {
+			responseDesc = "RR01:Missing Debtor Account or Identification";
+		}else if (code.equals("RR02")) {
+			responseDesc = "RR02:Missing Debtor Name or Address";
+		}else if (code.equals("RR03")) {
+			responseDesc = "RR03:Missing Creditor Name or Address";
+		}else if (code.equals("RR04")) {
+			responseDesc = "RR04:Regulatory Reason";
+		}else if (code.equals("RR07")) {
+			responseDesc = "RR07:Remittance Information Invalid";
+		}else if (code.equals("TECH")) {
+			responseDesc = "TECH:Technical Problem";
 		}else if (code.equals("AC13")) {
 			responseDesc = "AC13:Invalid Account Type";
 		} else {
@@ -98,7 +138,7 @@ public class ErrorResponseCode {
 		}else if(code.equals("BIPS15-9")) {
 			responseDesc = "BIPS15:Tip Or Convenience Indicator Allowed Input(01,02,03)";
 		}else if(code.equals("BIPS16")) {
-			responseDesc = "BIPS15:Invalid Document Type";
+			responseDesc = "BIPS16:Invalid Document Type";
 		}else if(code.equals("BIPS17")) {
 			responseDesc = "BIPS17:QR Code Format Error";
 		}else if(code.equals("BIPS18")) {
@@ -112,9 +152,27 @@ public class ErrorResponseCode {
 		}else if(code.equals("BIPS23")) {
 			responseDesc = "BIPS23:Invalid Beneficiary Bank Code";
 		}else if(code.equals("BIPS22")){
-			responseDesc = "BIPS22:Remitter Account Number doesn't match with Remitter Bank Code";
-		}else if(code.equals("BIPS23")){
-			responseDesc = "BIPS23:Reversal Transaction already exist";
+			responseDesc = "BIPS22:Registered Remitter Account BankCode doesn't match with Remitter Bank Code";
+		}else if(code.equals("BIPS24")){
+			responseDesc = "BIPS24:Unable to Process Request your rest.Dublicate Request UID";
+		}else if(code.equals("BIPSR1")){
+			responseDesc = "BIPSR1:Fields Required";
+		}else if(code.equals("BIPS25")) {
+			responseDesc = "BIPS25:Unable to Process Request your rest.Dublicate Reference ID:X-REQUEST_ID";
+		}else if(code.equals("BIPS26")) {
+			responseDesc = "BIPS26:Invalid Scheme Name";
+		}else if(code.equals("BIPS27")) {
+			responseDesc = "BIPS27:Invalid Permission";
+		}else if(code.equals("BIPS28")) {
+			responseDesc = "BIPS28:Invalid Consent ID";
+		}else if(code.equals("BIPS29")) {
+			responseDesc = "BIPS29:Invalid Request";
+		}else if(code.equals("BIPS30")){
+			responseDesc = "BIPS30:Reversal Transaction already exist";
+		}else if(code.equals("BIPS31")) {
+			responseDesc = "BIPS31:UnRegistered Remitter Account Exist";
+		}else if(code.equals("BIPS501")) {
+			responseDesc = "BIPS501:Internal Server Problem";
 		}
 		
 		return responseDesc;
@@ -157,9 +215,9 @@ public class ErrorResponseCode {
 		}else if(code.equals("22")) {
 			responseDesc="352:Maximum Amount Not Permitted(must be less than or equal 10000 Only)";
 		}else if(code.equals("23")) {
-			responseDesc="101:No account found with specified CPR/CR";
+			responseDesc="204:No account found with specified CPR/CR";
 		}else if(code.equals("24")) {
-			responseDesc="102:wrong credentials";
+			responseDesc="401:wrong credentials";
 		}else if(code.equals("25")) {
 			responseDesc="500:Internal Server Error";
 		}

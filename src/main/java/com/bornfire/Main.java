@@ -16,11 +16,14 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 
 import javax.crypto.Cipher;
 import javax.xml.bind.DatatypeConverter;
+
+import com.bornfire.config.SequenceGenerator;
 
 import sun.security.x509.AlgorithmId;
 import sun.security.x509.CertificateAlgorithmId;
@@ -46,6 +49,30 @@ public class Main {
 			}else {
 				System.out.println("Not");
 			}
+			
+			String endToEndID="CFSLMUM02021100410461a";
+			if(endToEndID.length()==22) {
+				System.out.println(endToEndID.substring(0,8));
+				
+				
+				SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMdd");
+				String dateFormat=sdf.format(new Date());
+				System.out.println(dateFormat);
+				System.out.println(endToEndID.substring(8,16));
+				System.out.println(endToEndID.substring(16,22));
+
+				
+
+			
+			}
+			
+			if(endToEndValidation(endToEndID,"CFSLMUM0","HGG")) {
+				System.out.println("ok");
+			}else {
+				System.out.println("not");
+			}
+			
+			
 			/*InputStream ins = new FileInputStream(
 					"C:\\softlib\\Certificates\\cim_wildcard.jks");
 			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -88,6 +115,57 @@ public class Main {
 			e.printStackTrace();
 
 		}
+	}
+	
+	
+    
+	private static boolean endToEndValidation(String endToEndID,String DbtrAgent,String cdtrAgent) {
+		
+		
+			if(endToEndID.length()==22) {
+				
+				String bankAgent=endToEndID.substring(0,8);
+				String currentData=endToEndID.substring(8,16);
+				String seq=endToEndID.substring(16,22);
+				
+				
+				if((bankAgent.equals(DbtrAgent)||bankAgent.equals(DbtrAgent))&&
+						currentData.equals(new SimpleDateFormat("yyyyMMdd").format(new Date()))) {
+					
+					if(isNumeric(seq)) {
+						return true;
+					}else {
+						return false;
+					}
+					
+				}else {
+					return false;
+				}
+				
+			}else {
+				return false;
+			}
+	}
+	
+	public static  boolean isNumeric(String strNum) {
+	    if (strNum == null) {
+	        return false;
+	    }
+	    try {
+	    	if(strNum.contains(".")) {
+	    		return false;
+	    	}else {
+	    		double d = Double.parseDouble(strNum);
+		        if(d<0) {
+		        	return false;
+		        }else {
+		        	return true;
+		        }
+	    	}
+	        
+	    } catch (NumberFormatException nfe) {
+	        return false;
+	    }
 	}
 
 // Certificate Details

@@ -11,6 +11,12 @@ private String SchmType;
 	@NotBlank(message="Remitter Account Number Required")
 	private String AcctNumber;
 	
+	@NotBlank(message="Remitter Bank Code Required")
+	private String BankCode;
+	
+	@NotBlank(message="Remitter Currency Code Required")
+	private String CurrencyCode;
+	
 
 	public CIMDirectMerchantRemitterAccount(String schmType, String acctName, String acctNumber) {
 		super();
@@ -61,6 +67,30 @@ private String SchmType;
 
 	public void setAcctName(String acctName) {
 		AcctName = acctName;
+	}
+
+
+
+	public String getBankCode() {
+		return BankCode;
+	}
+
+
+
+	public void setBankCode(String bankCode) {
+		BankCode = bankCode;
+	}
+
+
+
+	public String getCurrencyCode() {
+		return CurrencyCode;
+	}
+
+
+
+	public void setCurrencyCode(String currencyCode) {
+		CurrencyCode = currencyCode;
 	}
 
 }

@@ -105,6 +105,7 @@ import com.bornfire.jaxb.pain_001_001_09.GroupHeader851;
 import com.bornfire.jaxb.pain_001_001_09.PaymentIdentification61;
 import com.bornfire.jaxb.pain_001_001_09.PaymentInstruction301;
 import com.bornfire.jaxb.pain_001_001_09.PaymentTypeInformation261;
+import com.bornfire.jaxb.pain_001_001_09.Purpose2Choice;
 import com.bornfire.jaxb.pain_002_001_10.CustomerPaymentStatusReportV10;
 import com.bornfire.jaxb.pain_002_001_10.DateAndDateTime2Choice1;
 import com.bornfire.jaxb.pain_002_001_10.GenericOrganisationIdentification11;
@@ -2185,6 +2186,12 @@ public class DocumentPacks implements Serializable{
 		id2.setOthr(acctId);
 		cdtrAcct.setId(id2);
 		cdtTrfTxInf.setCdtrAcct(cdtrAcct);
+		
+		
+		Purpose2Choice purp=new Purpose2Choice();
+		//purp.setCd("101");
+		purp.setPrtry("0763");
+		//cdtTrfTxInf.setPurp(purp);
 		
 		com.bornfire.jaxb.pain_001_001_09.RegulatoryReporting31 rgltryRptgList=new com.bornfire.jaxb.pain_001_001_09.RegulatoryReporting31();
 		com.bornfire.jaxb.pain_001_001_09.StructuredRegulatoryReporting31 dtls=new com.bornfire.jaxb.pain_001_001_09.StructuredRegulatoryReporting31();

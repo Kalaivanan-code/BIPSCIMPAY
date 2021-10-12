@@ -95,8 +95,9 @@ public class CimCBSservice {
 	      NumberFormat formatter = new DecimalFormat("0.##");
 
 		cimCBSrequestData.setTransactionAmount(new BigDecimal(data.getTran_amt().toString()));
-			cimCBSrequestData.setTransactionDate(new SimpleDateFormat("dd-MM-yyyy").format(data.getTran_date()));
-		
+			//cimCBSrequestData.setTransactionDate(new SimpleDateFormat("dd-MM-yyyy").format(data.getTran_date()));
+			cimCBSrequestData.setTransactionDate(new SimpleDateFormat("yyyy-MM-dd").format(data.getTran_date()));
+
 		cimCBSrequestData.setTransactionCurrency(data.getTran_currency());
 		cimCBSrequestData.setTransactionParticularCode(data.getTran_particular_code());
 		cimCBSrequestData.setCreditRemarks((data.getCredit_remarks()==null)?"":data.getCredit_remarks());
@@ -107,6 +108,7 @@ public class CimCBSservice {
 		cimCBSrequestData.setInitatorSubTransactionNo((data.getInit_sub_tran_no()==null)?"":data.getInit_sub_tran_no());
 		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
 		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
+		cimCBSrequestData.setIpsMasterRefId((data.getIps_master_ref_id()==null)?"":data.getIps_master_ref_id());
 
 		cimCBSrequest.setData(cimCBSrequestData);
 		
@@ -125,6 +127,8 @@ public class CimCBSservice {
 			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
 
 		} catch (HttpClientErrorException ex) {
+			logger.debug("HttpClient"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
 		} catch (HttpServerErrorException ex) {
@@ -178,7 +182,8 @@ public class CimCBSservice {
 	      NumberFormat formatter = new DecimalFormat("0.##");
 
 		cimCBSrequestData.setTransactionAmount(new BigDecimal(data.getTran_amt().toString()));
-			cimCBSrequestData.setTransactionDate(new SimpleDateFormat("dd-MM-yyyy").format(data.getTran_date()));
+		cimCBSrequestData.setTransactionDate(new SimpleDateFormat("yyyy-MM-dd").format(data.getTran_date()));
+		//cimCBSrequestData.setTransactionDate(listener.convertDateToGreDate(data.getTran_date(),"2"));
 		
 		cimCBSrequestData.setTransactionCurrency(data.getTran_currency());
 		cimCBSrequestData.setTransactionParticularCode(data.getTran_particular_code());
@@ -190,7 +195,7 @@ public class CimCBSservice {
 		cimCBSrequestData.setInitatorSubTransactionNo((data.getInit_sub_tran_no()==null)?"":data.getInit_sub_tran_no());
 		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
 		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
-
+		cimCBSrequestData.setIpsMasterRefId((data.getIps_master_ref_id()==null)?"":data.getIps_master_ref_id());
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 		logger.debug(cimCBSrequest.toString());
@@ -206,12 +211,16 @@ public class CimCBSservice {
 					entity, CimCBSresponse.class);
 			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
 		} catch (HttpClientErrorException ex) {
+			logger.debug("HttpClient"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			logger.info("HTTP Client Error:"+ex.getLocalizedMessage()+"-"+ex.getStatusCode());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
 		} catch (HttpServerErrorException ex) {
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 		}catch (Exception ex) {
+			logger.info("HTTP Ex Error:"+ex.getLocalizedMessage());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
 		}
@@ -260,7 +269,7 @@ public class CimCBSservice {
 		cimCBSrequestData.setInitatorSubTransactionNo((data.getInit_sub_tran_no()==null)?"":data.getInit_sub_tran_no());
 		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
 		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
-
+		cimCBSrequestData.setIpsMasterRefId((data.getIps_master_ref_id()==null)?"":data.getIps_master_ref_id());
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 
@@ -277,6 +286,8 @@ public class CimCBSservice {
 			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
 
 		} catch (HttpClientErrorException ex) {
+			logger.debug("HttpClient"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
 		} catch (HttpServerErrorException ex) {
@@ -326,8 +337,9 @@ public class CimCBSservice {
 	      NumberFormat formatter = new DecimalFormat("0.##");
 
 		cimCBSrequestData.setTransactionAmount(new BigDecimal(data.getTran_amt().toString()));
-			cimCBSrequestData.setTransactionDate(new SimpleDateFormat("dd-MM-yyyy").format(data.getTran_date()));
-		
+			//cimCBSrequestData.setTransactionDate(new SimpleDateFormat("dd-MM-yyyy").format(data.getTran_date()));
+		cimCBSrequestData.setTransactionDate(new SimpleDateFormat("yyyy-MM-dd").format(data.getTran_date()));
+
 		cimCBSrequestData.setTransactionCurrency(data.getTran_currency());
 		cimCBSrequestData.setTransactionParticularCode(data.getTran_particular_code());
 		cimCBSrequestData.setCreditRemarks((data.getCredit_remarks()==null)?"":data.getCredit_remarks());
@@ -337,7 +349,7 @@ public class CimCBSservice {
 		cimCBSrequestData.setInitatorSubTransactionNo((data.getInit_sub_tran_no()==null)?"":data.getInit_sub_tran_no());
 		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
 		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
-
+		cimCBSrequestData.setIpsMasterRefId((data.getIps_master_ref_id()==null)?"":data.getIps_master_ref_id());
 		
 		cimCBSrequest.setData(cimCBSrequestData);
 		

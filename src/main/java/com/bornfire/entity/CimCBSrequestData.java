@@ -74,6 +74,9 @@ public class CimCBSrequestData {
 	
 	@JsonProperty("errorMessage")
 	private String errorMessage;
+	
+	@JsonProperty("ipsMasterRefId")
+	private String ipsMasterRefId;
 
 	public String getTransactionNo() {
 		return transactionNo;
@@ -246,17 +249,29 @@ public class CimCBSrequestData {
 		this.errorMessage = errorMessage;
 	}
 
+	public String getIpsMasterRefId() {
+		return ipsMasterRefId;
+	}
+
+	public void setIpsMasterRefId(String ipsMasterRefId) {
+		this.ipsMasterRefId = ipsMasterRefId;
+	}
+
 	@Override
 	public String toString() {
 		return "CimCBSrequestData [transactionNo=" + transactionNo + ", initiatingChannel=" + initiatingChannel
-				+ ", initatorTransactionNo=" + initatorTransactionNo + ", PostToCBS=" + PostToCBS + ", transactionType="
-				+ transactionType + ", isReversal=" + isReversal + ", transactionNoFromCBS=" + transactionNoFromCBS
-				+ ", customerName=" + customerName + ", fromAccountNo=" + fromAccountNo + ", toAccountNo=" + toAccountNo
+				+ ", initatorTransactionNo=" + initatorTransactionNo + ", initatorSubTransactionNo="
+				+ initatorSubTransactionNo + ", PostToCBS=" + PostToCBS + ", transactionType=" + transactionType
+				+ ", isReversal=" + isReversal + ", transactionNoFromCBS=" + transactionNoFromCBS + ", customerName="
+				+ customerName + ", fromAccountNo=" + fromAccountNo + ", toAccountNo=" + toAccountNo
 				+ ", transactionAmount=" + transactionAmount + ", transactionDate=" + transactionDate
 				+ ", transactionCurrency=" + transactionCurrency + ", transactionParticularCode="
 				+ transactionParticularCode + ", creditRemarks=" + creditRemarks + ", debitRemarks=" + debitRemarks
-				+ ", reservedField1=" + reservedField1 + ", reservedField2=" + reservedField2 + "]";
+				+ ", reservedField1=" + reservedField1 + ", reservedField2=" + reservedField2 + ", errorCode="
+				+ errorCode + ", errorMessage=" + errorMessage + ", ipsMasterRefId=" + ipsMasterRefId + "]";
 	}
+
+	
 	
 
 	

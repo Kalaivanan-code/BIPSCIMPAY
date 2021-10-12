@@ -9,6 +9,8 @@ import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -524,18 +526,25 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				///// Calling Connect 24 and Validation
 					String responseIncomeMsg = "";
 					if(ctgy_purp_pacs008.equals("102")) {
+						logger.info(ctgy_purp_pacs008+"STEP 1");
 						responseIncomeMsg=errorCode.ErrorCode("AG01");
 					}else if(!ipsDao.checkBankAgentExistIncomingMsg(debtorAgent008)){
+						logger.info(ctgy_purp_pacs008+"STEP 2");
 						responseIncomeMsg=errorCode.ErrorCode("AG01");
 					}else if(!trCurrency008.equals("MUR")||!totInttBkSettlCcyPacs008.equals("MUR")){
+						logger.info(ctgy_purp_pacs008+"STEP 3");
 						responseIncomeMsg=errorCode.ErrorCode("AM11");
 					}else if(Double.parseDouble(trAmount008.toString())!=Double.parseDouble(totInttBkSettlAmtPacs008.toString())){
+						logger.info(ctgy_purp_pacs008+"STEP 4");
+						responseIncomeMsg=errorCode.ErrorCode("AG01");
+					}else if(!sequence.endToEndValidation(endToEndID008,debtorAgent008,creditorAgent008)){
+						logger.info(ctgy_purp_pacs008+"STEP 5");
 						responseIncomeMsg=errorCode.ErrorCode("AG01");
 					}else {
-						responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,
+						logger.info(ctgy_purp_pacs008+"STEP 6");
+						responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,creditorAccountName008,
 								trAmount008.toString(), trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
 								debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008);
-
 					}
 					if (responseIncomeMsg.split(":")[0].equals("CIM0")) {
 						logger.info(seqUniqueID008 + " :Connect24 Processed Successfully");
@@ -543,6 +552,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 						CreditStatusType = TranMonitorStatus.ACSP.toString();
 						ipsDao.updateCBSStatus(seqUniqueID008, TranMonitorStatus.CBS_CREDIT_OK.toString(),
+								TranMonitorStatus.IN_PROGRESS.toString());
+						
+						ipsDao.updateCBSStatusRTP(sysTraceNumber008, instr_id_pacs008,seqUniqueID008, TranMonitorStatus.CBS_CREDIT_OK.toString(),
 								TranMonitorStatus.IN_PROGRESS.toString());
 
 					} else {
@@ -556,6 +568,11 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						CreditStatusCode = responseIncomeMsg.split(":")[0];
 						
 						ipsDao.updateCBSStatusError(seqUniqueID008,
+								TranMonitorStatus.CBS_CREDIT_ERROR.toString(),
+								CreditStatusDesc,
+								TranMonitorStatus.FAILURE.toString());
+						
+						ipsDao.updateCBSStatusRTPError(sysTraceNumber008, instr_id_pacs008,seqUniqueID008,
 								TranMonitorStatus.CBS_CREDIT_ERROR.toString(),
 								CreditStatusDesc,
 								TranMonitorStatus.FAILURE.toString());
@@ -1017,6 +1034,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String ipsxMsgID = docPain001_001_09.getCstmrCdtTrfInitn().getGrpHdr().getMsgId();
 			String seqUniqueID = docPain001_001_09.getCstmrCdtTrfInitn().getGrpHdr().getMsgId();
 
+			
 			//// Debtor Account Name
 			String debtorAccount = Optional.ofNullable(docPain001_001_09)
 					.map(com.bornfire.jaxb.pain_001_001_09.Document::getCstmrCdtTrfInitn)
@@ -1505,11 +1523,24 @@ public class IPSXClient extends WebServiceGatewaySupport {
 				
 
 			//// Error Code
-				String tranErrorCode = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
-						.getStsRsnInf().get(0).getRsn().getPrtry();
+				
+				List<com.bornfire.jaxb.pain_002_001_10.StatusReasonInformation121> listPainRsn = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
+						.getStsRsnInf();
+				
+				List<String> rsnList=new ArrayList<String>();
+				List<String> rsnListDesc=new ArrayList<String>();
+				for(com.bornfire.jaxb.pain_002_001_10.StatusReasonInformation121 listData:listPainRsn) {
+					rsnList.add(listData.getRsn().getPrtry());
+					rsnListDesc.add(listData.getAddtlInf().get(0));
+				}
+				/*String tranErrorCode = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
+						.getStsRsnInf().get(0).getRsn().getPrtry();*/
+				String tranErrorCode=String.join("/", rsnList);
+				String tranErrorDesc=String.join("/", rsnListDesc);
+				
 				//// Error Desc
-				String tranErrorDesc = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
-						.getStsRsnInf().get(0).getAddtlInf().get(0);
+				/*String tranErrorDesc = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
+						.getStsRsnInf().get(0).getAddtlInf().get(0);*/
 				
 				logger.info(orglMsgID + " : Update IPSX response RJCT to Table");
 				//if (!userReference.equals("")) {

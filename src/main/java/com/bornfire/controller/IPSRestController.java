@@ -195,10 +195,15 @@ public class IPSRestController {
 		logger.info("Calling Credit Transfer Connection flow Starts");
 		if (ipsDao.invalidP_ID(p_id)) {
 			if (!ipsDao.invalidBankCode(mcCreditTransferRequest.getToAccount().getBankCode())) {
-				response = ipsConnection.createFTConnection(psuDeviceID, psuIpAddress, psuID, 
-						 mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
+				if(mcCreditTransferRequest.getCurrencyCode().equals("MUR")) {
+					response = ipsConnection.createFTConnection(psuDeviceID, psuIpAddress, psuID, 
+							 mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
+				}else {
+					String responseStatus = errorCode.validationError("BIPS8");
+					throw new IPSXException(responseStatus);
+				}
 			} else {
-				String responseStatus = errorCode.validationError("BIPS10");
+				String responseStatus = errorCode.validationError("BIPS23");
 				throw new IPSXException(responseStatus);
 			}
 		} else {
@@ -972,12 +977,24 @@ public class IPSRestController {
 
 		if (ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
 			if (!ipsDao.invalidBankCode(consentOutwardAccessRequest.getBankCode())) {
-
 				if (!ipsDao.existDocType(psuIDType)) {
-					McConsentOutwardAccessResponse response = ipsConnection.outwardConsentAccess(x_request_id,
-							psuDeviceID, psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessRequest);
+					if (!ipsDao.existConsentSchmType(consentOutwardAccessRequest.getAccounts().getShemeName())) {
+						
+						if (!ipsDao.existConsentPermission(consentOutwardAccessRequest.getPermissions())) {
+							McConsentOutwardAccessResponse response = ipsConnection.outwardConsentAccess(x_request_id,
+									psuDeviceID, psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessRequest);
 
-					return new ResponseEntity<McConsentOutwardAccessResponse>(response, HttpStatus.OK);
+							return new ResponseEntity<McConsentOutwardAccessResponse>(response, HttpStatus.OK);
+						}else {
+							String responseStatus = errorCode.validationError("BIPS27");
+							throw new IPSXException(responseStatus);
+						}
+						
+					}else {
+						String responseStatus = errorCode.validationError("BIPS26");
+						throw new IPSXException(responseStatus);
+					}
+					
 				} else {
 					String responseStatus = errorCode.validationError("BIPS16");
 					throw new IPSXException(responseStatus);
@@ -988,7 +1005,7 @@ public class IPSRestController {
 				throw new IPSXException(responseStatus);
 			}
 		} else {
-			String responseStatus = errorCode.validationError("BIPS13");
+			String responseStatus = errorCode.validationError("BIPS25");
 			throw new IPSXException(responseStatus);
 		}
 
@@ -1011,13 +1028,19 @@ public class IPSRestController {
 		logger.debug("Calling Outward Consent Access Authorisation");
 
 		if (ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
-			ConsentOutwardAccessAuthResponse response = ipsConnection.outwardConsentAccessSCAAuth(x_request_id,
-					psuDeviceID, psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessAuthRequest,
-					consentID, authID);
+			if (!ipsDao.existDocType(psuIDType)) {
+				ConsentOutwardAccessAuthResponse response = ipsConnection.outwardConsentAccessSCAAuth(x_request_id,
+						psuDeviceID, psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessAuthRequest,
+						consentID, authID);
 
-			return new ResponseEntity<ConsentOutwardAccessAuthResponse>(response, HttpStatus.OK);
+				return new ResponseEntity<ConsentOutwardAccessAuthResponse>(response, HttpStatus.OK);
+			}else {
+				String responseStatus = errorCode.validationError("BIPS16");
+				throw new IPSXException(responseStatus);
+			}
+			
 		} else {
-			String responseStatus = errorCode.validationError("BIPS13");
+			String responseStatus = errorCode.validationError("BIPS25");
 			throw new IPSXException(responseStatus);
 		}
 
@@ -1041,7 +1064,7 @@ public class IPSRestController {
 
 			return new ResponseEntity<ErrorRestResponse>(response, HttpStatus.OK);
 		} else {
-			String responseStatus = errorCode.validationError("BIPS13");
+			String responseStatus = errorCode.validationError("BIPS25");
 			throw new IPSXException(responseStatus);
 		}
 
@@ -1067,7 +1090,7 @@ public class IPSRestController {
 
 			return new ResponseEntity<ConsentAccountBalance>(response, HttpStatus.OK);
 		} else {
-			String responseStatus = errorCode.validationError("BIPS13");
+			String responseStatus = errorCode.validationError("BIPS25");
 			throw new IPSXException(responseStatus);
 		}
 
@@ -1096,7 +1119,7 @@ public class IPSRestController {
 
 			return new ResponseEntity<TransactionListResponse>(response, HttpStatus.OK);
 		} else {
-			String responseStatus = errorCode.validationError("BIPS13");
+			String responseStatus = errorCode.validationError("BIPS25");
 			throw new IPSXException(responseStatus);
 		}
 
@@ -1121,7 +1144,7 @@ public class IPSRestController {
 
 			return new ResponseEntity<AccountListResponse>(response, HttpStatus.OK);
 		} else {
-			String responseStatus = errorCode.validationError("BIPS13");
+			String responseStatus = errorCode.validationError("BIPS25");
 			throw new IPSXException(responseStatus);
 		}
 
@@ -1147,7 +1170,7 @@ public class IPSRestController {
 
 			return new ResponseEntity<AccountsListAccounts>(response, HttpStatus.OK);
 		} else {
-			String responseStatus = errorCode.validationError("BIPS13");
+			String responseStatus = errorCode.validationError("BIPS25");
 			throw new IPSXException(responseStatus);
 		}
 
@@ -1198,35 +1221,47 @@ public class IPSRestController {
 		logger.info("RTP Bulk Request->" + rtpBulkTransferRequest);
 
 		if (ipsDao.invalidP_ID(p_id)) {
-			if (!ipsDao.invalidBankCode(rtpBulkTransferRequest.getRemitterAccount().getBankCode())) {
-				
-				if(!ipsDao.invalidRTPBenBankCode(rtpBulkTransferRequest.getBenAccount())) {
-					List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
-							.getAccountNumber(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
-					if (regAccList.size() > 0) {
-						
-						if(regAccList.get(0).getReceiverparticipant_bic().equals
-								(ipsDao.getOtherBankAgent(rtpBulkTransferRequest.getRemitterAccount().getBankCode()).getBank_agent())) {
-							response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID,
-									rtpBulkTransferRequest, p_id, channelID, resvfield1, resvfield2);
+			
+			if(ipsDao.checkReqUniqueId(rtpBulkTransferRequest)) {
+				if (!ipsDao.invalidBankCode(rtpBulkTransferRequest.getRemitterAccount().getBankCode())) {
+					if (!ipsDao.invalidRTPCurrencyCode(rtpBulkTransferRequest)) {
+						if(!ipsDao.invalidRTPBenBankCode(rtpBulkTransferRequest.getBenAccount())) {
+							List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
+									.getAccountNumber(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
+							if (regAccList.size() > 0) {
+								
+								if(regAccList.get(0).getReceiverparticipant_bic().equals
+										(ipsDao.getOtherBankAgent(rtpBulkTransferRequest.getRemitterAccount().getBankCode()).getBank_agent())) {
+									response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID,
+											rtpBulkTransferRequest, p_id, channelID, resvfield1, resvfield2);
+								}else {
+									String responseStatus = errorCode.validationError("BIPS22");
+									throw new IPSXException(responseStatus);
+								}
+								
+							} else {
+								String responseStatus = errorCode.validationError("BIPS31");
+								throw new IPSXException(responseStatus);
+							}
 						}else {
-							String responseStatus = errorCode.validationError("BIPS22");
+							String responseStatus = errorCode.validationError("BIPS23");
 							throw new IPSXException(responseStatus);
 						}
-						
-					} else {
-						String responseStatus = errorCode.validationError("BIPS15");
+					}else {
+						String responseStatus = errorCode.validationError("BIPS8");
 						throw new IPSXException(responseStatus);
 					}
-				}else {
-					String responseStatus = errorCode.validationError("BIPS23");
+					
+
+				} else {
+					String responseStatus = errorCode.validationError("BIPS21");
 					throw new IPSXException(responseStatus);
 				}
-
-			} else {
-				String responseStatus = errorCode.validationError("BIPS21");
+			}else {
+				String responseStatus = errorCode.validationError("BIPS24");
 				throw new IPSXException(responseStatus);
 			}
+
 			 
 		} else {
 			String responseStatus = errorCode.validationError("BIPS13");
@@ -1296,14 +1331,29 @@ public class IPSRestController {
 
 		if (ipsDao.checkConvenienceFeeValidation(mcCreditTransferRequest)) {
 			if (ipsDao.invalidP_ID(p_id)) {
-				List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
-						.getAccountNumber(mcCreditTransferRequest.getRemitterAccount().getAcctNumber());
-				if (regAccList.size() > 0) {
-					response = ipsConnection.createMerchantRTPconnection(psuDeviceID, psuIpAddress, psuID,
-							mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
+				if (!ipsDao.invalidBankCode(mcCreditTransferRequest.getRemitterAccount().getBankCode())) {
+					if (!ipsDao.invalidMerchantRTPCurrencyCode(mcCreditTransferRequest)) {
+						if(!ipsDao.invalidMerchantRTPBenBankCode(mcCreditTransferRequest.getMerchantAccount().getPayeeParticipantCode())) {
+							List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
+									.getAccountNumber(mcCreditTransferRequest.getRemitterAccount().getAcctNumber());
+							if (regAccList.size() > 0) {
+								response = ipsConnection.createMerchantRTPconnection(psuDeviceID, psuIpAddress, psuID,
+										mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
 
-				} else {
-					String responseStatus = errorCode.validationError("BIPS15");
+							} else {
+								String responseStatus = errorCode.validationError("BIPS31");
+								throw new IPSXException(responseStatus);
+							}
+						}else {
+							String responseStatus = errorCode.validationError("BIPS23");
+							throw new IPSXException(responseStatus);
+						}
+					}else {
+						String responseStatus = errorCode.validationError("BIPS8");
+						throw new IPSXException(responseStatus);
+					}
+				}else {
+					String responseStatus = errorCode.validationError("BIPS21");
 					throw new IPSXException(responseStatus);
 				}
 
