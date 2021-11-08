@@ -138,12 +138,12 @@ public class Listener {
 		String ctgyPurp = "";
 
 		if (instgAgent.equals(creditorAgent)) {
-			
-			if(debtorName.toLowerCase().equals(creditorName.toLowerCase())) {
+			ctgyPurp = "101";
+			/*if(debtorName.toLowerCase().equals(creditorName.toLowerCase())) {
 				ctgyPurp = "101";
 			}else {
 				ctgyPurp = "103";
-			}
+			}*/
 		} else {
 			if (debtorAgent.equals(creditorAgent)) {
 				ctgyPurp = "103";

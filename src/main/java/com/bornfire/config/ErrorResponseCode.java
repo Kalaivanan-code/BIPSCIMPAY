@@ -171,6 +171,8 @@ public class ErrorResponseCode {
 			responseDesc = "BIPS30:Reversal Transaction already exist";
 		}else if(code.equals("BIPS31")) {
 			responseDesc = "BIPS31:UnRegistered Remitter Account Exist";
+		}else if(code.equals("BIPS32")) {
+			responseDesc = "BIPS32:Document ID doesn't Exist";
 		}else if(code.equals("BIPS501")) {
 			responseDesc = "BIPS501:Internal Server Problem";
 		}

@@ -1368,107 +1368,141 @@ public class IPSConnection {
 			logger.info("Register User Publickey data to table");
 
 			//// update Table
+			
+			String res = ipsDao.consentDataRegister(x_request_id, psuDeviceID, psuIPAddress, psuID, psuIDCountry,
+					psuIDType, sender_participant_bic, sender_participant_member_id, receiver_participant_bic,
+					receiver_participant_member_id, consentID, "");
 
-			String status = ipsDao.createConsentIDAccess(x_request_id, sender_participant_bic,sender_participant_member_id,
-					receiver_participant_bic, receiver_participant_member_id, psuDeviceID, psuIPAddress, psuID,psuIDCountry,
-					psuIDType,consentRequest,consentID, authID, otp);
+			if (res.equals("0")) {
+				String status = ipsDao.createConsentIDAccess(x_request_id, sender_participant_bic,sender_participant_member_id,
+						receiver_participant_bic, receiver_participant_member_id, psuDeviceID, psuIPAddress, psuID,psuIDCountry,
+						psuIDType,consentRequest,consentID, authID, otp);
 
-			//// Send Response
-			if (status.equals("0")) {
-				ResponseEntity<AccountContactResponse> connect24ResponseAccContactExist = connect24Service
-						.getAccountContact(psuDeviceID, psuIPAddress, psuID, consentRequest.getAccounts().get(0).getIdentification());
+				//// Send Response
+				if (status.equals("0")) {
+					
+					ipsDao.updateconsentPublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("10"));
+					throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+					
+					/*ResponseEntity<AccountContactResponse> connect24ResponseAccContactExist = connect24Service
+							.getAccountContact(psuDeviceID, psuIPAddress, psuID, consentRequest.getAccounts().get(0).getIdentification());
 
-				if (connect24ResponseAccContactExist.getStatusCode() == HttpStatus.OK) {
+					if (connect24ResponseAccContactExist.getStatusCode() == HttpStatus.OK) {
 
-					if (connect24ResponseAccContactExist.getBody().getStatus().equals("0")) {
+						if (connect24ResponseAccContactExist.getBody().getStatus().equals("0")) {
 
-						if (connect24ResponseAccContactExist.getBody().getSchmType().equals("SBA")
-								|| connect24ResponseAccContactExist.getBody().getSchmType().equals("CAA")
-								|| connect24ResponseAccContactExist.getBody().getSchmType().equals("ODA")) {
+							if (connect24ResponseAccContactExist.getBody().getSchmType().equals("SBA")
+									|| connect24ResponseAccContactExist.getBody().getSchmType().equals("CAA")
+									|| connect24ResponseAccContactExist.getBody().getSchmType().equals("ODA")) {
 
-							if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("A")) {
+								if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("A")) {
 
-								if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
+									if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("bob.crncycode"))) {
 
-									if (connect24ResponseAccContactExist.getBody().getFrezCode().equals("T")
-											|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("C")
-											|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("D")) {
-										ipsDao.updatePublicKeyAccountStatus(authID,
-												errorCode.ErrorCodeRegistration("10"));
-										throw new IPSXRestException(errorCode.ErrorCodeRegistration("10"));
-									} else {
-										if (connect24ResponseAccContactExist.getBody().getDocNumber().equals(psuID)
-												&& connect24ResponseAccContactExist.getBody().getPhoneNumber()
-														.equals(consentRequest.getPhoneNumber())) {
-
-											//// Send Response
-
-											response = new ConsentAccessResponse();
-											response.setConsentID(consentID);
-											response.setStatus(TranMonitorStatus.AwaitingAuthorisation.toString());
-											response.setStatusUpdateDateTime(listener.getxmlGregorianCalender("0"));
-											response.setCreationDateTime(listener.getxmlGregorianCalender("0"));
-							
-											response.setPermissions(consentRequest.getPermissions());
-											//response.setExpirationDateTime(consentRequest.getExpirationDateTime());
-											//response.setTransactionFromDateTime(consentRequest.getTransactionFromDateTime());
-											//response.setTransactionToDateTime(consentRequest.getTransactionToDateTime());
-											
-											Links links = new Links();
-											links.setSelf("/accounts-consents/" + consentID);
-											links.setAuthoriseTransaction(
-													"/accounts-consents/" + consentID + "/authorisations/" + authID);
-											response.setLinks(links);
-											
-											/////Calling OTP Server
-											logger.info("Calling OTP server ");
-											String msgResponse=sequence.sms(otp, consentRequest.getPhoneNumber());
-											logger.info("OTP Response:"+msgResponse);
-											return response;
-
+										if (connect24ResponseAccContactExist.getBody().getFrezCode().equals("T")
+												|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("C")
+												|| connect24ResponseAccContactExist.getBody().getFrezCode().equals("D")) {
+											ipsDao.updateconsentPublicKeyAccountStatus(authID,
+													errorCode.ErrorCodeRegistration("10"));
+											throw new IPSXRestException(errorCode.ErrorCodeRegistration("10"));
 										} else {
-											ipsDao.updatePublicKeyAccountStatus(authID,
-													errorCode.ErrorCodeRegistration("8"));
-											throw new IPSXRestException(errorCode.ErrorCodeRegistration("8"));
+											if (connect24ResponseAccContactExist.getBody().getDocNumber().equals(psuID)
+													&& connect24ResponseAccContactExist.getBody().getPhoneNumber()
+															.equals(consentRequest.getPhoneNumber())) {
+
+												//// Send Response
+
+												response = new ConsentAccessResponse();
+												response.setConsentID(consentID);
+												response.setStatus(TranMonitorStatus.AwaitingAuthorisation.toString());
+												response.setStatusUpdateDateTime(listener.getxmlGregorianCalender("0"));
+												response.setCreationDateTime(listener.getxmlGregorianCalender("0"));
+								
+												List<String> permissionsList=new ArrayList<String>();
+												
+												for (String permi : consentRequest.getPermissions()) {
+													if (permi.equals(TranMonitorStatus.ReadBalances.toString())) {
+														permissionsList.add(TranMonitorStatus.ReadBalances.toString());
+													} else if (permi.equals(TranMonitorStatus.ReadAccountsDetails.toString())) {
+//														permissionsList.add(TranMonitorStatus.ReadAccountsDetails.toString());
+													} else if (permi.equals(TranMonitorStatus.ReadTransactionsDetails.toString())) {
+//														permissionsList.add(TranMonitorStatus.ReadTransactionsDetails.toString());
+													} else if (permi.equals(TranMonitorStatus.DebitAccount.toString())) {
+														permissionsList.add(TranMonitorStatus.DebitAccount.toString());
+													}
+												}
+												
+												response.setPermissions(permissionsList);
+												
+												if (consentRequest.getExpirationDateTime() != null) {
+													response.setExpirationDateTime(consentRequest.getExpirationDateTime());
+												}
+												
+												if (consentRequest.getTransactionFromDateTime() != null) {
+													response.setTransactionFromDateTime(consentRequest.getTransactionFromDateTime());
+												}
+												if (consentRequest.getTransactionToDateTime() != null) {
+													response.setTransactionToDateTime(consentRequest.getTransactionToDateTime());
+												}
+												
+												Links links = new Links();
+												links.setSelf("/accounts-consents/" + consentID);
+												links.setAuthoriseTransaction(
+														"/accounts-consents/" + consentID + "/authorisations/" + authID);
+												response.setLinks(links);
+												
+												return response;
+
+											} else {
+												ipsDao.updateconsentPublicKeyAccountStatus(authID,
+														errorCode.ErrorCodeRegistration("8"));
+												throw new IPSXRestException(errorCode.ErrorCodeRegistration("8"));
+											}
 										}
+
+										//// Check Customer Data exist
+
+									} else {
+										ipsDao.updateconsentPublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("7"));
+										throw new IPSXRestException(errorCode.ErrorCodeRegistration("7"));
 									}
 
-									//// Check Customer Data exist
-
 								} else {
-									ipsDao.updatePublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("7"));
-									throw new IPSXRestException(errorCode.ErrorCodeRegistration("7"));
-								}
+									if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("C")) {
+										ipsDao.updateconsentPublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("9"));
+										throw new IPSXRestException(errorCode.ErrorCodeRegistration("9"));
+									} else {
+										ipsDao.updateconsentPublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("10"));
+										throw new IPSXRestException(errorCode.ErrorCodeRegistration("10"));
+									}
 
+								}
 							} else {
-								if (connect24ResponseAccContactExist.getBody().getAccountStatus().equals("C")) {
-									ipsDao.updatePublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("9"));
-									throw new IPSXRestException(errorCode.ErrorCodeRegistration("9"));
-								} else {
-									ipsDao.updatePublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("10"));
-									throw new IPSXRestException(errorCode.ErrorCodeRegistration("10"));
-								}
-
+								ipsDao.updateconsentPublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("7"));
+								throw new IPSXRestException(errorCode.ErrorCodeRegistration("7"));
 							}
+
 						} else {
-							ipsDao.updatePublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("7"));
+							ipsDao.updateconsentPublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("7"));
 							throw new IPSXRestException(errorCode.ErrorCodeRegistration("7"));
 						}
 
 					} else {
-						ipsDao.updatePublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("7"));
-						throw new IPSXRestException(errorCode.ErrorCodeRegistration("7"));
-					}
+						ipsDao.updateconsentPublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("0"));
+						throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+
+					}*/
 
 				} else {
-					ipsDao.updatePublicKeyAccountStatus(authID, errorCode.ErrorCodeRegistration("0"));
 					throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
-
 				}
-
 			} else {
+				//// Update consent Inquiry Table
+				//ipsDao.updateConsentData(x_request_id, "Failure", errorCode.ErrorCodeRegistration("0"));
 				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
 			}
+
+
 
 		} catch (HttpClientErrorException e) {
 			logger.error(e.getMessage());
@@ -1476,32 +1510,85 @@ public class IPSConnection {
 		}
 	}
 	
+	
+	
 	public SCAAthenticationResponse authConsentAccessID(String x_request_id, String sender_participant_bic,
 			String sender_participant_member_id, String receiver_participant_bic, String receiver_participant_member_id,
 			String psuDeviceID, String psuIPAddress, String psuID, String psuIDCountry, String psuIDType,
 			SCAAuthenticatedData scaAuthenticatedData, String consentID, String authID, String cryptogram) {
-		SCAAthenticationResponse response = ipsDao.updateSCAConsentAccess(scaAuthenticatedData, consentID, authID,cryptogram);
-		return response;
+		
+		String res = ipsDao.consentDataAuthorisation(x_request_id, psuDeviceID, psuIPAddress, psuID, psuIDCountry,
+				psuIDType, sender_participant_bic, sender_participant_member_id, receiver_participant_bic,
+				receiver_participant_member_id, consentID, "");
+		if (res.equals("0")) {
+			/*SCAAthenticationResponse response = ipsDao.updateSCAConsentAccess(x_request_id, sender_participant_bic,
+					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, scaAuthenticatedData, consentID, authID,cryptogram);
+			return response;*/
+			ipsDao.updateConsentData(x_request_id, "Failure", errorCode.ErrorCodeRegistration("1"));
+
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+		} else {
+			////Update consent Inquiry Table
+			//ipsDao.updateConsentData(x_request_id, "Failure", errorCode.ErrorCodeRegistration("0"));
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
+		}
+		
+		
 	}
 	
-	public String deleteConsentAccessID(String x_request_id, String sender_participant_bic,
+	public ErrorRestResponse deleteConsentAccessID(String x_request_id, String sender_participant_bic,
 			String sender_participant_member_id, String receiver_participant_bic, String receiver_participant_member_id,
-			String psuDeviceID, String psuIPAddress, String psuID, String psuIDCountry, String psuIDType,
-			SCAAuthenticatedData scaAuthenticatedData, String consentID) {
+			String psuDeviceID, String psuIPAddress, String psuID, String psuIDCountry, String psuIDType, String consentID) {
 		try {
-			Optional<ConsentAccessTable> regPublicKeyotm = consentAccessTableRep.findById(consentID);
+			
+			String res = ipsDao.consentDataDelete(x_request_id, psuDeviceID, psuIPAddress, psuID, psuIDCountry,
+					psuIDType, sender_participant_bic, sender_participant_member_id, receiver_participant_bic,
+					receiver_participant_member_id, consentID, "");
 
-			if (regPublicKeyotm.isPresent()) {
-
-				ConsentAccessTable regPublicKey=regPublicKeyotm.get();
-				regPublicKey.setDel_flg("Y");
-				regPublicKey.setDel_user("SYSTEM");
-				regPublicKey.setDel_time(new Date());
+			if (res.equals("0")) {
 				
-				return "Success";
-			} else {
+				ipsDao.updateConsentData(x_request_id, "Failure", errorCode.ErrorCodeRegistration("1"));
 				throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+				/*Optional<ConsentAccessTable> regPublicKeyotm = consentAccessTableRep.findById(consentID);
+
+				if (regPublicKeyotm.isPresent()) {
+
+					if (regPublicKeyotm.get().getPsu_device_id().equals(psuDeviceID)) {
+						ConsentAccessTable regPublicKey=regPublicKeyotm.get();
+						
+						if(regPublicKey.getDel_flg().equals("Y")){
+							ipsDao.updateConsentData(x_request_id, "Failure", errorCode.ErrorCodeRegistration("13"));
+							throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
+						}else{
+							regPublicKey.setDel_flg("Y");
+							regPublicKey.setDel_user("SYSTEM");
+							regPublicKey.setDel_time(new Date());
+							consentAccessTableRep.save(regPublicKey);
+							
+							ErrorRestResponse errorResponse=new ErrorRestResponse();
+							errorResponse.setErrorCode(0);
+							errorResponse.setDescription("Request successfully processed");;
+							return errorResponse;
+						}
+						
+					}else{
+						ipsDao.updateConsentData(x_request_id, "Failure", errorCode.ErrorCodeRegistration("1"));
+						throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+					}
+					
+					
+				} else {
+					ipsDao.updateConsentData(x_request_id, "Failure", errorCode.ErrorCodeRegistration("13"));
+					throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
+				}*/
+			} else {
+				//// Update consent Inquiry Table
+				ipsDao.updateConsentData(x_request_id, "Failure", errorCode.ErrorCodeRegistration("0"));
+				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
 			}
+
+			
 			
 		} catch (HttpClientErrorException e) {
 			logger.error(e.getMessage());
@@ -1522,7 +1609,10 @@ public class IPSConnection {
 		ConsentAccountBalance consentAcctBalance=null;
 
 		if(status.equals("0")) {
-			String response=ipsDao.checkConsentAccountExist(x_request_id, sender_participant_bic,
+			
+			ipsDao.updateConsentData(x_request_id,"Failure",errorCode.ErrorCodeRegistration("1"));
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+			/*String response=ipsDao.checkConsentAccountExist(x_request_id, sender_participant_bic,
 					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID,accountID,cryptogram);
 			
@@ -1543,8 +1633,8 @@ public class IPSConnection {
 					amount.setCurrency(balannce.getBody().getTranCurrency());
 					readAcctBalance.setAmount(amount);
 					
-					readAcctBalance.setCreditDebitIndicator(TranMonitorStatus.Credit.toString());
-					readAcctBalance.setType(TranMonitorStatus.InterimAvailable.toString());
+					readAcctBalance.setCreditDebitIndicator(TranMonitorStatus.Credit);
+					readAcctBalance.setType(TranMonitorStatus.InterimAvailable);
 					
 					readAcctBalance.setDateTime(listener.getxmlGregorianCalender("0"));
 					
@@ -1561,6 +1651,16 @@ public class IPSConnection {
 				    ////Update consent Inquiry Table
 					ipsDao.updateConsentData(x_request_id,"Success","");
 					
+					//Creating the ObjectMapper object
+				      ObjectMapper mapper = new ObjectMapper();
+				    //Converting the Object to JSONString
+				      String jsonString = "";
+					try {
+						jsonString = mapper.writeValueAsString(consentAcctBalance);
+						logger.debug(jsonString);
+					} catch (JsonProcessingException e) {
+						e.printStackTrace();
+					}
 					return consentAcctBalance;
 				} else {
 					ipsDao.updateNonCBSData(consentID,x_request_id,accountID,sequence.generateSystemTraceAuditNumber(),
@@ -1575,7 +1675,7 @@ public class IPSConnection {
 			    ////Update consent Inquiry Table
 				ipsDao.updateConsentData(x_request_id,"Failure",errorCode.ErrorCodeRegistration("0"));
 				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
-			}
+			}*/
 		}else {
 			////Update consent Inquiry Table
 			ipsDao.updateConsentData(x_request_id,"Failure",errorCode.ErrorCodeRegistration("0"));
@@ -1594,8 +1694,9 @@ public class IPSConnection {
 				receiver_participant_bic, receiver_participant_member_id,consentID);
 		
 		if(status.equals("0")) {
-			
-			String response=ipsDao.checkConsentAccountExist(x_request_id, sender_participant_bic,
+			ipsDao.updateConsentData(x_request_id,"Failure",errorCode.ErrorCodeRegistration("1"));
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+			/*String response=ipsDao.checkConsentAccountExist(x_request_id, sender_participant_bic,
 					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID,"",cryptogram);
 			
@@ -1607,7 +1708,7 @@ public class IPSConnection {
 				 ////Update consent Inquiry Table
 				ipsDao.updateConsentData(x_request_id,"Failure",errorCode.ErrorCodeRegistration("0"));
 				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
-			}
+			}*/
 			
 		}else {
 		    ////Update consent Inquiry Table
@@ -1626,8 +1727,9 @@ public class IPSConnection {
 				receiver_participant_bic, receiver_participant_member_id,consentID,accountID);
 		
 		if(status.equals("0")) {
-			
-			String response=ipsDao.checkConsentAccountExist(x_request_id, sender_participant_bic,
+			ipsDao.updateConsentData(x_request_id,"Failure",errorCode.ErrorCodeRegistration("1"));
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+			/*String response=ipsDao.checkConsentAccountExist(x_request_id, sender_participant_bic,
 					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID,accountID,cryptogram);
 			
@@ -1639,7 +1741,7 @@ public class IPSConnection {
 				 ////Update consent Inquiry Table
 				ipsDao.updateConsentData(x_request_id,"Failure",errorCode.ErrorCodeRegistration("0"));
 				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
-			}
+			}*/
 			
 		}else {
 		    ////Update consent Inquiry Table
@@ -1658,8 +1760,9 @@ public class IPSConnection {
 				receiver_participant_bic, receiver_participant_member_id,consentID,accountID);
 		
 		if(status.equals("0")) {
-			
-			String response=ipsDao.checkConsentAccountExist(x_request_id, sender_participant_bic,
+			ipsDao.updateConsentData(x_request_id,"Failure",errorCode.ErrorCodeRegistration("1"));
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+			/*String response=ipsDao.checkConsentAccountExist(x_request_id, sender_participant_bic,
 					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID,accountID,cryptogram);
 			
@@ -1671,7 +1774,7 @@ public class IPSConnection {
 				 ////Update consent Inquiry Table
 				ipsDao.updateConsentData(x_request_id,"Failure",errorCode.ErrorCodeRegistration("0"));
 				throw new IPSXRestException(errorCode.ErrorCodeRegistration("0"));
-			}
+			}*/
 			
 		}else {
 		    ////Update consent Inquiry Table
@@ -1682,7 +1785,7 @@ public class IPSConnection {
 	
 	////RTP Transaction
 	////MYt Initiate the RTP request,debit Customer Account and credit SettleAccount
-	public String rtpFundTransferConnection(String sysTraceAuditNumber, String acctNumber, String ccy, String trAmt,
+	/*public String rtpFundTransferConnection(String sysTraceAuditNumber, String acctNumber, String ccy, String trAmt,
 			String seqUniqueID, String jwtToken, String creditorAccount, String endToEndID, String debtorAccountName,String trRmks,SendT request) {
 
 		String tranResponse = "";
@@ -1721,7 +1824,7 @@ public class IPSConnection {
 											"Transaction forbidden on this type of account/"
 													+ "TotalFreeze or Debit Freeze",
 											TranMonitorStatus.FAILURE.toString());
-									tranResponse = errorCode.ErrorCode("BOB119");
+									tranResponse = errorCode.ErrorCode("AG01");
 								} else {
 
 									if (connect24ResponseAccContactExist.getBody().getCurrencyCode().equals(env.getProperty("cim.crncycode"))) {
@@ -1745,7 +1848,7 @@ public class IPSConnection {
 													logger.info(seqUniqueID
 															+ ": Connect 24 Fund Transfer Debited successfully");
 
-													tranResponse = errorCode.ErrorCode("BOB0");
+													tranResponse = errorCode.ErrorCode("CIM0");
 
 												} else {
 													logger.info(seqUniqueID
@@ -1767,7 +1870,7 @@ public class IPSConnection {
 														TranMonitorStatus.VALIDATION_ERROR.toString(),
 														"Technical Problem/Cryptogram Failed",
 														TranMonitorStatus.FAILURE.toString());
-												tranResponse = errorCode.ErrorCode("BOB500");
+												tranResponse = errorCode.ErrorCode("CIM500");
 											}
 										} else {
 											logger.info(seqUniqueID + ":Invalid Currency Code ");
@@ -1876,7 +1979,7 @@ public class IPSConnection {
 
 		return tranResponse;
 	}
-
+*/
 	
 	////Validate JWT Token
 	////In Every RTP Tran Message having Authentication , We validate the Token already registered.
@@ -3233,6 +3336,7 @@ public class IPSConnection {
 										psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessAuthRequest, sender_participant_bic,sender_participant_member_id,
 										receiver_participant_bic, receiver_participant_member_id,consentID,authID,consentAccessResponse);
 								
+								System.out.println("HII"+response.toString());
 								return response;
 								
 							} else {
@@ -3370,7 +3474,7 @@ public class IPSConnection {
 			
 			String cryptogram=generateJwtToken(claimsData,listener.decrypt(consentDataList.get(0).getPrivate_key(), listener.decryptDid(consentDataList.get(0).getCustom_device_id())));
 			//String cryptogram=generateJwtToken(claimsData,consentDataList.get(0).getPrivate_key());
-			//String cryptogram=generateJwtToken(claimsData,listener.retrievePriKey(consentDataList.get(0).getCustom_device_id()));
+			//String cryptogram="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
 			
 			
@@ -3682,7 +3786,7 @@ public class IPSConnection {
 				}
 				return listData;
 			}else {
-				throw new IPSXException(errorCode.validationError("BIPS15"));
+				throw new IPSXException(errorCode.validationError("BIPS32"));
 			}
 		
 		
@@ -3846,14 +3950,17 @@ public class IPSConnection {
 						}
 						//claimsData.put("deviceId",regAccList.get(0).getCustom_device_id());
 
-						claimsData.put("amount",rtpBulkTransferRequest.getBenAccount().get(i).getTrAmt());
+						DecimalFormat df = new DecimalFormat("0.00");
+						String toTamount=df.format(Double.parseDouble(rtpBulkTransferRequest.getBenAccount().get(i).getTrAmt()));
+						
+						claimsData.put("amount",toTamount);
 						claimsData.put("currency",rtpBulkTransferRequest.getBenAccount().get(i).getCurrencyCode());
 						claimsData.put("debtorAccount",rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
 						claimsData.put("creditorAccount",rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
 						claimsData.put("endToEndId",endTOEndID);
 						claimsData.put("consentId", regAccList.get(0).getConsent_id());
 				        
-					    //String cryptogram="eyJhbGciOiJSUzUxMiJ9.eyJjb25zZW50SWQiOiI4LWh0ZEkyQVR3V1czazRFYzAxQldRIiwiaHJlZiI6Ii9hY2NvdW50cy1jb25zZW50cy84LWh0ZEkyQVR3V1czazRFYzAxQldRL2F1dGhvcmlzYXRpb25zLy1YUmRVb3EwUkxxMDNkdGpWMUhNdUEiLCJlbmRUb0VuZElkIjoiQ0lNMTAwUkVHMDAwMzciLCJkZXZpY2VJZCI6ImE3M2JhN2IyLWMxYTItNTA1Ny1iM2ViLTA5ZGFlOWZlNjBhYyJ9.f6zfIvv70rq1T2HxWq0b5UGS1rZdRp0LZZwHpDAKZGCvuDfhzHRF3xaEL3T3OJ0X1nCg43xPYaJh79OfkMVLsCLn2EtdgSC_j1jBpY7yOckPI9qo8b8hhGID-NLEYoRkBUoVbH0AnX2zhWIkTJyQCwD6RXHctObSt-vozFzKRBM";
+					   // String cryptogram="eyJhbGciOiJSUzUxMiJ9.eyJjb25zZW50SWQiOiI4LWh0ZEkyQVR3V1czazRFYzAxQldRIiwiaHJlZiI6Ii9hY2NvdW50cy1jb25zZW50cy84LWh0ZEkyQVR3V1czazRFYzAxQldRL2F1dGhvcmlzYXRpb25zLy1YUmRVb3EwUkxxMDNkdGpWMUhNdUEiLCJlbmRUb0VuZElkIjoiQ0lNMTAwUkVHMDAwMzciLCJkZXZpY2VJZCI6ImE3M2JhN2IyLWMxYTItNTA1Ny1iM2ViLTA5ZGFlOWZlNjBhYyJ9.f6zfIvv70rq1T2HxWq0b5UGS1rZdRp0LZZwHpDAKZGCvuDfhzHRF3xaEL3T3OJ0X1nCg43xPYaJh79OfkMVLsCLn2EtdgSC_j1jBpY7yOckPI9qo8b8hhGID-NLEYoRkBUoVbH0AnX2zhWIkTJyQCwD6RXHctObSt-vozFzKRBM";
 						
 						String cryptogram="";
 						try {
@@ -3876,7 +3983,7 @@ public class IPSConnection {
 								rtpBulkTransferRequest.getRemitterAccount().getCurrencyCode(),
 								rtpBulkTransferRequest.getBenAccount().get(i).getBenName(),
 								rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber(),
-								rtpBulkTransferRequest.getBenAccount().get(i).getTrAmt(),
+								toTamount,
 								rtpBulkTransferRequest.getBenAccount().get(i).getTrRmks(),
 								seqUniqueID,cimMsgID,msgSeq, endTOEndID,msgNetMir,cryptogram,
 								instgAgent,instdAgent,debtorAgent,
@@ -4488,7 +4595,7 @@ public class IPSConnection {
 								sysTraceAuditNumber,outTranList.get(0).getInit_channel_id(),initTranNumber,"True","CR","N","",
 								acctNumber, trAmt, currency,
 								SeqUniqueID,settlReceivableAccount,acctName,"RTP","",rmtInfo,"","",new Date(),"RECEIVABLE",
-								outTranList.get(0).getReq_unique_id(),"","","");
+								outTranList.get(0).getReq_unique_id(),"","",outTranList.get(0).getMaster_ref_id());
 					}else {
 						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
 								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),

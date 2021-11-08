@@ -46,10 +46,10 @@ public class AppHeaders {
 		BusinessApplicationHeaderV01 appHeader = new BusinessApplicationHeaderV01();
 
 		FinancialInstitutionIdentification81 finInstnId = new FinancialInstitutionIdentification81();
-		//finInstnId.setBICFI(env.getProperty("ipsx.bicfi"));
-		ClearingSystemMemberIdentification21 clrSysMmbId = new ClearingSystemMemberIdentification21();
-		clrSysMmbId.setMmbId(env.getProperty("ipsx.user"));
-		finInstnId.setClrSysMmbId(clrSysMmbId);
+		finInstnId.setBICFI(env.getProperty("ipsx.bicfi"));
+		//ClearingSystemMemberIdentification21 clrSysMmbId = new ClearingSystemMemberIdentification21();
+		//clrSysMmbId.setMmbId(env.getProperty("ipsx.user"));
+		//finInstnId.setClrSysMmbId(clrSysMmbId);
 		BranchAndFinancialInstitutionIdentification51 fIId = new BranchAndFinancialInstitutionIdentification51();
 		fIId.setFinInstnId(finInstnId);
 		Party9Choice1 fr = new Party9Choice1();
@@ -225,10 +225,10 @@ public class AppHeaders {
 		BusinessApplicationHeaderV01 appHeader = new BusinessApplicationHeaderV01();
 
 		FinancialInstitutionIdentification81 finInstnId = new FinancialInstitutionIdentification81();
-		//finInstnId.setBICFI(env.getProperty("ipsx.bicfi"));
-		ClearingSystemMemberIdentification21 clrSysMmbId = new ClearingSystemMemberIdentification21();
-		clrSysMmbId.setMmbId(env.getProperty("ipsx.user"));
-		finInstnId.setClrSysMmbId(clrSysMmbId);
+		finInstnId.setBICFI(env.getProperty("ipsx.bicfi"));
+		//ClearingSystemMemberIdentification21 clrSysMmbId = new ClearingSystemMemberIdentification21();
+		//clrSysMmbId.setMmbId(env.getProperty("ipsx.user"));
+		//finInstnId.setClrSysMmbId(clrSysMmbId);
 		BranchAndFinancialInstitutionIdentification51 fIId = new BranchAndFinancialInstitutionIdentification51();
 		fIId.setFinInstnId(finInstnId);
 		Party9Choice1 fr = new Party9Choice1();
@@ -339,10 +339,10 @@ public class AppHeaders {
 		BusinessApplicationHeaderV01 appHeader = new BusinessApplicationHeaderV01();
 
 		FinancialInstitutionIdentification81 finInstnId = new FinancialInstitutionIdentification81();
-		//finInstnId.setBICFI(env.getProperty("ipsx.bicfi"));
-		ClearingSystemMemberIdentification21 clrSysMmbId = new ClearingSystemMemberIdentification21();
-		clrSysMmbId.setMmbId(env.getProperty("ipsx.user"));
-		finInstnId.setClrSysMmbId(clrSysMmbId);
+		finInstnId.setBICFI(env.getProperty("ipsx.bicfi"));
+		//ClearingSystemMemberIdentification21 clrSysMmbId = new ClearingSystemMemberIdentification21();
+		//clrSysMmbId.setMmbId(env.getProperty("ipsx.user"));
+		//finInstnId.setClrSysMmbId(clrSysMmbId);
 		BranchAndFinancialInstitutionIdentification51 fIId = new BranchAndFinancialInstitutionIdentification51();
 		fIId.setFinInstnId(finInstnId);
 		Party9Choice1 fr = new Party9Choice1();
@@ -396,10 +396,10 @@ public class AppHeaders {
 		BusinessApplicationHeaderV01 appHeader = new BusinessApplicationHeaderV01();
 
 		FinancialInstitutionIdentification81 finInstnId = new FinancialInstitutionIdentification81();
-		//finInstnId.setBICFI(env.getProperty("ipsx.bicfi"));
-		ClearingSystemMemberIdentification21 clrSysMmbId = new ClearingSystemMemberIdentification21();
-		clrSysMmbId.setMmbId(env.getProperty("ipsx.user"));
-		finInstnId.setClrSysMmbId(clrSysMmbId);
+		finInstnId.setBICFI(env.getProperty("ipsx.bicfi"));
+//		ClearingSystemMemberIdentification21 clrSysMmbId = new ClearingSystemMemberIdentification21();
+//		clrSysMmbId.setMmbId(env.getProperty("ipsx.user"));
+//		finInstnId.setClrSysMmbId(clrSysMmbId);
 		BranchAndFinancialInstitutionIdentification51 fIId = new BranchAndFinancialInstitutionIdentification51();
 		fIId.setFinInstnId(finInstnId);
 		Party9Choice1 fr = new Party9Choice1();

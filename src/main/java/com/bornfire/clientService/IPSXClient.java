@@ -531,6 +531,12 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					}else if(!ipsDao.checkBankAgentExistIncomingMsg(debtorAgent008)){
 						logger.info(ctgy_purp_pacs008+"STEP 2");
 						responseIncomeMsg=errorCode.ErrorCode("AG01");
+					}else if(!ipsDao.checkBankAgentExistIncomingMsg(instgAgtPacs008)){
+						logger.info(ctgy_purp_pacs008+"STEP 11");
+						responseIncomeMsg=errorCode.ErrorCode("AG01");
+					}else if(!ipsDao.checkBankAgentExistIncomingMsg(instdAgtPacs008)){
+						logger.info(ctgy_purp_pacs008+"STEP 12");
+						responseIncomeMsg=errorCode.ErrorCode("AG01");
 					}else if(!trCurrency008.equals("MUR")||!totInttBkSettlCcyPacs008.equals("MUR")){
 						logger.info(ctgy_purp_pacs008+"STEP 3");
 						responseIncomeMsg=errorCode.ErrorCode("AM11");
@@ -1249,12 +1255,14 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 			}else {
 			///// Calling Connect 24 for RTP
-				String rtpFundResponse = ipsConnection.rtpFundTransferConnection(sysTraceNumber, debtorAccount, currency,
+				/*String rtpFundResponse = ipsConnection.rtpFundTransferConnection(sysTraceNumber, debtorAccount, currency,
 						trAmount, seqUniqueID,
 						docPain001_001_09.getCstmrCdtTrfInitn().getGrpHdr().getAuthstn().get(0).getPrtry(), creditorAccount,
 						endToEndID, debtorAccountName,"RTP/"+othBankCode1+"/"+creditorAccount+"/"+creditorAccountName,request);
 				logger.info(seqUniqueID + ": Status Of rtp Whole " + rtpFundResponse);
-
+*/
+				
+				String rtpFundResponse= errorCode.ErrorCode("AG01");
 				if (rtpFundResponse.split(":")[0].equals("CIM0")) {
 
 					ipsDao.updateCBSStatus(seqUniqueID, TranMonitorStatus.CBS_DEBIT_OK.toString(),

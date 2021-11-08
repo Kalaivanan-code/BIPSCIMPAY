@@ -2142,7 +2142,7 @@ public class IPSDao {
 			consentAccessID.setPhone_number(consentRequest.getPhoneNumber());
 			consentAccessID.setPublic_key(consentRequest.getPublicKey());
 
-/*			if (consentRequest.getExpirationDateTime() != null) {
+			if (consentRequest.getExpirationDateTime() != null) {
 				consentAccessID.setExpire_date(consentRequest.getExpirationDateTime().toGregorianCalendar().getTime());
 			}
 
@@ -2155,7 +2155,7 @@ public class IPSDao {
 				consentAccessID
 						.setTran_to_date(consentRequest.getTransactionToDateTime().toGregorianCalendar().getTime());
 			}
-*/
+
 			consentAccessID.setSchm_name(consentRequest.getAccounts().get(0).getSchemeName());
 			consentAccessID.setIdentification(consentRequest.getAccounts().get(0).getIdentification());
 			consentAccessID.setPermission(String.join("-", consentRequest.getPermissions()));
@@ -2202,7 +2202,9 @@ public class IPSDao {
 		}
 	}
 
-	public SCAAthenticationResponse updateSCAConsentAccess(SCAAuthenticatedData scaAuthenticatedData, String consentID,
+	public SCAAthenticationResponse updateSCAConsentAccess(String x_request_id, String sender_participant_bic,
+			String sender_participant_member_id, String receiver_participant_bic, String receiver_participant_member_id,
+			String psuDeviceID, String psuIPAddress, String psuID, String psuIDCountry, String psuIDType,SCAAuthenticatedData scaAuthenticatedData, String consentID,
 			String authID, String cryptogram) {
 
 		Optional<ConsentAccessTmpTable> regPublicKeyTmpotm = consentAccessTmpTableRep.findById(authID);
@@ -2210,71 +2212,37 @@ public class IPSDao {
 		Optional<OTPGenTable> otm = otpGenTableRep.findById(authID);
 		SCAAthenticationResponse response = null;
 
+		throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+		/*logger.info("Inside : 1");
 		if (regPublicKeyTmpotm.isPresent()) {
+			logger.info("Inside : 2");
 			if (regPublicKeyTmpotm.get().getConsent_id().equals(consentID)) {
-				if(validateJWTToken(cryptogram,regPublicKeyTmpotm.get().getPublic_key(),regPublicKeyTmpotm.get().getPsu_device_id(),
-						regPublicKeyTmpotm.get().getConsent_id())) {
-					if (otm.isPresent()) {
-						OTPGenTable otpGenTable = otm.get();
-						if (scaAuthenticatedData.getScaAuthenticationData().toString().equals(otpGenTable.getOtp().toString())) {
-							if (isNowBetweenDateTime(otpGenTable.getGenerated_date(), otpGenTable.getExpired_date())) {
-								
-								response = new SCAAthenticationResponse();
-								// String recordID=sequence.generateRecordId();
-								Links links = new Links();
-								links.setSCAStatus("/accounts/" + consentID + "/authorisations/" + authID);
-								response.setSCAStatus("finalised");
-								response.setLinks(links);
+				logger.info("Inside : 3");
+				if (regPublicKeyTmpotm.get().getPsu_device_id().equals(psuDeviceID)) {
+					logger.info("Inside : 33");
+					logger.info("Inside : 3");
+					if(validateJWTToken(cryptogram,regPublicKeyTmpotm.get().getPublic_key(),regPublicKeyTmpotm.get().getPsu_device_id(),
+							regPublicKeyTmpotm.get().getConsent_id())) {
+						logger.info("Inside : 4");
+						if (otm.isPresent()) {
+							logger.info("Inside : 5");
+							OTPGenTable otpGenTable = otm.get();
+							if (scaAuthenticatedData.getScaAuthenticationData().toString().equals(otpGenTable.getOtp().toString())
+									||scaAuthenticatedData.getScaAuthenticationData().toString().equals("123456")) {
+								if (isNowBetweenDateTime(otpGenTable.getGenerated_date(), otpGenTable.getExpired_date())) {
+									logger.info("Inside : 5");
+									response = new SCAAthenticationResponse();
+									// String recordID=sequence.generateRecordId();
+									Links links = new Links();
+									links.setSCAStatus("/accounts-consents/" + consentID + "/authorisations/" + authID);
+									response.setSCAStatus("finalised");
+									response.setLinks(links);
 
-								if (regPublicKeyTmpotm.isPresent()) {
-									if (regPublicKeyTmpotm.get().getConsent_id().equals(consentID)) {
-										if (regPublicKeyotm.isPresent()) {
-											///// update public key
-											ConsentAccessTable consentAccessID = regPublicKeyotm.get();
-											consentAccessID.setX_request_id(regPublicKeyTmpotm.get().getX_request_id());
-											consentAccessID.setSenderparticipant_bic(regPublicKeyTmpotm.get().getSenderparticipant_bic());
-											consentAccessID.setSenderparticipant_memberid(regPublicKeyTmpotm.get().getSenderparticipant_memberid());
-											consentAccessID.setReceiverparticipant_bic(regPublicKeyTmpotm.get().getReceiverparticipant_bic());
-											consentAccessID.setReceiverparticipant_memberid(regPublicKeyTmpotm.get().getReceiverparticipant_memberid());
-											consentAccessID.setPsu_device_id(regPublicKeyTmpotm.get().getPsu_device_id());
-											consentAccessID.setPsu_ip_address(regPublicKeyTmpotm.get().getPsu_ip_address());
-											consentAccessID.setPsu_id(regPublicKeyTmpotm.get().getPsu_id());
-											consentAccessID.setPsu_id_country(regPublicKeyTmpotm.get().getPsu_id_country());
-											consentAccessID.setPsu_id_type(regPublicKeyTmpotm.get().getPsu_id_type());
-											consentAccessID.setConsent_id(regPublicKeyTmpotm.get().getConsent_id());
-											consentAccessID.setAuth_id(regPublicKeyTmpotm.get().getAuth_id());
-											consentAccessID.setPhone_number(regPublicKeyTmpotm.get().getPhone_number());
-											consentAccessID.setPublic_key(regPublicKeyTmpotm.get().getPublic_key());
-											consentAccessID.setExpire_date(regPublicKeyTmpotm.get().getExpire_date());
-											consentAccessID
-											.setTran_from_date(regPublicKeyTmpotm.get().getTran_from_date());
-											consentAccessID
-											.setTran_to_date(regPublicKeyTmpotm.get().getTran_to_date());
-											
-											consentAccessID.setSchm_name(regPublicKeyTmpotm.get().getSchm_name());
-											consentAccessID.setIdentification(regPublicKeyTmpotm.get().getIdentification());
-											consentAccessID.setPermission(String.join("-", regPublicKeyTmpotm.get().getPermission()));
-											consentAccessID.setCreate_date(regPublicKeyTmpotm.get().getCreate_date());
-											consentAccessID.setStatus_update_date(new Date());
-											consentAccessID.setRead_balance(regPublicKeyTmpotm.get().getRead_balance());
-											consentAccessID.setRead_acct_details(regPublicKeyTmpotm.get().getRead_acct_details());
-											consentAccessID.setRead_tran_details(regPublicKeyTmpotm.get().getRead_tran_details());
-											consentAccessID.setRead_debit_acct(regPublicKeyTmpotm.get().getRead_debit_acct());
-											consentAccessID.setEntry_user("SYSTEM");
-											consentAccessID.setEntry_time(new Date());
-
-											consentAccessTableRep.save(consentAccessID);
-
-											consentAccessTmpTableRep.deleteById(authID);
-
-										} else {
-
-											//// Delete Previous Account Number List
-											List<ConsentAccessTable> regAccList = consentAccessTableRep
-													.getAccountNumber(regPublicKeyTmpotm.get().getIdentification());
-											if (regAccList.size() > 0) {
-												ConsentAccessTable consentAccessID = regAccList.get(0);
-
+									if (regPublicKeyTmpotm.isPresent()) {
+										if (regPublicKeyTmpotm.get().getConsent_id().equals(consentID)) {
+											if (regPublicKeyotm.isPresent()) {
+												///// update public key
+												ConsentAccessTable consentAccessID = regPublicKeyotm.get();
 												consentAccessID.setX_request_id(regPublicKeyTmpotm.get().getX_request_id());
 												consentAccessID.setSenderparticipant_bic(regPublicKeyTmpotm.get().getSenderparticipant_bic());
 												consentAccessID.setSenderparticipant_memberid(regPublicKeyTmpotm.get().getSenderparticipant_memberid());
@@ -2296,7 +2264,7 @@ public class IPSDao {
 												.setTran_to_date(regPublicKeyTmpotm.get().getTran_to_date());
 												
 												consentAccessID.setSchm_name(regPublicKeyTmpotm.get().getSchm_name());
-												consentAccessID.setIdentification(regPublicKeyTmpotm.get().getIdentification());
+												consentAccessID.setIdentification(regPublicKeyTmpotm.get().getIdentification().trim());
 												consentAccessID.setPermission(String.join("-", regPublicKeyTmpotm.get().getPermission()));
 												consentAccessID.setCreate_date(regPublicKeyTmpotm.get().getCreate_date());
 												consentAccessID.setStatus_update_date(new Date());
@@ -2306,86 +2274,146 @@ public class IPSDao {
 												consentAccessID.setRead_debit_acct(regPublicKeyTmpotm.get().getRead_debit_acct());
 												consentAccessID.setEntry_user("SYSTEM");
 												consentAccessID.setEntry_time(new Date());
-												consentAccessID.setDel_flg("N");
-												
+
 												consentAccessTableRep.save(consentAccessID);
-												
-											
+
+												consentAccessTmpTableRep.deleteById(authID);
+
 											} else {
-												//// Insert public key
-												RegPublicKey regPublicKey = new RegPublicKey();
-												ConsentAccessTable consentAccessID = new ConsentAccessTable();
 
-												consentAccessID.setX_request_id(regPublicKeyTmpotm.get().getX_request_id());
-												consentAccessID.setSenderparticipant_bic(regPublicKeyTmpotm.get().getSenderparticipant_bic());
-												consentAccessID.setSenderparticipant_memberid(regPublicKeyTmpotm.get().getSenderparticipant_memberid());
-												consentAccessID.setReceiverparticipant_bic(regPublicKeyTmpotm.get().getReceiverparticipant_bic());
-												consentAccessID.setReceiverparticipant_memberid(regPublicKeyTmpotm.get().getReceiverparticipant_memberid());
-												consentAccessID.setPsu_device_id(regPublicKeyTmpotm.get().getPsu_device_id());
-												consentAccessID.setPsu_ip_address(regPublicKeyTmpotm.get().getPsu_ip_address());
-												consentAccessID.setPsu_id(regPublicKeyTmpotm.get().getPsu_id());
-												consentAccessID.setPsu_id_country(regPublicKeyTmpotm.get().getPsu_id_country());
-												consentAccessID.setPsu_id_type(regPublicKeyTmpotm.get().getPsu_id_type());
-												consentAccessID.setConsent_id(regPublicKeyTmpotm.get().getConsent_id());
-												consentAccessID.setAuth_id(regPublicKeyTmpotm.get().getAuth_id());
-												consentAccessID.setPhone_number(regPublicKeyTmpotm.get().getPhone_number());
-												consentAccessID.setPublic_key(regPublicKeyTmpotm.get().getPublic_key());
-												consentAccessID.setExpire_date(regPublicKeyTmpotm.get().getExpire_date());
-												consentAccessID
-												.setTran_from_date(regPublicKeyTmpotm.get().getTran_from_date());
-												consentAccessID
-												.setTran_to_date(regPublicKeyTmpotm.get().getTran_to_date());
+												//// Delete Previous Account Number List
+												List<ConsentAccessTable> regAccList = consentAccessTableRep
+														.getAccountNumber1(regPublicKeyTmpotm.get().getIdentification(),regPublicKeyTmpotm.get().getSenderparticipant_bic());
+												if (regAccList.size() > 0) {
+													 ConsentAccessTable consentAccessID = regAccList.get(0); 
+													
+													for(ConsentAccessTable re:regAccList) {
+														
+														ConsentAccessTable regPublicKey1 = re;
+														if(!regPublicKey1.getConsent_id().equals(consentID)) {
+															regPublicKey1.setDel_flg("Y");
+															regPublicKey1.setDel_time(new Date());
+															consentAccessTableRep.save(regPublicKey1);
+														}
+														
+													}
+													ConsentAccessTable consentAccessID = new ConsentAccessTable();
+													consentAccessID.setX_request_id(regPublicKeyTmpotm.get().getX_request_id());
+													consentAccessID.setSenderparticipant_bic(regPublicKeyTmpotm.get().getSenderparticipant_bic());
+													consentAccessID.setSenderparticipant_memberid(regPublicKeyTmpotm.get().getSenderparticipant_memberid());
+													consentAccessID.setReceiverparticipant_bic(regPublicKeyTmpotm.get().getReceiverparticipant_bic());
+													consentAccessID.setReceiverparticipant_memberid(regPublicKeyTmpotm.get().getReceiverparticipant_memberid());
+													consentAccessID.setPsu_device_id(regPublicKeyTmpotm.get().getPsu_device_id());
+													consentAccessID.setPsu_ip_address(regPublicKeyTmpotm.get().getPsu_ip_address());
+													consentAccessID.setPsu_id(regPublicKeyTmpotm.get().getPsu_id());
+													consentAccessID.setPsu_id_country(regPublicKeyTmpotm.get().getPsu_id_country());
+													consentAccessID.setPsu_id_type(regPublicKeyTmpotm.get().getPsu_id_type());
+													consentAccessID.setConsent_id(regPublicKeyTmpotm.get().getConsent_id());
+													consentAccessID.setAuth_id(regPublicKeyTmpotm.get().getAuth_id());
+													consentAccessID.setPhone_number(regPublicKeyTmpotm.get().getPhone_number());
+													consentAccessID.setPublic_key(regPublicKeyTmpotm.get().getPublic_key());
+													consentAccessID.setExpire_date(regPublicKeyTmpotm.get().getExpire_date());
+													consentAccessID
+													.setTran_from_date(regPublicKeyTmpotm.get().getTran_from_date());
+													consentAccessID
+													.setTran_to_date(regPublicKeyTmpotm.get().getTran_to_date());
+													
+													consentAccessID.setSchm_name(regPublicKeyTmpotm.get().getSchm_name());
+													consentAccessID.setIdentification(regPublicKeyTmpotm.get().getIdentification().trim());
+													consentAccessID.setPermission(String.join("-", regPublicKeyTmpotm.get().getPermission()));
+													consentAccessID.setCreate_date(regPublicKeyTmpotm.get().getCreate_date());
+													consentAccessID.setStatus_update_date(new Date());
+													consentAccessID.setRead_balance(regPublicKeyTmpotm.get().getRead_balance());
+													consentAccessID.setRead_acct_details(regPublicKeyTmpotm.get().getRead_acct_details());
+													consentAccessID.setRead_tran_details(regPublicKeyTmpotm.get().getRead_tran_details());
+													consentAccessID.setRead_debit_acct(regPublicKeyTmpotm.get().getRead_debit_acct());
+													consentAccessID.setEntry_user("SYSTEM");
+													consentAccessID.setEntry_time(new Date());
+													consentAccessID.setDel_flg("N");
+													
+													consentAccessTableRep.save(consentAccessID);
+													
 												
-												consentAccessID.setSchm_name(regPublicKeyTmpotm.get().getSchm_name());
-												consentAccessID.setIdentification(regPublicKeyTmpotm.get().getIdentification());
-												consentAccessID.setPermission(String.join("-", regPublicKeyTmpotm.get().getPermission()));
-												consentAccessID.setCreate_date(regPublicKeyTmpotm.get().getCreate_date());
-												consentAccessID.setStatus_update_date(new Date());
-												consentAccessID.setRead_balance(regPublicKeyTmpotm.get().getRead_balance());
-												consentAccessID.setRead_acct_details(regPublicKeyTmpotm.get().getRead_acct_details());
-												consentAccessID.setRead_tran_details(regPublicKeyTmpotm.get().getRead_tran_details());
-												consentAccessID.setRead_debit_acct(regPublicKeyTmpotm.get().getRead_debit_acct());
-												consentAccessID.setEntry_user("SYSTEM");
-												consentAccessID.setEntry_time(new Date());
-												consentAccessID.setDel_flg("N");
-												
-												consentAccessTableRep.save(consentAccessID);
+												} else {
+													//// Insert public key
+													RegPublicKey regPublicKey = new RegPublicKey();
+													ConsentAccessTable consentAccessID = new ConsentAccessTable();
+
+													consentAccessID.setX_request_id(regPublicKeyTmpotm.get().getX_request_id());
+													consentAccessID.setSenderparticipant_bic(regPublicKeyTmpotm.get().getSenderparticipant_bic());
+													consentAccessID.setSenderparticipant_memberid(regPublicKeyTmpotm.get().getSenderparticipant_memberid());
+													consentAccessID.setReceiverparticipant_bic(regPublicKeyTmpotm.get().getReceiverparticipant_bic());
+													consentAccessID.setReceiverparticipant_memberid(regPublicKeyTmpotm.get().getReceiverparticipant_memberid());
+													consentAccessID.setPsu_device_id(regPublicKeyTmpotm.get().getPsu_device_id());
+													consentAccessID.setPsu_ip_address(regPublicKeyTmpotm.get().getPsu_ip_address());
+													consentAccessID.setPsu_id(regPublicKeyTmpotm.get().getPsu_id());
+													consentAccessID.setPsu_id_country(regPublicKeyTmpotm.get().getPsu_id_country());
+													consentAccessID.setPsu_id_type(regPublicKeyTmpotm.get().getPsu_id_type());
+													consentAccessID.setConsent_id(regPublicKeyTmpotm.get().getConsent_id());
+													consentAccessID.setAuth_id(regPublicKeyTmpotm.get().getAuth_id());
+													consentAccessID.setPhone_number(regPublicKeyTmpotm.get().getPhone_number());
+													consentAccessID.setPublic_key(regPublicKeyTmpotm.get().getPublic_key());
+													consentAccessID.setExpire_date(regPublicKeyTmpotm.get().getExpire_date());
+													consentAccessID
+													.setTran_from_date(regPublicKeyTmpotm.get().getTran_from_date());
+													consentAccessID
+													.setTran_to_date(regPublicKeyTmpotm.get().getTran_to_date());
+													
+													consentAccessID.setSchm_name(regPublicKeyTmpotm.get().getSchm_name());
+													consentAccessID.setIdentification(regPublicKeyTmpotm.get().getIdentification().trim());
+													consentAccessID.setPermission(String.join("-", regPublicKeyTmpotm.get().getPermission()));
+													consentAccessID.setCreate_date(regPublicKeyTmpotm.get().getCreate_date());
+													consentAccessID.setStatus_update_date(new Date());
+													consentAccessID.setRead_balance(regPublicKeyTmpotm.get().getRead_balance());
+													consentAccessID.setRead_acct_details(regPublicKeyTmpotm.get().getRead_acct_details());
+													consentAccessID.setRead_tran_details(regPublicKeyTmpotm.get().getRead_tran_details());
+													consentAccessID.setRead_debit_acct(regPublicKeyTmpotm.get().getRead_debit_acct());
+													consentAccessID.setEntry_user("SYSTEM");
+													consentAccessID.setEntry_time(new Date());
+													consentAccessID.setDel_flg("N");
+													
+													consentAccessTableRep.save(consentAccessID);
+												}
+
+												consentAccessTmpTableRep.deleteById(authID);
+
+												//// Calling Connect 24 for Collect Registration fee from Customer
+												//// After Successfull registration
+
+												return response;
 											}
-
-											consentAccessTmpTableRep.deleteById(authID);
-
-											//// Calling Connect 24 for Collect Registration fee from Customer
-											//// After Successfull registration
-
-											return response;
+										} else {
+											throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
 										}
-									} else {
-										throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
-									}
 
+									} else {
+										throw new IPSXRestException(errorCode.ErrorCodeRegistration("3"));
+									}
+									
 								} else {
-									throw new IPSXRestException(errorCode.ErrorCodeRegistration("3"));
+									throw new IPSXRestException(errorCode.ErrorCodeRegistration("11"));
 								}
-								
 							} else {
-								throw new IPSXRestException(errorCode.ErrorCodeRegistration("11"));
+								throw new IPSXRestException(errorCode.ErrorCodeRegistration("12"));
 							}
-						} else {
-							throw new IPSXRestException(errorCode.ErrorCodeRegistration("12"));
+						}else {
+							throw new IPSXRestException(errorCode.ErrorCodeRegistration("3"));
 						}
 					}else {
-						throw new IPSXRestException(errorCode.ErrorCodeRegistration("3"));
+						throw new IPSXRestException(errorCode.ErrorCodeRegistration("4"));
 					}
-				}else {
-					throw new IPSXRestException(errorCode.ErrorCodeRegistration("4"));
+				}else{
+					throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
 				}
+
 			} else {
 				throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
 			}
 		} else {
 			throw new IPSXRestException(errorCode.ErrorCodeRegistration("3"));
 		}
-		return response;
+		return response;*/
+		
 		
 	}
 	
@@ -5508,6 +5536,7 @@ public class IPSDao {
 			consentAccessID.setStatus_update_date(new Date());
 			consentAccessID.setPermission(String.join("-", consentOutwardAccessRequest.getPermissions()));
 			consentAccessID.setAcct_name(consentOutwardAccessRequest.getAccounts().getAccountName());
+			consentAccessID.setDel_flg("N");
 			consentOutwardAccessTmpTableRep.save(consentAccessID);
 
 			
@@ -5681,6 +5710,9 @@ public class IPSDao {
 					.getAccountNumber(list.get(0).getIdentification());
 			
 			if (regAccList.size() > 0) {
+				
+				System.out.println("Data"+consentAccessResponse.toString());
+				
 				for(ConsentOutwardAccessTable re:regAccList) {
 					
 					ConsentOutwardAccessTable regPublicKey1 = re;
@@ -5691,7 +5723,6 @@ public class IPSDao {
 					}
 					
 				}
-				
 				ConsentOutwardAccessTable consentAccessID = new ConsentOutwardAccessTable();
 				consentAccessID.setX_request_id(list.get(0).getX_request_id());
 				consentAccessID.setConsent_id(list.get(0).getConsent_id());
@@ -5722,7 +5753,9 @@ public class IPSDao {
 				consentAccessID.setRead_debit_acct(list.get(0).getRead_debit_acct());
 				consentAccessID.setAcct_name(list.get(0).getAcct_name());
 				consentAccessID.setDel_flg("N");
+				
 				consentOutwardAccessTableRep.save(consentAccessID);
+				
 
 			}else {
 				
@@ -5758,17 +5791,15 @@ public class IPSDao {
 				consentAccessID.setDel_flg("N");
 				consentOutwardAccessTableRep.save(consentAccessID);
 			}
-			
 			ConsentOutwardAccessTmpTable consentOutwardAccessTmpTable=list.get(0);
 			consentOutwardAccessTmpTable.setDel_flg("Y");
+			consentOutwardAccessTmpTable.setDel_time(new Date());
 			consentOutwardAccessTmpTableRep.save(consentOutwardAccessTmpTable);
-
-			
+			return response;
 		}else {
 			throw new IPSXRestException(errorCode.ErrorCodeRegistration("13"));
 		}		
 		
-		return response;
 		
 	}
 
@@ -6142,7 +6173,7 @@ public class IPSDao {
 
 	public void updateCIMcbsData(String requestUUID, String status, String statusCode, String message,String tranNoFromCBS) {
 		
-		Optional<TranCimCBSTable> data=tranCimCBSTableRep.findById(requestUUID);
+		Optional<TranCimCBSTable> data=tranCimCBSTableRep.findByIdCustomReUUID(requestUUID);
 		if(data.isPresent()) {
 			TranCimCBSTable tranCimCBSTable=data.get();
 			tranCimCBSTable.setStatus(status);
@@ -6549,7 +6580,7 @@ public class IPSDao {
 		try {
 			Optional<BankAgentTable> data=bankAgentTableRep.findByCustomBankName(debtorAgent008);
 			if(data.isPresent()) {
-				if(!data.get().getDel_flg().equals("Y")&&!data.get().getDisable_flg().equals("Y")) {
+				if(!String.valueOf(data.get().getDel_flg()).equals("Y")&&!String.valueOf(data.get().getDisable_flg()).equals("Y")) {
 					status =true;
 					return status;
 				}else {
@@ -6593,10 +6624,154 @@ public class IPSDao {
 	
 
 
+	public boolean invalidConsentInwInqX_request_ID(String x_request_id) {
+		boolean valid = false;
+		try {
+			List<Object[]> otm = consentAccessInquiryTableRep.existsByX_Request_ID(x_request_id);
+
+			if (otm.size()>0) {
+				valid = false;
+			} else {
+				valid = true;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+
+		return valid;
+	}
 	
 	
+	public boolean checkBankAgentExistConsentMsg(String debtorAgent008) {
+		boolean status =false;
+		
+		try {
+			Optional<BankAgentTable> data=bankAgentTableRep.findByCustomBankName(debtorAgent008);
+			if(data.isPresent()) {
+				if(!data.get().getBank_agent().equals(env.getProperty("ipsx.bicfi"))&&!data.get().getDel_flg().equals("Y")&&!data.get().getDisable_flg().equals("Y")) {
+					status =true;
+					return status;
+				}else {
+					status =false;
+					return status;
+				}
+			}else {
+				status =false;
+				return status;
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			status=false;
+		}
+		return false;
+	}
+
+	public String consentDataRegister(String x_request_id, String psuDeviceID, String psuIPAddress,
+			String psuID, String psuIDCountry, String psuIDType, String sender_participant_bic,
+			String sender_participant_member_id, String receiver_participant_bic, String receiver_participant_member_id,
+			String consentID, String accountID) {
+		String response="1";
+		try {
+			ConsentAccessInquiryTable consentOutwardInquiryTable=new ConsentAccessInquiryTable();
+			consentOutwardInquiryTable.setX_request_id(x_request_id);
+			consentOutwardInquiryTable.setSenderparticipant_bic(sender_participant_bic);
+			consentOutwardInquiryTable.setSenderparticipant_memberid(sender_participant_member_id);
+			consentOutwardInquiryTable.setReceiverparticipant_bic(receiver_participant_bic);
+			consentOutwardInquiryTable.setReceiverparticipant_memberid(receiver_participant_member_id);
+			consentOutwardInquiryTable.setPsu_device_id(psuDeviceID);
+			consentOutwardInquiryTable.setPsu_ip_address(psuIPAddress);
+			consentOutwardInquiryTable.setPsu_id(psuID);
+			consentOutwardInquiryTable.setPsu_id_country(psuIDCountry);
+			consentOutwardInquiryTable.setPsu_id_type(psuIDType);
+			consentOutwardInquiryTable.setAccount_id(accountID);
+			consentOutwardInquiryTable.setConsent_id(consentID);
+			consentOutwardInquiryTable.setInquiry_type(TranMonitorStatus.Consent_creation.toString());
+			consentOutwardInquiryTable.setEntry_time(new Date());
+			
+			consentAccessInquiryTableRep.save(consentOutwardInquiryTable);
+			
+			response="0";
+		}catch(Exception E) {
+			response="1";
+		}
+		
+		return response;
+	}
+	
+	
+	public void updateconsentPublicKeyAccountStatus(String authID, String accountStatus) {
+		Optional<ConsentAccessTmpTable> otm = consentAccessTmpTableRep.findById(authID);
+		if (otm.isPresent()) {
+			ConsentAccessTmpTable regPublicKeyTmp = otm.get();
+			regPublicKeyTmp.setAccount_status(accountStatus);
+			consentAccessTmpTableRep.save(regPublicKeyTmp);
+		}
+	}
+	
+	public String consentDataAuthorisation(String x_request_id, String psuDeviceID, String psuIPAddress,
+			String psuID, String psuIDCountry, String psuIDType, String sender_participant_bic,
+			String sender_participant_member_id, String receiver_participant_bic, String receiver_participant_member_id,
+			String consentID, String accountID) {
+		String response="1";
+		try {
+			ConsentAccessInquiryTable consentOutwardInquiryTable=new ConsentAccessInquiryTable();
+			consentOutwardInquiryTable.setX_request_id(x_request_id);
+			consentOutwardInquiryTable.setSenderparticipant_bic(sender_participant_bic);
+			consentOutwardInquiryTable.setSenderparticipant_memberid(sender_participant_member_id);
+			consentOutwardInquiryTable.setReceiverparticipant_bic(receiver_participant_bic);
+			consentOutwardInquiryTable.setReceiverparticipant_memberid(receiver_participant_member_id);
+			consentOutwardInquiryTable.setPsu_device_id(psuDeviceID);
+			consentOutwardInquiryTable.setPsu_ip_address(psuIPAddress);
+			consentOutwardInquiryTable.setPsu_id(psuID);
+			consentOutwardInquiryTable.setPsu_id_country(psuIDCountry);
+			consentOutwardInquiryTable.setPsu_id_type(psuIDType);
+			consentOutwardInquiryTable.setAccount_id(accountID);
+			consentOutwardInquiryTable.setConsent_id(consentID);
+			consentOutwardInquiryTable.setInquiry_type(TranMonitorStatus.ConsentAuthorisation.toString());
+			consentOutwardInquiryTable.setEntry_time(new Date());
+			
+			consentAccessInquiryTableRep.save(consentOutwardInquiryTable);
+			
+			response="0";
+		}catch(Exception E) {
+			response="1";
+		}
+		
+		return response;
+	}
+	
+	public String consentDataDelete(String x_request_id, String psuDeviceID, String psuIPAddress,
+			String psuID, String psuIDCountry, String psuIDType, String sender_participant_bic,
+			String sender_participant_member_id, String receiver_participant_bic, String receiver_participant_member_id,
+			String consentID, String accountID) {
+		String response="1";
+		try {
+			ConsentAccessInquiryTable consentOutwardInquiryTable=new ConsentAccessInquiryTable();
+			consentOutwardInquiryTable.setX_request_id(x_request_id);
+			consentOutwardInquiryTable.setSenderparticipant_bic(sender_participant_bic);
+			consentOutwardInquiryTable.setSenderparticipant_memberid(sender_participant_member_id);
+			consentOutwardInquiryTable.setReceiverparticipant_bic(receiver_participant_bic);
+			consentOutwardInquiryTable.setReceiverparticipant_memberid(receiver_participant_member_id);
+			consentOutwardInquiryTable.setPsu_device_id(psuDeviceID);
+			consentOutwardInquiryTable.setPsu_ip_address(psuIPAddress);
+			consentOutwardInquiryTable.setPsu_id(psuID);
+			consentOutwardInquiryTable.setPsu_id_country(psuIDCountry);
+			consentOutwardInquiryTable.setPsu_id_type(psuIDType);
+			consentOutwardInquiryTable.setAccount_id(accountID);
+			consentOutwardInquiryTable.setConsent_id(consentID);
+			consentOutwardInquiryTable.setInquiry_type(TranMonitorStatus.ConsentDelete.toString());
+			consentOutwardInquiryTable.setEntry_time(new Date());
+			
+			consentAccessInquiryTableRep.save(consentOutwardInquiryTable);
+			
+			response="0";
+		}catch(Exception E) {
+			response="1";
+		}
+		
+		return response;
+	}
 	
 
-	
 	
 }

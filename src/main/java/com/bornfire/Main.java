@@ -16,6 +16,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -24,6 +25,7 @@ import javax.crypto.Cipher;
 import javax.xml.bind.DatatypeConverter;
 
 import com.bornfire.config.SequenceGenerator;
+import com.bornfire.entity.ConsentAccessRequest;
 
 import sun.security.x509.AlgorithmId;
 import sun.security.x509.CertificateAlgorithmId;
@@ -47,8 +49,32 @@ public class Main {
 			if(Double.parseDouble(trAmount008.toString())!=Double.parseDouble(totInttBkSettlAmtPacs008.toString())){
 				System.out.println("Ok");
 			}else {
-				System.out.println("Not");
+				
 			}
+			
+		    DecimalFormat df = new DecimalFormat("0.00");
+		    
+		    double angle = 20.3034;
+
+		    String angleFormated = df.format(angle);
+		    System.out.println(angleFormated); //output 20.30
+		    
+		    System.out.println(df.format(Double.parseDouble("0")));
+			System.out.println(df.format(Double.parseDouble("0.00")));
+			System.out.println(df.format(Double.parseDouble("1")));
+			System.out.println(df.format(Double.parseDouble("1.00")));
+			System.out.println(df.format(Double.parseDouble("100")));
+			System.out.println(df.format(Double.parseDouble("100.00")));
+			System.out.println(df.format(Double.parseDouble("100.025")));
+			System.out.println(df.format(Double.parseDouble("100.01")));
+
+			System.out.println("0");
+			
+			/*String ss1="Françoi’s Geneviève";
+			
+			ConsentAccessRequest ss=new ConsentAccessRequest();
+			ss.setPhoneNumber(ss1);
+			System.out.println(new String(ss.getPhoneNumber()));
 			
 			String endToEndID="CFSLMUM02021100410461a";
 			if(endToEndID.length()==22) {
@@ -71,7 +97,7 @@ public class Main {
 			}else {
 				System.out.println("not");
 			}
-			
+			*/
 			
 			/*InputStream ins = new FileInputStream(
 					"C:\\softlib\\Certificates\\cim_wildcard.jks");
@@ -117,6 +143,7 @@ public class Main {
 		}
 	}
 	
+
 	
     
 	private static boolean endToEndValidation(String endToEndID,String DbtrAgent,String cdtrAgent) {

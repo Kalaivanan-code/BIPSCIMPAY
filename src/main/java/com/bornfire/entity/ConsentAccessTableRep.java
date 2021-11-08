@@ -16,6 +16,9 @@ public interface ConsentAccessTableRep extends JpaRepository<ConsentAccessTable,
 	@Query(value = "select * from BIPS_CONSENT_ACCESS_TABLE where identification=?1", nativeQuery = true)
 	List<ConsentAccessTable> getAccountNumber(String acctNumber);
 	
+	@Query(value = "select * from BIPS_CONSENT_ACCESS_TABLE where identification=?1  and senderparticipant_bic=?2 and del_flg='N'", nativeQuery = true)
+	List<ConsentAccessTable> getAccountNumber1(String acctNumber,String senderBic);
+	
 
 }
 

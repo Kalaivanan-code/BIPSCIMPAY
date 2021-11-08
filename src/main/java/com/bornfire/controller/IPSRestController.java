@@ -106,6 +106,7 @@ import com.bornfire.entity.WalletStatementResponse;
 import com.bornfire.exception.ErrorRestResponse;
 import com.bornfire.exception.FieldValidation;
 import com.bornfire.exception.IPSXException;
+import com.bornfire.exception.IPSXRestException;
 import com.bornfire.jaxb.wsdl.SendT;
 import com.bornfire.messagebuilder.DocumentPacks;
 import com.bornfire.messagebuilder.SignDocument;
@@ -518,7 +519,7 @@ public class IPSRestController {
 		return new ResponseEntity<String>("Success", HttpStatus.OK);
 	}
 
-	///// MYT Consent Registration
+///// MYT Consent Registration
 	@PostMapping(path = "/mvc/0/public-service/accounts-consents", produces = "application/json;charset=utf-8", consumes = "application/json")
 	public ResponseEntity<ConsentAccessResponse> registerConsentAccess(
 			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
@@ -535,13 +536,26 @@ public class IPSRestController {
 		logger.info("Calling Consent");
 
 		logger.info("Calling Create Consent access flow Starts" + consentRequest.toString());
+		logger.info("x_request_id" + x_request_id.toString());
 
-		ConsentAccessResponse response = ipsConnection.createConsentAccessID(x_request_id, sender_participant_bic,
-				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType, consentRequest);
+		if (ipsDao.invalidConsentInwInqX_request_ID(x_request_id)) {
+			
+			if(ipsDao.checkBankAgentExistIncomingMsg(sender_participant_bic)){
+				ConsentAccessResponse response = ipsConnection.createConsentAccessID(x_request_id, sender_participant_bic,
+						sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+						psuIPAddress, psuID, psuIDCountry, psuIDType, consentRequest);
 
-		return new ResponseEntity<ConsentAccessResponse>(response, HttpStatus.OK);
+				return new ResponseEntity<ConsentAccessResponse>(response, HttpStatus.OK);
+			}else {
+				throw new IPSXRestException(errorCode.ErrorCodeRegistration("5"));
+			}
+			
+		} else {
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+		}
 	}
+	
+	
 
 	///// MYT Consent Registration Auth
 	@PutMapping(path = "/mvc/0/public-service/accounts-consents/{consentID}/authorisations/{authID}", produces = "application/json;charset=utf-8", consumes = "application/json")
@@ -563,17 +577,25 @@ public class IPSRestController {
 		logger.info("Calling Consent");
 
 		logger.info("Consent Authentication Starts" + scaAuthenticatedData.toString());
+		logger.info("x_request_id" + x_request_id.toString());
+		logger.info("consentID" + consentID.toString());
+		logger.info("authID" + authID.toString());
+		logger.info("Cryptogram" + cryptogram.toString());
 
-		SCAAthenticationResponse response = ipsConnection.authConsentAccessID(x_request_id, sender_participant_bic,
-				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType, scaAuthenticatedData, consentID, authID, cryptogram);
+		if (ipsDao.invalidConsentInwInqX_request_ID(x_request_id)) {
+			SCAAthenticationResponse response = ipsConnection.authConsentAccessID(x_request_id, sender_participant_bic,
+					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, scaAuthenticatedData, consentID, authID, cryptogram);
 
-		return new ResponseEntity<SCAAthenticationResponse>(response, HttpStatus.OK);
+			return new ResponseEntity<SCAAthenticationResponse>(response, HttpStatus.OK);
+		} else {
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+		}
 	}
 
 	///// MYT Consent Registration Auth
 	@DeleteMapping(path = "/mvc/0/public-service/accounts-consents/{consentID}", produces = "application/json;charset=utf-8", consumes = "application/json")
-	public ResponseEntity<String> deleteConsentAccess(
+	public ResponseEntity<ErrorRestResponse> deleteConsentAccess(
 			@PathVariable(value = "consentID", required = true) String consentID,
 			@RequestHeader(value = "X-Request-ID", required = true) String x_request_id,
 			@RequestHeader(value = "SenderParticipant-BIC", required = false) String sender_participant_bic,
@@ -584,17 +606,21 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
-			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
-			@RequestBody SCAAuthenticatedData scaAuthenticatedData) {
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType) {
 		logger.info("Calling Consent");
 
-		logger.info("Consent Authentication Starts" + scaAuthenticatedData.toString());
+		logger.info("Consent Authentication Starts deleteConsentAccess");
+		logger.info("Consent Authentication Starts deleteConsentAccess"+consentID);
+		logger.info("Consent Authentication Starts deleteConsentAccess"+x_request_id);
 
-		String response = ipsConnection.deleteConsentAccessID(x_request_id, sender_participant_bic,
-				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType, scaAuthenticatedData, consentID);
-
-		return new ResponseEntity<String>(response, HttpStatus.OK);
+		if (ipsDao.invalidConsentInwInqX_request_ID(x_request_id)) {
+			ErrorRestResponse response = ipsConnection.deleteConsentAccessID(x_request_id, sender_participant_bic,
+					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID);
+			return new ResponseEntity<ErrorRestResponse>(response, HttpStatus.OK);
+		} else {
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+		}
 	}
 
 	///// MYT Balance
@@ -617,11 +643,16 @@ public class IPSRestController {
 
 		logger.info("Consent Balance Request Starts" + accountID);
 
-		ConsentAccountBalance response = ipsConnection.consentBalance(x_request_id, sender_participant_bic,
-				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, accountID, cryptogram);
+		if (ipsDao.invalidConsentInwInqX_request_ID(x_request_id)) {
+			ConsentAccountBalance response = ipsConnection.consentBalance(x_request_id, sender_participant_bic,
+					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, accountID, cryptogram);
+			return new ResponseEntity<ConsentAccountBalance>(response, HttpStatus.OK);
+		} else {
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+		}
 
-		return new ResponseEntity<ConsentAccountBalance>(response, HttpStatus.OK);
+		
 	}
 
 	///// MYT Account List
@@ -644,11 +675,15 @@ public class IPSRestController {
 
 		logger.info("Consent Account List Request Starts" + consentID);
 
-		AccountListResponse response = ipsConnection.accountList(x_request_id, sender_participant_bic,
-				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, cryptogram);
+		if (ipsDao.invalidConsentInwInqX_request_ID(x_request_id)) {
+			AccountListResponse response = ipsConnection.accountList(x_request_id, sender_participant_bic,
+					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, cryptogram);
 
-		return new ResponseEntity<AccountListResponse>(response, HttpStatus.OK);
+			return new ResponseEntity<AccountListResponse>(response, HttpStatus.OK);
+		} else {
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+		}
 	}
 
 	///// MYT Account List
@@ -672,11 +707,15 @@ public class IPSRestController {
 
 		logger.info("Consent Account List Request Starts" + consentID);
 
-		AccountsListAccounts response = ipsConnection.accountListInd(x_request_id, sender_participant_bic,
-				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, cryptogram, accountID);
+		if (ipsDao.invalidConsentInwInqX_request_ID(x_request_id)) {
+			AccountsListAccounts response = ipsConnection.accountListInd(x_request_id, sender_participant_bic,
+					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, cryptogram, accountID);
 
-		return new ResponseEntity<AccountsListAccounts>(response, HttpStatus.OK);
+			return new ResponseEntity<AccountsListAccounts>(response, HttpStatus.OK);
+		} else {
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+		}
 	}
 
 	///// MYT Transaction List
@@ -695,19 +734,23 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
 			@RequestHeader(value = "Consent-ID", required = true) String consentID,
 			@RequestHeader(value = "Cryptogram", required = true) String cryptogram,
-			@RequestParam(value = "fromBookingDateTime", required = true) String fromBookingDateTime,
-			@RequestParam(value = "toBookingDateTime", required = true) String toBookingDateTime) {
+			@RequestParam(value = "fromBookingDateTime",required = true)String fromBookingDateTime,
+			@RequestParam(value = "toBookingDateTime",required = true)String toBookingDateTime) {
 
 		logger.info("Calling Consent");
 
 		logger.info("Consent Account List Request Starts" + consentID);
 
-		TransactionListResponse response = ipsConnection.tranList(x_request_id, sender_participant_bic,
-				sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
-				psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, cryptogram, accountID, fromBookingDateTime,
-				toBookingDateTime);
+		if (ipsDao.invalidConsentInwInqX_request_ID(x_request_id)) {
+			TransactionListResponse response = ipsConnection.tranList(x_request_id, sender_participant_bic,
+					sender_participant_member_id, receiver_participant_bic, receiver_participant_member_id, psuDeviceID,
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, cryptogram, accountID, fromBookingDateTime,
+					toBookingDateTime);
 
-		return new ResponseEntity<TransactionListResponse>(response, HttpStatus.OK);
+			return new ResponseEntity<TransactionListResponse>(response, HttpStatus.OK);
+		} else {
+			throw new IPSXRestException(errorCode.ErrorCodeRegistration("1"));
+		}
 	}
 
 	@PostMapping(path = "api/ws/payableAccount", produces = "application/json", consumes = "application/json")

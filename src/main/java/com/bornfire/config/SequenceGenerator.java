@@ -165,11 +165,16 @@ public class SequenceGenerator {
 		StringBuffer randStr = new StringBuffer();
 		randStr.append(new SimpleDateFormat("yyyyMMdd").format(new Date()));
 
-		for (int i = 0; i < SYSTEM_TRACE_AUDIT_NUMBER; i++) {
+		/*for (int i = 0; i < SYSTEM_TRACE_AUDIT_NUMBER; i++) {
 			int number = getRandomMsgNumber();
 			char ch = NUM_LIST.charAt(number);
 			randStr.append(ch);
-		}
+		}*/
+		
+        Long cbs_Tran_no=tranCimCBSTableRep.getCBSTranNo();
+		
+		randStr.append(String.format("%06d", cbs_Tran_no));
+		
 		return randStr.toString();
 	}
 	
@@ -222,7 +227,7 @@ public class SequenceGenerator {
 		
 		Long request_UUID=tranCimCBSTableRep.getRequestUUID();
 		
-		randStr.append(String.format("%04d", request_UUID));
+		randStr.append(String.format("%05d", request_UUID));
 		
 		return randStr.toString();
 	}
@@ -349,7 +354,7 @@ public class SequenceGenerator {
 				String seq=endToEndID.substring(16,22);
 				
 				
-				if((bankAgent.equals(DbtrAgent)||bankAgent.equals(cdtrAgent))&&
+				if(/*(bankAgent.equals(DbtrAgent)||bankAgent.equals(cdtrAgent))&&*/
 						currentData.equals(new SimpleDateFormat("yyyyMMdd").format(new Date()))) {
 					System.out.println("TEST INWARD TRANSACTION STEP 1");
 					if(isNumeric(seq)) {

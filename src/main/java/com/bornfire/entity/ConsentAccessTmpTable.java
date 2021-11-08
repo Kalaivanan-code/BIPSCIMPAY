@@ -10,8 +10,9 @@ import javax.persistence.Table;
 @Table(name="BIPS_CONSENT_ACCESS_TMP_TABLE")
 public class ConsentAccessTmpTable {
 	private String x_request_id;
-	@Id
+	
 	private String consent_id;
+	@Id
 	private String auth_id;
 	private String senderparticipant_bic;
 	private String senderparticipant_memberid;
@@ -42,6 +43,7 @@ public class ConsentAccessTmpTable {
 	private String del_user;
 	private Date del_time;
 	private String del_flg;
+	private String account_status;
 	
 	
 	public ConsentAccessTmpTable() {
@@ -240,6 +242,14 @@ public class ConsentAccessTmpTable {
 	}
 	public void setDel_flg(String del_flg) {
 		this.del_flg = del_flg;
+	}
+
+	public String getAccount_status() {
+		return account_status;
+	}
+
+	public void setAccount_status(String account_status) {
+		this.account_status = account_status;
 	}
 	
 	

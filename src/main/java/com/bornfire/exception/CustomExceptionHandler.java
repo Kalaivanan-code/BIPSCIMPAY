@@ -27,10 +27,8 @@ import com.bornfire.controller.IPSConnection;
 public class CustomExceptionHandler {
 	private static final Logger logger = LoggerFactory.getLogger(CustomExceptionHandler.class);
 
-	private String CONNECT24 = "BOB011";
-	private String IPSX = "BOB021";
-	private String FIELD = "BOB001";
-	private String BAD_REQUEST = "BOB012";
+	
+	private String BAD_REQUEST = "CIM500";
 
 	@ExceptionHandler(Connect24Exception.class)
 	public final ResponseEntity<ErrorResponse> handleConnect24Exception(Connect24Exception ex, WebRequest request) {
@@ -54,7 +52,7 @@ public class CustomExceptionHandler {
 		List<String> details = new ArrayList<>();
 		String errMessage=ex.getLocalizedMessage();
 		details.add(errMessage);
-		ErrorResponse error = new ErrorResponse(FIELD, details);
+		ErrorResponse error = new ErrorResponse(BAD_REQUEST, details);
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 	}
 	
@@ -76,7 +74,7 @@ public class CustomExceptionHandler {
 		logger.info("ConnectException");
 
 		System.out.println("ok");
-		ErrorResponse error = new ErrorResponse(BAD_REQUEST,details);
+		ErrorResponse error = new ErrorResponse("CIM500",details);
 		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
