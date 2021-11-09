@@ -100,6 +100,9 @@ public class Listener {
 		case "2":
 			dataFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.000").format(date);
 			break;
+		case "3":
+			dataFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(date);
+			break;
 		}
 
 		XMLGregorianCalendar xgc = null;

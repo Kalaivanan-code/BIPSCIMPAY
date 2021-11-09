@@ -318,17 +318,18 @@ public class CronJobScheduler {
 									Optional<SettlementAccountAmtTable> acctExist = settlAccountAmtRep
 											.customfindById(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
 
+									SettlementAccountAmtTable settlAmt = new SettlementAccountAmtTable();
+
 									if (acctExist.isPresent()) {
-										SettlementAccountAmtTable dd = acctExist.get();
-										dd.setPrev_acct_bal(setAccount.getPrev_acct_bal());
-										dd.setPayable_acct_bal(new BigDecimal(ipsConnection.payableAmt()));
-										dd.setReceivable_acct_bal(new BigDecimal(ipsConnection.receivalbleAmt()));
-										dd.setIncome_acct_bal(new BigDecimal(ipsConnection.incomeAmt()));
-										dd.setExpense_acct_bal(new BigDecimal(ipsConnection.expenseAmt()));
-										settlAccountAmtRep.save(dd);
+										//SettlementAccountAmtTable dd = acctExist.get();
+										settlAmt.setPrev_acct_bal(setAccount.getPrev_acct_bal());
+										settlAmt.setPayable_acct_bal(new BigDecimal(ipsConnection.payableAmt()));
+										settlAmt.setReceivable_acct_bal(new BigDecimal(ipsConnection.receivalbleAmt()));
+										settlAmt.setIncome_acct_bal(new BigDecimal(ipsConnection.incomeAmt()));
+										settlAmt.setExpense_acct_bal(new BigDecimal(ipsConnection.expenseAmt()));
+										//settlAccountAmtRep.save(dd);
 									}
 
-									SettlementAccountAmtTable settlAmt = new SettlementAccountAmtTable();
 									settlAmt.setAcct_type(setAccount.getAcct_type());
 									settlAmt.setCategory(setAccount.getCategory());
 									settlAmt.setAccount_number(setAccount.getAccount_number());
@@ -377,16 +378,18 @@ public class CronJobScheduler {
 												.customfindById(
 														new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
 
-										if (acctExist.isPresent()) {
-											SettlementAccountAmtTable dd = acctExist.get();
-											dd.setPrev_acct_bal(setAccount.getPrev_acct_bal());
-											dd.setPayable_acct_bal(new BigDecimal(ipsConnection.payableAmt()));
-											dd.setReceivable_acct_bal(new BigDecimal(ipsConnection.receivalbleAmt()));
-											dd.setIncome_acct_bal(new BigDecimal(ipsConnection.incomeAmt()));
-											dd.setExpense_acct_bal(new BigDecimal(ipsConnection.expenseAmt()));
-											settlAccountAmtRep.save(dd);
-										}
 										SettlementAccountAmtTable settlAmt = new SettlementAccountAmtTable();
+										if (acctExist.isPresent()) {
+											
+											//SettlementAccountAmtTable dd = acctExist.get();
+											settlAmt.setPrev_acct_bal(setAccount.getPrev_acct_bal());
+											settlAmt.setPayable_acct_bal(new BigDecimal(ipsConnection.payableAmt()));
+											settlAmt.setReceivable_acct_bal(new BigDecimal(ipsConnection.receivalbleAmt()));
+											settlAmt.setIncome_acct_bal(new BigDecimal(ipsConnection.incomeAmt()));
+											settlAmt.setExpense_acct_bal(new BigDecimal(ipsConnection.expenseAmt()));
+											//settlAccountAmtRep.save(dd);
+										}
+										
 										settlAmt.setAcct_type(setAccount.getAcct_type());
 										settlAmt.setCategory(setAccount.getCategory());
 										settlAmt.setAccount_number(setAccount.getAccount_number());
