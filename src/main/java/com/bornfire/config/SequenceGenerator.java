@@ -178,6 +178,17 @@ public class SequenceGenerator {
 		return randStr.toString();
 	}
 	
+	public String generateGLBatchNumber() {
+
+		StringBuffer randStr = new StringBuffer();
+		randStr.append("GL");
+		randStr.append(new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		randStr.append("_");
+        Long cbs_Tran_no=tranCimCBSTableRep.getGLBatchNo();
+		randStr.append(String.format("%03d", cbs_Tran_no));
+		return randStr.toString();
+	}
+	
 	public String generateWalletAccountNumber(String phoneNumber) {
 		StringBuffer randStr = new StringBuffer();
 		randStr.append(phoneNumber);

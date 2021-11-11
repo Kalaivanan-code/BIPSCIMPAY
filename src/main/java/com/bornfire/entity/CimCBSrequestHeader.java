@@ -22,7 +22,7 @@ public class CimCBSrequestHeader {
 	private String serviceRequestId;
 	
 	@JsonProperty("messageDateTime")
-	private XMLGregorianCalendar messageDateTime;
+	private String messageDateTime;
 	
 	@JsonProperty("countryCode")
 	private String countryCode;
@@ -69,12 +69,12 @@ public class CimCBSrequestHeader {
 	}
 
 	@JsonProperty("messageDateTime")
-	public XMLGregorianCalendar getMessageDateTime() {
+	public String getMessageDateTime() {
 		return messageDateTime;
 	}
 
 	@JsonProperty("messageDateTime")
-	public void setMessageDateTime(XMLGregorianCalendar messageDateTime) {
+	public void setMessageDateTime(String messageDateTime) {
 		this.messageDateTime = messageDateTime;
 	}
 	

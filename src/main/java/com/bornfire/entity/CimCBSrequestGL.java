@@ -8,7 +8,7 @@ public class CimCBSrequestGL {
 	private CimCBSrequestGLHeader header;
 	
 	@JsonProperty("data")
-	private CimCBSrequestData data;
+	private CimCBSrequestGLData data;
 
 	@JsonProperty("header")
 	public CimCBSrequestGLHeader getHeader() {
@@ -21,12 +21,12 @@ public class CimCBSrequestGL {
 	}
 
 	@JsonProperty("data")
-	public CimCBSrequestData getData() {
+	public CimCBSrequestGLData getData() {
 		return data;
 	}
 
 	@JsonProperty("data")
-	public void setData(CimCBSrequestData data) {
+	public void setData(CimCBSrequestGLData data) {
 		this.data = data;
 	}
 

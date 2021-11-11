@@ -46,6 +46,9 @@ public class SettlementAccount implements Serializable {
 	private Date acct_bal_time;
 	private BigDecimal prev_acct_bal;
 	
+	private String tran_code;
+	private String tran_type;
+	
 
 	public String getMir_acct() {
 		return mir_acct;
@@ -263,6 +266,22 @@ public class SettlementAccount implements Serializable {
 	
 
 	
+
+	public String getTran_code() {
+		return tran_code;
+	}
+
+	public void setTran_code(String tran_code) {
+		this.tran_code = tran_code;
+	}
+
+	public String getTran_type() {
+		return tran_type;
+	}
+
+	public void setTran_type(String tran_type) {
+		this.tran_type = tran_type;
+	}
 
 	public BigDecimal getPrev_acct_bal() {
 		return prev_acct_bal;

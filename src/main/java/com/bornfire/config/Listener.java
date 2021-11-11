@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.bornfire.entity.CimCBSrequestGL;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -122,6 +123,20 @@ public class Listener {
 	}
 
 	public String generateJsonFormat(String msg) {
+		// Creating the ObjectMapper object
+		ObjectMapper mapper = new ObjectMapper();
+		// Converting the Object to JSONString
+		String jsonString = "";
+		try {
+			jsonString = mapper.writeValueAsString(msg);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+
+		return jsonString;
+	}
+	
+	public String generateJsonFormat1(CimCBSrequestGL msg) {
 		// Creating the ObjectMapper object
 		ObjectMapper mapper = new ObjectMapper();
 		// Converting the Object to JSONString

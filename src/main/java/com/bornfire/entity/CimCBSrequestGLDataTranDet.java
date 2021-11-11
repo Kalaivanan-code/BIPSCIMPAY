@@ -1,11 +1,15 @@
 package com.bornfire.entity;
 
+import java.math.BigDecimal;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CimCBSrequestGLDataTranDet {
 
 	@JsonProperty("serialNumber")
-	private String serialNumber;
+	private Integer serialNumber;
 	
 	@JsonProperty("transactionType")
 	private String transactionType;
@@ -38,12 +42,12 @@ public class CimCBSrequestGLDataTranDet {
 	private String rate;
 
 	@JsonProperty("serialNumber")
-	public String getSerialNumber() {
+	public Integer getSerialNumber() {
 		return serialNumber;
 	}
 
 	@JsonProperty("serialNumber")
-	public void setSerialNumber(String serialNumber) {
+	public void setSerialNumber(Integer serialNumber) {
 		this.serialNumber = serialNumber;
 	}
 
@@ -145,6 +149,15 @@ public class CimCBSrequestGLDataTranDet {
 	@JsonProperty("rate")
 	public void setRate(String rate) {
 		this.rate = rate;
+	}
+
+	@Override
+	public String toString() {
+		return "CimCBSrequestGLDataTranDet [serialNumber=" + serialNumber + ", transactionType=" + transactionType
+				+ ", accountNo=" + accountNo + ", accountType=" + accountType + ", transactionAmount="
+				+ transactionAmount + ", currencyCode=" + currencyCode + ", postingDate=" + postingDate
+				+ ", transactionCode=" + transactionCode + ", transactionDescription=" + transactionDescription
+				+ ", transactionRemarks=" + transactionRemarks + ", rate=" + rate + "]";
 	}
 	
 	

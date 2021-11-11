@@ -97,6 +97,7 @@ import com.bornfire.entity.CIMMerchantQRcodeRequest;
 import com.bornfire.entity.CimCBSrequestData;
 import com.bornfire.entity.CimCBSrequestHeader;
 import com.bornfire.entity.CimCBSresponse;
+import com.bornfire.entity.CimGLresponse;
 import com.bornfire.entity.CimMerchantResponse;
 import com.bornfire.entity.ConsentAccessRequest;
 import com.bornfire.entity.ConsentAccessResponse;
@@ -135,6 +136,8 @@ import com.bornfire.entity.RegPublicKeyRep;
 import com.bornfire.entity.SCAAthenticationResponse;
 import com.bornfire.entity.SCAAuthenticatedData;
 import com.bornfire.entity.SettlementAccount;
+import com.bornfire.entity.SettlementAccountAmtRep;
+import com.bornfire.entity.SettlementAccountAmtTable;
 import com.bornfire.entity.SettlementAccountRep;
 import com.bornfire.entity.SettlementLimitResponse;
 import com.bornfire.entity.TranCBSTable;
@@ -260,6 +263,9 @@ public class IPSConnection {
 	
 	@Autowired
 	MerchantQrCodeRegRep merchantQrCodeRegRep;
+	
+	@Autowired
+	SettlementAccountAmtRep settlAccountAmtRep;
 	
 	/////Fund Transfer Connection
 	////Debit Customer Account Credit Settl Account(Connect 24)
@@ -5355,7 +5361,101 @@ public class IPSConnection {
 	}
 
 	
+	public String initGLPayment(String glDate) {
+		
+		logger.debug("Payment GL:Payment Initiated");
+		String res="Failure";
+		///Generate RequestUUID
+		String requestUUID=sequence.generateRequestUUId();
+		
+		///Generate Tran No
+		String tranNo = sequence.generateSystemTraceAuditNumber();
+		
+		///Generate Batch No
+		String batchNo=sequence.generateGLBatchNumber();
+		
+		///Get Total Cash Amount
+		Optional<SettlementAccountAmtTable> optSettleAmtData=settlAccountAmtRep.customfindById(glDate);
+		SettlementAccountAmtTable settleAmtData=optSettleAmtData.get();
+		
+		
+		if(settleAmtData!=null) {
+			if(settleAmtData.getReceivable_acct_bal()!=null) {
+				if(!settleAmtData.getReceivable_acct_bal().toString().equals("0") && 
+						!String.valueOf(settleAmtData.getReceivable_flg()).equals("Y")) {
+					
+					
+					String status=ipsDao.registerCIMGLPaymentData(requestUUID, env.getProperty("cimGL.channelID"),
+							env.getProperty("cimGL.servicereqversion"), env.getProperty("cimGL.servicereqID"),
+							env.getProperty("cimGL.countryCode"),tranNo,batchNo,env.getProperty("cimGL.module"),
+							new Date(),settleAmtData.getReceivable_acct_bal());
+					
+					if(status.equals("1")) {
+						 /////Call ESB Connection
+						ResponseEntity<CimGLresponse> connect24Response = cimCBSservice.postPaymentGLInc(requestUUID);
+						logger.debug("CBS Data:"+connect24Response.toString());
+						if (connect24Response.getStatusCode() == HttpStatus.OK) {
+							
+							if(!connect24Response.toString().equals("<200 OK OK,[]>")){
 
+
+								if (connect24Response.getBody().getStatus().getIsSuccess()) {
+									
+									////Update ESB Data
+									ipsDao.updateCIMGlData(requestUUID, TranMonitorStatus.SUCCESS.toString(),
+											connect24Response.getBody().getStatus().getStatusCode(),
+											connect24Response.getBody().getStatus().getMessage());
+									
+									ipsDao.updateSetleAmtTable(glDate);
+									
+									ipsDao.updateNotionalBal(glDate,settleAmtData.getReceivable_acct_bal());
+									res="Success";
+									
+									logger.debug("Payment GL:Payment Success");
+									
+									return res;
+
+								} else {
+									
+									//// Update ESB Data
+									ipsDao.updateCIMGlData(requestUUID, TranMonitorStatus.FAILURE.toString(),
+											connect24Response.getBody().getStatus().getStatusCode(),
+											connect24Response.getBody().getStatus().getMessage());
+				
+									logger.debug("Payment GL:Payment Failed due to"+
+											connect24Response.getBody().getStatus().getStatusCode()+":"+
+									connect24Response.getBody().getStatus().getMessage());
+								}
+
+							}else {
+								//// Update ESB Data to CIM Table
+								ipsDao.updateCIMGlData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
+										"No Response return from CBS");
+
+								logger.debug("Payment GL:No Response Return from ESB");
+							}
+									
+						} else {
+							//// Update ESB Data to CIM Table
+							ipsDao.updateCIMGlData(requestUUID, TranMonitorStatus.FAILURE.toString(), String.valueOf(connect24Response.getStatusCodeValue()),
+									"Internal Server Error");
+							
+							logger.debug("Payment GL:ESB Server Problem");
+						}
+					}else {
+						logger.debug("Payment GL:Record Insertion Failed");
+					}					
+				}else {
+					logger.debug("Payment GL:Receivable Amount is zero or already Paid to GL");
+				}
+			}else {
+				logger.debug("Payment GL:Settlement Amt is null or not exist");
+			}
+		}else {
+			logger.debug("Payment GL:Settlement Amt Record still not exist");
+		}
+		return res;
+	}
 
 	
 }

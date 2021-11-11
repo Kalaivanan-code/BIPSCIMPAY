@@ -1,26 +1,31 @@
 package com.bornfire.entity;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 
 @Entity
 @Table(name="BIPS_TRAN_CIM_GL_TABLE")
-public class TranCimGLTable {
 
-	@Id
+@IdClass(TranCimGLDetailID.class)
+public class TranCimGLTable implements Serializable{
+
 	private String request_uuid;
 	private String channel_id;
 	private String service_request_version;
 	private String service_request_id;
 	private Date message_date_time;
 	private String country_code;
+	@Id
 	private String tran_no;
 	private String batch_no;
 	private String module;
+	@Id
 	private String srl_no1;
 	private String tran_type1;
 	private String acct_no1;

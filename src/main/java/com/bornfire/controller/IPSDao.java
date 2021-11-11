@@ -29,6 +29,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.persistence.Id;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.Valid;
 
 import org.hibernate.Session;
@@ -38,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -101,6 +105,7 @@ import com.bornfire.entity.RegPublicKeyTmp;
 import com.bornfire.entity.RegPublicKeyTmpRep;
 import com.bornfire.entity.SCAAthenticationResponse;
 import com.bornfire.entity.SCAAuthenticatedData;
+import com.bornfire.entity.SettlementAccount;
 import com.bornfire.entity.SettlementAccountAmtRep;
 import com.bornfire.entity.SettlementAccountAmtTable;
 import com.bornfire.entity.SettlementAccountRep;
@@ -113,6 +118,8 @@ import com.bornfire.entity.TranCBSTable;
 import com.bornfire.entity.TranCBSTableRep;
 import com.bornfire.entity.TranCimCBSTable;
 import com.bornfire.entity.TranCimCBSTableRep;
+import com.bornfire.entity.TranCimGLRep;
+import com.bornfire.entity.TranCimGLTable;
 import com.bornfire.entity.TranHistMonitorHistRep;
 import com.bornfire.entity.TranIPSTable;
 import com.bornfire.entity.TranIPSTableID;
@@ -274,6 +281,9 @@ public class IPSDao {
 	
 	@Autowired
 	SettlementAccountRep settlAccountRep;
+	
+	@Autowired
+	TranCimGLRep tranCimGLRep;
 
 	private static final Logger logger = LoggerFactory.getLogger(IPSXClient.class);
 
@@ -6771,7 +6781,109 @@ public class IPSDao {
 		
 		return response;
 	}
-	
 
+	public String registerCIMGLPaymentData(String requestUUID, String channelID, String servicerequestVersion, String serviceReqId,
+			String countryCode, String tranNo, String batchNo, String module,Date date,BigDecimal amount) {
+		
+		String status="0";
+		try {
+			///Get BOM MACSS Settlement Account	
+			Optional<SettlementAccount> settlAcct=settlAccountRep.findById(env.getProperty("settl.macssSettl"));
+			
+			///Get CashClrAccount
+			Optional<SettlementAccount> settlAcctCashClr=settlAccountRep.findById(env.getProperty("settl.cashClr"));
+
+
+				TranCimGLTable tranCimGlTable=new TranCimGLTable();
+				
+				tranCimGlTable.setRequest_uuid(requestUUID);
+				tranCimGlTable.setChannel_id(channelID);
+				tranCimGlTable.setService_request_version(servicerequestVersion);
+				tranCimGlTable.setService_request_id(serviceReqId);
+				tranCimGlTable.setCountry_code(countryCode);
+				tranCimGlTable.setMessage_date_time(date);
+				
+				tranCimGlTable.setTran_no(tranNo);
+				tranCimGlTable.setBatch_no(batchNo);
+				tranCimGlTable.setModule(module);
+				
+				tranCimGlTable.setSrl_no1("1");
+				tranCimGlTable.setTran_type1(settlAcct.get().getTran_type());
+				tranCimGlTable.setAcct_no1(settlAcct.get().getAccount_number());
+				tranCimGlTable.setAcct_type1(settlAcct.get().getAcct_type());
+				tranCimGlTable.setTran_amt1(amount);
+				tranCimGlTable.setCurrency_code1(settlAcct.get().getCrncy());
+				tranCimGlTable.setPosting_date1(date);
+				tranCimGlTable.setTran_code1(settlAcct.get().getTran_code());
+				tranCimGlTable.setTran_desc1("Daily Cash Taking BIPS");
+				tranCimGlTable.setTran_remarks1("Dr BOM MACSS Settlement Account");
+				tranCimGlTable.setRate1("0");
+				
+				
+				tranCimGLRep.saveAndFlush(tranCimGlTable);
+				
+				TranCimGLTable tranCimGlTable1=new TranCimGLTable();
+				
+				tranCimGlTable1.setRequest_uuid(requestUUID);
+				tranCimGlTable1.setChannel_id(channelID);
+				tranCimGlTable1.setService_request_version(servicerequestVersion);
+				tranCimGlTable1.setService_request_id(serviceReqId);
+				tranCimGlTable1.setCountry_code(countryCode);
+				tranCimGlTable1.setMessage_date_time(date);
+				
+				tranCimGlTable1.setTran_no(tranNo);
+				tranCimGlTable1.setBatch_no(batchNo);
+				tranCimGlTable1.setModule(module);
+				
+				tranCimGlTable1.setSrl_no1("2");
+				tranCimGlTable1.setTran_type1(settlAcctCashClr.get().getTran_type());
+				tranCimGlTable1.setAcct_no1(settlAcctCashClr.get().getAccount_number());
+				tranCimGlTable1.setAcct_type1(settlAcctCashClr.get().getAcct_type());
+				tranCimGlTable1.setTran_amt1(amount.negate());
+				tranCimGlTable1.setCurrency_code1(settlAcctCashClr.get().getCrncy());
+				tranCimGlTable1.setPosting_date1(date);
+				tranCimGlTable1.setTran_code1(settlAcctCashClr.get().getTran_code());
+				tranCimGlTable1.setTran_desc1("Daily Cash Taking BIPS");
+				tranCimGlTable1.setTran_remarks1("Cr Cash Clearing");
+				tranCimGlTable1.setRate1("0");
+				
+				tranCimGLRep.saveAndFlush(tranCimGlTable1);
+				
+				status="1";
+
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+			status="0";
+		}
+		return status;
+		
+	}
+
+	public void updateCIMGlData(String requestUUID, String status, String statusCode, String message) {
+		tranCimGLRep.updateGlResponse(requestUUID,status,statusCode,message);
+	}
+
+	public void updateSetleAmtTable(String glDate) {
+		
+		Optional<SettlementAccountAmtTable> settlAmtOpt = settlAcctAmtRep
+				.customfindById(glDate);
+		
+		SettlementAccountAmtTable settlAmt = settlAmtOpt.get();
+		settlAmt.setReceivable_flg("Y");
+		settlAmt.setReceivable_verify_user("SYSTEM");
+		settlAmt.setReceivable_verify_time(new Date());
+		settlAcctAmtRep.save(settlAmt);
+		
+	}
+
+	public void updateNotionalBal(String glDate,BigDecimal amount) {
+		
+	////update Receivablee Balance
+		settlAccountRep.updateGLNotBalReceivable(env.getProperty("settl.receivable"),amount);
+		
+	////update Settelement Balance
+		settlAccountRep.updateGLNotBalSettlement(env.getProperty("settl.settlment"),amount);
+		
+	}
 	
 }

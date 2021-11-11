@@ -418,7 +418,12 @@ public class CronJobScheduler {
 		}
 	}
 
-	
+	@Scheduled(cron = "0 0/5 00-01 * * *")
+	public void initIncGLPayment() {
+		logger.info("GL Payment : Start"+new Date());
+		
+		ipsConnection.initGLPayment(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
+	}
 	
 ///// Get Settlement Amount from Connect24
 	//@Scheduled(cron = "0 0/1 * 1/1 * ?")
@@ -692,46 +697,5 @@ public class CronJobScheduler {
 	 * } }else { this.setSettlDate(new Date()); this.setSettleFlg("Y"); } } }
 	 */
 
-	//@Scheduled(cron = "0 0/1 * 1/1 * ?")
-	public void updateIncomingMessage() {
-
-		if(this.getCount11()==1) {
-			
-			ipsDao.updateIncomingmessage("200916617685","BARB200916135037108321","M1051097/002","BARCMUM020200916106503",
-					"154206922","90370100890614",new BigDecimal("100"),"MUR","","BARCMUM020200916982042",
-					"Vimal Rao","Alice","100","","","","16002497982042","0100","CSDC","100","BARCMUM0","BARCNRT","","");
-			
-
-		}
-		
-		if(this.getCount11()==2) {
-			
-			ipsDao.updateIncomingmessage("200916617686","BARB200916135037108322","M1051093/002","BARCMUM020200916106504",
-					"154206925","90311111111111",new BigDecimal("150"),"MUR","","BARCMUM020200916982046",
-					"Ajay Corda","Kalaivanan","100","","","","16002497982042","0100","CSDC","100","BARCMUM0","BARCNRT","","");
-
-		}
-		
-		if(this.getCount11()==3) {
-			
-			ipsDao.updateIncomingmessage("200916617686","BARB200916135037108323","M1051094/002","BARCMUM020200916106505",
-					"154206956","90370100890656",new BigDecimal("1000"),"MUR","","BARCMUM020200916982057",
-					"RamPrasath ","Mani","100","","","","16002497982042","0100","CSDC","100","BARCMUM0","BARCNRT","","");
-
-		}
-		
-
-		int val=this.getCount11();
-		this.setCount11(val+1);
-
-		
-		/*if(count11==4) {
-			this.setCount11(0);
-			ipsDao.deleteData();
-		}*/
-		
-
-
-	}
-
+	
 }

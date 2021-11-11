@@ -7,9 +7,11 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -32,11 +34,18 @@ import com.bornfire.entity.C24FTResponse;
 import com.bornfire.entity.C24RequestAcount;
 import com.bornfire.entity.CimCBSrequest;
 import com.bornfire.entity.CimCBSrequestData;
+import com.bornfire.entity.CimCBSrequestGL;
+import com.bornfire.entity.CimCBSrequestGLData;
+import com.bornfire.entity.CimCBSrequestGLDataTranDet;
+import com.bornfire.entity.CimCBSrequestGLHeader;
 import com.bornfire.entity.CimCBSrequestHeader;
 import com.bornfire.entity.CimCBSresponse;
+import com.bornfire.entity.CimGLresponse;
 import com.bornfire.entity.SettlementAccount;
 import com.bornfire.entity.TranCimCBSTable;
 import com.bornfire.entity.TranCimCBSTableRep;
+import com.bornfire.entity.TranCimGLRep;
+import com.bornfire.entity.TranCimGLTable;
 import com.bornfire.entity.TranMonitorStatus;
 import com.google.gson.Gson;
 
@@ -58,6 +67,9 @@ public class CimCBSservice {
 	
 	@Autowired
 	IPSDao ipsDao;
+	
+	@Autowired
+	TranCimGLRep tranCimGlRep;
 
 	public ResponseEntity<CimCBSresponse> cdtFundRequest(String requestUUID) {
 		HttpHeaders httpHeaders = new HttpHeaders();
@@ -73,7 +85,7 @@ public class CimCBSservice {
 		cimCBSrequestHeader.setChannelId(data.getChannel_id());
 		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
 		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
-		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2").toString());
 		cimCBSrequestHeader.setCountryCode(env.getProperty("cimCBS.countryCode"));
 		cimCBSrequest.setHeader(cimCBSrequestHeader);
 		
@@ -160,7 +172,7 @@ public class CimCBSservice {
 		cimCBSrequestHeader.setChannelId(data.getChannel_id());
 		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
 		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
-		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2").toString());
 		cimCBSrequestHeader.setCountryCode(env.getProperty("cimCBS.countryCode"));
 		cimCBSrequest.setHeader(cimCBSrequestHeader);
 		
@@ -242,7 +254,7 @@ public class CimCBSservice {
 		cimCBSrequestHeader.setChannelId(data.getChannel_id());
 		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
 		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
-		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2").toString());
 		cimCBSrequestHeader.setCountryCode(env.getProperty("cimCBS.countryCode"));
 		cimCBSrequest.setHeader(cimCBSrequestHeader);
 		
@@ -315,7 +327,7 @@ public class CimCBSservice {
 		cimCBSrequestHeader.setChannelId(data.getChannel_id());
 		cimCBSrequestHeader.setServiceRequestVersion(data.getService_request_version());
 		cimCBSrequestHeader.setServiceRequestId(data.getService_request_id());
-		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2"));
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2").toString());
 		cimCBSrequestHeader.setCountryCode(env.getProperty("cimCBS.countryCode"));
 		cimCBSrequest.setHeader(cimCBSrequestHeader);
 		
@@ -379,6 +391,86 @@ public class CimCBSservice {
 		}catch (Exception ex) {
 			logger.debug("Exception"+ex.getLocalizedMessage());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		}
+
+	}
+
+
+	public ResponseEntity<CimGLresponse> postPaymentGLInc(String requestUUID) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		
+		////Get Data from Table
+		List<TranCimGLTable> data=tranCimGlRep.getRequestUUIDData(requestUUID);
+		
+		/////////////////////Request Body Creation/////////////////////////////
+		CimCBSrequestGL cimCBSrequest=new CimCBSrequestGL();
+		
+		CimCBSrequestGLHeader cimCBSrequestHeader=new CimCBSrequestGLHeader();
+		cimCBSrequestHeader.setRequestUUId(data.get(0).getRequest_uuid());
+		cimCBSrequestHeader.setChannelId(data.get(0).getChannel_id());
+		cimCBSrequestHeader.setServiceRequestVersion(data.get(0).getService_request_version());
+		cimCBSrequestHeader.setServiceRequestId(data.get(0).getService_request_id());
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.get(0).getMessage_date_time(), "2").toString());
+		cimCBSrequestHeader.setCountryCode(data.get(0).getCountry_code());
+		cimCBSrequest.setHeader(cimCBSrequestHeader);
+		
+		CimCBSrequestGLData cimCBSrequestData=new CimCBSrequestGLData();
+		cimCBSrequestData.setTransactionNo(data.get(0).getTran_no());
+		cimCBSrequestData.setBatchNo(data.get(0).getBatch_no());
+		cimCBSrequestData.setModule(data.get(0).getModule());
+				
+		List<CimCBSrequestGLDataTranDet> tranDetails=new ArrayList<CimCBSrequestGLDataTranDet>();
+		 
+		for(TranCimGLTable data1 :data) {
+			CimCBSrequestGLDataTranDet tranData=new CimCBSrequestGLDataTranDet();
+			tranData.setSerialNumber(Integer.parseInt(data1.getSrl_no1()));
+			tranData.setTransactionType(data1.getTran_type1());
+			tranData.setAccountNo(data1.getAcct_no1());
+			tranData.setAccountType(data1.getAcct_type1());
+			tranData.setTransactionAmount(data1.getTran_amt1().toString());
+			tranData.setCurrencyCode(data1.getCurrency_code1());
+			//tranData.setPostingDate(new SimpleDateFormat("yyyy-MM-dd").format(data1.getPosting_date1()));
+			tranData.setPostingDate(listener.convertDateToGreDate(data1.getPosting_date1(),"3").toString());
+			
+			tranData.setTransactionCode(data1.getTran_code1());
+			tranData.setTransactionDescription(data1.getTran_desc1());
+			tranData.setTransactionRemarks(data1.getTran_remarks1());
+			tranData.setRate(data1.getRate1());
+			tranDetails.add(tranData);
+		}
+		cimCBSrequestData.setTransactionDetails(tranDetails);
+		
+		cimCBSrequest.setData(cimCBSrequestData);
+		
+		logger.debug(cimCBSrequest.toString());
+		//logger.debug(listener.generateJsonFormat1(cimCBSrequest));
+	///////////////////////////////////////////////////
+	
+		HttpEntity<CimCBSrequestGL> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
+		
+		/////Call REST API
+		ResponseEntity<CimGLresponse> response = null;
+		try {
+		
+			response = restTemplate.postForEntity(env.getProperty("cimESBGL.url")+"appname="+env.getProperty("cimESBGL.appname")+"&prgname="+env.getProperty("cimESBGL.prgname")+"&arguments="+env.getProperty("cimESBGL.arguments"),
+					entity, CimGLresponse.class);
+			logger.debug("Done");
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+		} catch (HttpClientErrorException ex) {
+			logger.debug("HttpClient"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			CimGLresponse cbsResponse=new CimGLresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		} catch (HttpServerErrorException ex) {
+			logger.debug("HttpServerErrorException"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			CimGLresponse cbsResponse=new CimGLresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception ex) {
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			CimGLresponse cbsResponse=new CimGLresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
 		}
 

@@ -50,6 +50,20 @@ public class SettlementAccountAmtTable implements Serializable{
 	private BigDecimal income_acct_bal;
 	private BigDecimal expense_acct_bal;
 	
+
+	private String payable_entry_user;
+	private Date payable_entry_time;
+	private String receivable_entry_user;
+	private Date receivable_entry_time;
+	
+	private String payable_verify_user;
+	private Date payable_verify_time;
+	private String receivable_verify_user;
+	private Date receivable_verify_time;
+	
+	private BigDecimal app_payable_acct_bal;
+	private BigDecimal app_receivable_acct_bal;
+	
 	public String getAcct_type() {
 		return acct_type;
 	}
@@ -205,6 +219,66 @@ public class SettlementAccountAmtTable implements Serializable{
 	}
 	public void setExpense_acct_bal(BigDecimal expense_acct_bal) {
 		this.expense_acct_bal = expense_acct_bal;
+	}
+	public String getPayable_entry_user() {
+		return payable_entry_user;
+	}
+	public void setPayable_entry_user(String payable_entry_user) {
+		this.payable_entry_user = payable_entry_user;
+	}
+	public Date getPayable_entry_time() {
+		return payable_entry_time;
+	}
+	public void setPayable_entry_time(Date payable_entry_time) {
+		this.payable_entry_time = payable_entry_time;
+	}
+	public String getReceivable_entry_user() {
+		return receivable_entry_user;
+	}
+	public void setReceivable_entry_user(String receivable_entry_user) {
+		this.receivable_entry_user = receivable_entry_user;
+	}
+	public Date getReceivable_entry_time() {
+		return receivable_entry_time;
+	}
+	public void setReceivable_entry_time(Date receivable_entry_time) {
+		this.receivable_entry_time = receivable_entry_time;
+	}
+	public String getPayable_verify_user() {
+		return payable_verify_user;
+	}
+	public void setPayable_verify_user(String payable_verify_user) {
+		this.payable_verify_user = payable_verify_user;
+	}
+	public Date getPayable_verify_time() {
+		return payable_verify_time;
+	}
+	public void setPayable_verify_time(Date payable_verify_time) {
+		this.payable_verify_time = payable_verify_time;
+	}
+	public String getReceivable_verify_user() {
+		return receivable_verify_user;
+	}
+	public void setReceivable_verify_user(String receivable_verify_user) {
+		this.receivable_verify_user = receivable_verify_user;
+	}
+	public Date getReceivable_verify_time() {
+		return receivable_verify_time;
+	}
+	public void setReceivable_verify_time(Date receivable_verify_time) {
+		this.receivable_verify_time = receivable_verify_time;
+	}
+	public BigDecimal getApp_payable_acct_bal() {
+		return app_payable_acct_bal;
+	}
+	public void setApp_payable_acct_bal(BigDecimal app_payable_acct_bal) {
+		this.app_payable_acct_bal = app_payable_acct_bal;
+	}
+	public BigDecimal getApp_receivable_acct_bal() {
+		return app_receivable_acct_bal;
+	}
+	public void setApp_receivable_acct_bal(BigDecimal app_receivable_acct_bal) {
+		this.app_receivable_acct_bal = app_receivable_acct_bal;
 	}
 	
 	

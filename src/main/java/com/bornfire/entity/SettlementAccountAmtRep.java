@@ -29,5 +29,8 @@ public interface SettlementAccountAmtRep extends JpaRepository<SettlementAccount
 	void updateReceivableAmount(String previousDay,String amount);
 	
 	
+	
+	
+	
 
 }
