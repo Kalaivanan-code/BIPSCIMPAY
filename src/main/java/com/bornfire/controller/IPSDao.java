@@ -6815,7 +6815,7 @@ public class IPSDao {
 				tranCimGlTable.setCurrency_code1(settlAcct.get().getCrncy());
 				tranCimGlTable.setPosting_date1(date);
 				tranCimGlTable.setTran_code1(settlAcct.get().getTran_code());
-				tranCimGlTable.setTran_desc1("Daily Cash Taking BIPS");
+				tranCimGlTable.setTran_desc1("CT  BIPS - "+new SimpleDateFormat("ddMMyy").format(new Date()));
 				tranCimGlTable.setTran_remarks1("Dr BOM MACSS Settlement Account");
 				tranCimGlTable.setRate1("0");
 				
@@ -6843,7 +6843,7 @@ public class IPSDao {
 				tranCimGlTable1.setCurrency_code1(settlAcctCashClr.get().getCrncy());
 				tranCimGlTable1.setPosting_date1(date);
 				tranCimGlTable1.setTran_code1(settlAcctCashClr.get().getTran_code());
-				tranCimGlTable1.setTran_desc1("Daily Cash Taking BIPS");
+				tranCimGlTable1.setTran_desc1("CT  BIPS - "+new SimpleDateFormat("ddMMyy").format(new Date()));
 				tranCimGlTable1.setTran_remarks1("Cr Cash Clearing");
 				tranCimGlTable1.setRate1("0");
 				
@@ -6885,5 +6885,44 @@ public class IPSDao {
 		settlAccountRep.updateGLNotBalSettlement(env.getProperty("settl.settlment"),amount);
 		
 	}
+	
+	
+	public String getCtgyPurp(String instgAgent, String debtorAgent, String creditorAgent,
+			String debtorName,String creditorName,boolean isRegiteredPISP,String remitterDocNumber,
+			String benAcctNumber) {
+
+		String ctgyPurp = "";
+
+		if (instgAgent.equals(creditorAgent)) {
+			
+			String getBenDocNumber=ipsConnection.getDocTypeNumber(benAcctNumber);
+			
+			if(getBenDocNumber.equals("0")) {
+				ctgyPurp = "0";
+			}else if(remitterDocNumber.equals(getBenDocNumber)){
+				ctgyPurp = "101";
+			}else if(!remitterDocNumber.equals(getBenDocNumber)) {
+				ctgyPurp = "103";
+			}
+			/*if(debtorName.toLowerCase().equals(creditorName.toLowerCase())) {
+				ctgyPurp = "101";
+			}else {
+				ctgyPurp = "103";
+			}*/
+		} else {
+			if (debtorAgent.equals(creditorAgent)) {
+				ctgyPurp = "103";
+			} else {
+				if(isRegiteredPISP) {
+					ctgyPurp = "102";
+				}else {
+					ctgyPurp = "103";
+				}
+				
+			}
+		}
+		return ctgyPurp;
+	}
+
 	
 }

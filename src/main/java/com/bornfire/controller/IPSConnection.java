@@ -94,6 +94,7 @@ import com.bornfire.entity.CIMMerchantDecodeQRMerchantAddlInfo;
 import com.bornfire.entity.CIMMerchantDirectFndRequest;
 import com.bornfire.entity.CIMMerchantQRRequestFormat;
 import com.bornfire.entity.CIMMerchantQRcodeRequest;
+import com.bornfire.entity.CimCBSCustDocResponse;
 import com.bornfire.entity.CimCBSrequestData;
 import com.bornfire.entity.CimCBSrequestHeader;
 import com.bornfire.entity.CimCBSresponse;
@@ -3919,7 +3920,8 @@ public class IPSConnection {
 						boolean isRegisteredPISP=ipsDao.checkExistConsent(rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
 						
 						////Category Purpose
-						String ctgyPurp=listener.getCtgyPurp(instgAgent,debtorAgent,CreditorAgent,rtpBulkTransferRequest.getRemitterAccount().getAcctName(),rtpBulkTransferRequest.getBenAccount().get(i).getBenName(),isRegisteredPISP);
+						String ctgyPurp=ipsDao.getCtgyPurp(instgAgent,debtorAgent,CreditorAgent,rtpBulkTransferRequest.getRemitterAccount().getAcctName(),rtpBulkTransferRequest.getBenAccount().get(i).getBenName(),isRegisteredPISP,
+								regAccList.get(0).getPsu_id(),rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
 						
 						///Local Instrumentation
 						String lclInstr=TranMonitorStatus.CSDC.toString();
@@ -5455,6 +5457,35 @@ public class IPSConnection {
 			logger.debug("Payment GL:Settlement Amt Record still not exist");
 		}
 		return res;
+	}
+
+
+
+	public String getDocTypeNumber(String benAcctNumber) {
+		
+		String docNumber="0";
+		ResponseEntity<CimCBSCustDocResponse> connect24Response = cimCBSservice.custDocType(benAcctNumber);
+		logger.debug("CBS Data:"+connect24Response.toString());
+		if (connect24Response.getStatusCode() == HttpStatus.OK) {
+			
+			if(!connect24Response.toString().equals("<200 OK OK,[]>")){
+
+
+				if (connect24Response.getBody().getStatus().getIsSuccess()) {
+					docNumber=connect24Response.getBody().getData().getIdentityNumber();
+					return docNumber;
+
+				} else {
+					return docNumber;
+				}
+
+			}else {
+				return docNumber;
+			}
+					
+		} else {
+			return docNumber;
+		}
 	}
 
 	

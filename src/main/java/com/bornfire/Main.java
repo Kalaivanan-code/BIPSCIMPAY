@@ -53,7 +53,8 @@ public class Main {
 			}
 			
 		    DecimalFormat df = new DecimalFormat("0.00");
-		    
+		   String datata= new SimpleDateFormat("ddMMyy").format(new Date());
+		   System.out.println(datata); //output 20.30
 		    double angle = 20.3034;
 
 		    String angleFormated = df.format(angle);

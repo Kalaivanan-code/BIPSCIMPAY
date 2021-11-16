@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.bornfire.entity.CimCBSCustDocRequest;
 import com.bornfire.entity.CimCBSrequestGL;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -149,34 +150,22 @@ public class Listener {
 
 		return jsonString;
 	}
-
-	public String getCtgyPurp(String instgAgent, String debtorAgent, String creditorAgent,
-			String debtorName,String creditorName,boolean isRegiteredPISP) {
-
-		String ctgyPurp = "";
-
-		if (instgAgent.equals(creditorAgent)) {
-			ctgyPurp = "101";
-			/*if(debtorName.toLowerCase().equals(creditorName.toLowerCase())) {
-				ctgyPurp = "101";
-			}else {
-				ctgyPurp = "103";
-			}*/
-		} else {
-			if (debtorAgent.equals(creditorAgent)) {
-				ctgyPurp = "103";
-			} else {
-				if(isRegiteredPISP) {
-					ctgyPurp = "102";
-				}else {
-					ctgyPurp = "103";
-				}
-				
-			}
+	
+	public String generateJsonFormat2(CimCBSCustDocRequest msg) {
+		// Creating the ObjectMapper object
+		ObjectMapper mapper = new ObjectMapper();
+		// Converting the Object to JSONString
+		String jsonString = "";
+		try {
+			jsonString = mapper.writeValueAsString(msg);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
 		}
-		return ctgyPurp;
+
+		return jsonString;
 	}
 
+	
 	public String encrypt(String encData,String sec) throws Exception {
 
 		byte[] skey = rekey(sec).getEncoded();

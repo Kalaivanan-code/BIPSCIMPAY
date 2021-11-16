@@ -29,9 +29,14 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.bornfire.config.Listener;
+import com.bornfire.config.SequenceGenerator;
 import com.bornfire.entity.C24FTRequest;
 import com.bornfire.entity.C24FTResponse;
 import com.bornfire.entity.C24RequestAcount;
+import com.bornfire.entity.CimCBSCustDocData;
+import com.bornfire.entity.CimCBSCustDocHeader;
+import com.bornfire.entity.CimCBSCustDocRequest;
+import com.bornfire.entity.CimCBSCustDocResponse;
 import com.bornfire.entity.CimCBSrequest;
 import com.bornfire.entity.CimCBSrequestData;
 import com.bornfire.entity.CimCBSrequestGL;
@@ -70,6 +75,9 @@ public class CimCBSservice {
 	
 	@Autowired
 	TranCimGLRep tranCimGlRep;
+	
+	@Autowired
+	SequenceGenerator sequence;
 
 	public ResponseEntity<CimCBSresponse> cdtFundRequest(String requestUUID) {
 		HttpHeaders httpHeaders = new HttpHeaders();
@@ -476,6 +484,60 @@ public class CimCBSservice {
 
 	}
 
+	
+	public ResponseEntity<CimCBSCustDocResponse> custDocType(String agreementNumber) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		
+		/////////////////////Request Body Creation/////////////////////////////
+		CimCBSCustDocRequest cimCBSrequest=new CimCBSCustDocRequest();
+		
+		///Get Request UUID
+		CimCBSCustDocHeader cimCBSrequestHeader=new CimCBSCustDocHeader();
+		cimCBSrequestHeader.setRequestUUId(sequence.generateRequestUUId());
+		cimCBSrequestHeader.setChannelId(env.getProperty("cimESBCustType.channelID"));
+		cimCBSrequestHeader.setServiceRequestVersion(env.getProperty("cimESBCustType.servicereqversion"));
+		cimCBSrequestHeader.setServiceRequestId(env.getProperty("cimESBCustType.servicereqID"));
+		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(new Date(), "3").toString());
+		cimCBSrequestHeader.setLanguageId(env.getProperty("cimESBCustType.languageID"));
+		cimCBSrequestHeader.setCountryCode("MU");
+		cimCBSrequest.setHeader(cimCBSrequestHeader);
+		
+		CimCBSCustDocData cimCBSrequestData=new CimCBSCustDocData();
+		cimCBSrequestData.setAgreementNumber(agreementNumber);
+		cimCBSrequest.setData(cimCBSrequestData);
+		
+		logger.debug(cimCBSrequest.toString());
+		logger.debug(listener.generateJsonFormat2(cimCBSrequest));
+	///////////////////////////////////////////////////
+	
+		HttpEntity<CimCBSCustDocRequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
+		
+		/////Call REST API
+		ResponseEntity<CimCBSCustDocResponse> response = null;
+		try {
+		
+			response = restTemplate.postForEntity(env.getProperty("cimESBCustType.url")+"appname="+env.getProperty("cimESBCustType.appname")+"&prgname="+env.getProperty("cimESBCustType.prgname")+"&arguments="+env.getProperty("cimESBCustType.arguments"),
+					entity, CimCBSCustDocResponse.class);
+			logger.debug("Done");
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+		} catch (HttpClientErrorException ex) {
+			logger.debug("HttpClient"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			CimCBSCustDocResponse cbsResponse=new CimCBSCustDocResponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		} catch (HttpServerErrorException ex) {
+			logger.debug("HttpServerErrorException"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			CimCBSCustDocResponse cbsResponse=new CimCBSCustDocResponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception ex) {
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			CimCBSCustDocResponse cbsResponse=new CimCBSCustDocResponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		}
+
+	}
 
 
 }
