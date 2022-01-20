@@ -47,6 +47,7 @@ public class ConsentOutwardAccessTmpTable {
 	private String private_key;
 	private String custom_device_id;
 	private String acct_name;
+	private String psu_channel;
 
 	
 	public ConsentOutwardAccessTmpTable() {
@@ -268,6 +269,12 @@ public class ConsentOutwardAccessTmpTable {
 	}
 	public void setAcct_name(String acct_name) {
 		this.acct_name = acct_name;
+	}
+	public String getPsu_channel() {
+		return psu_channel;
+	}
+	public void setPsu_channel(String psu_channel) {
+		this.psu_channel = psu_channel;
 	}
 	
 	

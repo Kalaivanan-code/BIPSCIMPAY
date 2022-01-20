@@ -8,7 +8,10 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
@@ -79,6 +82,23 @@ public class SignDocument {
 
 	private static final Logger logger = LoggerFactory.getLogger(SignDocument.class);
 
+	 private static DocumentBuilderFactory dbf;
+	 private static KeyStore ks ;
+	    static {
+	            // one time instance creation
+	        	dbf = DocumentBuilderFactory.newInstance();
+	    }
+	    
+	    static {
+	        try {
+	            // one time instance creation
+	        	ks = KeyStore.getInstance("JKS");
+	        } catch ( KeyStoreException e) {
+	            throw new IllegalStateException(e);
+	        }
+	    }
+		 
+	    
 	@Autowired
 	CronJobScheduler cronJobScheduler;
 
@@ -89,7 +109,7 @@ public class SignDocument {
 		DocumentBuilder db = null;
 		Document doc = null;
 		try {
-			db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			db = dbf.newDocumentBuilder();
 			doc = db.parse(new InputSource(new StringReader(document)));
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			e.printStackTrace();
@@ -102,7 +122,7 @@ public class SignDocument {
 
 		try {
 			// Getting JKS Keystore
-			KeyStore ks = KeyStore.getInstance("JKS");
+			//KeyStore ks = KeyStore.getInstance("JKS");
 			char[] pwdArray = env.getProperty("sign.pwd").toCharArray();
 
 			//ks.load(new FileInputStream(ResourceUtils.getFile("classpath:ipsx.jks")), pwdArray);
@@ -235,12 +255,10 @@ public class SignDocument {
 		DocumentBuilderFactory db = null;
 		Document doc = null;
 		try {
-			 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			 //DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 	            dbf.setNamespaceAware(true);
 	            DocumentBuilder builder = dbf.newDocumentBuilder();
-			//db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			doc = builder.parse(new InputSource(new StringReader(document)));
-			//db.setNamespaceAware(true);
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			e.printStackTrace();
 		}

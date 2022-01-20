@@ -1,5 +1,6 @@
 package com.bornfire.entity;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -11,7 +12,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table(name="BIPS_TRAN_CIM_CBS_TABLE")
-public class TranCimCBSTable {
+public class TranCimCBSTable implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private String sequence_unique_id;
 	
 	@Id
@@ -52,6 +58,7 @@ public class TranCimCBSTable {
 	private String error_code;
 	private String error_msg;
 	private String ips_master_ref_id;
+	private Date message_res_time;
 	
 	public TranCimCBSTable(String sequence_unique_id, String request_uuid, String channel_id,
 			String service_request_version, String service_request_id, Date message_date_time, String tran_no,
@@ -321,6 +328,12 @@ public class TranCimCBSTable {
 	}
 	public void setIps_master_ref_id(String ips_master_ref_id) {
 		this.ips_master_ref_id = ips_master_ref_id;
+	}
+	public Date getMessage_res_time() {
+		return message_res_time;
+	}
+	public void setMessage_res_time(Date message_res_time) {
+		this.message_res_time = message_res_time;
 	}
 	
 	

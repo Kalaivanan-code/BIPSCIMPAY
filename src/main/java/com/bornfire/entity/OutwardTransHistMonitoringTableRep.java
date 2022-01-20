@@ -15,4 +15,8 @@ public interface OutwardTransHistMonitoringTableRep extends JpaRepository<Outwar
 	@Query(value = "select * from BIPS_OUTWARD_TRANSACTION_HIST_MONITORING_TABLE where sequence_unique_id=?1", nativeQuery = true)
 	List<OutwardTransactionMonitoringTable> getExistData(String seqID);
 
+	
+	@Query(value="select * from BIPS_OUTWARD_TRANSACTION_HIST_MONITORING_TABLE where master_ref_id=?1",nativeQuery = true)
+	List<OutwardTransHistMonitorTable> findBulkDebitID(String master_ref_id);
+
 }

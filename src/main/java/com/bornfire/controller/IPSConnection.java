@@ -36,6 +36,12 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -45,6 +51,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,13 +64,16 @@ import javax.crypto.NoSuchPaddingException;
 import javax.imageio.ImageIO;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.stream.XMLInputFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
@@ -76,6 +86,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.bornfire.clientService.IPSXClient;
 import com.bornfire.config.ErrorResponseCode;
+import com.bornfire.config.InformixConnectionManager;
 import com.bornfire.config.Listener;
 import com.bornfire.config.SequenceGenerator;
 import com.bornfire.entity.AccountContactResponse;
@@ -83,6 +94,7 @@ import com.bornfire.entity.AccountListResponse;
 import com.bornfire.entity.AccountsListAccounts;
 import com.bornfire.entity.Amount;
 import com.bornfire.entity.BankAgentTable;
+import com.bornfire.entity.BenAccount;
 import com.bornfire.entity.BukCreditTransferRequest;
 import com.bornfire.entity.BulkDebitFndTransferRequest;
 import com.bornfire.entity.C24FTResponse;
@@ -134,6 +146,7 @@ import com.bornfire.entity.ReadConsentBalance;
 import com.bornfire.entity.RegConsentAccountList;
 import com.bornfire.entity.RegPublicKey;
 import com.bornfire.entity.RegPublicKeyRep;
+import com.bornfire.entity.RemitterAccount;
 import com.bornfire.entity.SCAAthenticationResponse;
 import com.bornfire.entity.SCAAuthenticatedData;
 import com.bornfire.entity.SettlementAccount;
@@ -148,6 +161,7 @@ import com.bornfire.entity.TranMonitorStatus;
 import com.bornfire.entity.TransactionListResponse;
 import com.bornfire.entity.TransactionMonitor;
 import com.bornfire.entity.TransactionMonitorRep;
+import com.bornfire.entity.UpdateCBSIncProceRep;
 import com.bornfire.entity.UserRegistrationRequest;
 import com.bornfire.entity.UserRegistrationResponse;
 import com.bornfire.entity.WalletAccessRequest;
@@ -166,6 +180,7 @@ import com.bornfire.exception.IPSXException;
 import com.bornfire.exception.IPSXRestException;
 import com.bornfire.exception.ServerErrorException;
 import com.bornfire.jaxb.pacs_008_001_08.ChargeBearerType1Code;
+import com.bornfire.jaxb.pacs_008_001_08.Document;
 import com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1;
 import com.bornfire.jaxb.wsdl.SendT;
 import com.bornfire.messagebuilder.SignDocument;
@@ -193,6 +208,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -202,6 +218,17 @@ import static com.bornfire.exception.ErrorResponseCode.*;
 @Component
 public class IPSConnection {
 
+
+    private static KeyFactory kf;
+    static {
+        try {
+            // one time instance creation
+        	kf = KeyFactory.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+	 
 	private static final Logger logger = LoggerFactory.getLogger(IPSConnection.class);
 
 	@Autowired
@@ -223,6 +250,7 @@ public class IPSConnection {
 	ErrorResponseCode errorCode;
 
 	@Autowired
+	@Qualifier("asyncExecutor")
 	TaskExecutor taskExecutor;
 
 	@Autowired
@@ -268,6 +296,12 @@ public class IPSConnection {
 	@Autowired
 	SettlementAccountAmtRep settlAccountAmtRep;
 	
+	
+	@Autowired
+	UpdateCBSIncProceRep updateProcedure;
+	
+	@Autowired
+	InformixConnectionManager conne;
 	/////Fund Transfer Connection
 	////Debit Customer Account Credit Settl Account(Connect 24)
 	////Send Packages to IPSX,Credit to IPSX Account
@@ -2066,9 +2100,9 @@ public class IPSConnection {
 
         X509EncodedKeySpec spec = new X509EncodedKeySpec(der);
 
-        KeyFactory kf = KeyFactory.getInstance("RSA"
+       /* KeyFactory kf = KeyFactory.getInstance("RSA"
                 //        , "BC" //use provider BouncyCastle if available.
-        );
+        );*/
 
         return kf.generatePublic(spec);
     }
@@ -3148,7 +3182,7 @@ public class IPSConnection {
 
 	public McConsentOutwardAccessResponse outwardConsentAccess(String x_request_id, String psuDeviceID, String psuIPAddress,
 			String psuID, String psuIDCountry, String psuIDType,
-			ConsentOutwardAccessRequest consentOutwardAccessRequest) throws Exception {
+			ConsentOutwardAccessRequest consentOutwardAccessRequest,String channelID) throws Exception {
 		
 
 		McConsentOutwardAccessResponse response=null;
@@ -3192,7 +3226,7 @@ public class IPSConnection {
 			if (res.equals("0")) {
 				String status = ipsDao.outwardConsentDataRegister(x_request_id, psuDeviceID,
 						psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessRequest, sender_participant_bic,sender_participant_member_id,
-						receiver_participant_bic, receiver_participant_member_id,encryptPublicKey,encryptPrivateKey,encryptCustomDevieID);
+						receiver_participant_bic, receiver_participant_member_id,encryptPublicKey,encryptPrivateKey,encryptCustomDevieID,channelID);
 
 				logger.debug("Calling Outward Consent Access Connection Register Status"+status);
 
@@ -3275,7 +3309,8 @@ public class IPSConnection {
 	
 	public ConsentOutwardAccessAuthResponse outwardConsentAccessSCAAuth(String x_request_id, String psuDeviceID,
 			String psuIPAddress, String psuID, String psuIDCountry, String psuIDType,
-			ConsentOutwardAccessAuthRequest consentOutwardAccessAuthRequest, String consentID, String authID) throws Exception {
+			ConsentOutwardAccessAuthRequest consentOutwardAccessAuthRequest, String consentID, String authID,
+			String channelID) throws Exception {
 		
 		
 		
@@ -3300,18 +3335,18 @@ public class IPSConnection {
 					consentDataList.get(0).getPsu_id_type().equals(psuIDType)) {
 				String res = ipsDao.consentOutwardDataAuthorisation(x_request_id, psuDeviceID, psuIPAddress, psuID, psuIDCountry,
 						psuIDType, sender_participant_bic, sender_participant_member_id, receiver_participant_bic,
-						receiver_participant_member_id, consentID, "");
+						receiver_participant_member_id, consentID, "",channelID);
 				if (res.equals("0")) {
 					String status = ipsDao.outwardConsentDataRegisterAuth(x_request_id, psuDeviceID,
 							psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessAuthRequest, sender_participant_bic,sender_participant_member_id,
-							receiver_participant_bic, receiver_participant_member_id,consentID,authID);
+							receiver_participant_bic, receiver_participant_member_id,consentID,authID,channelID);
 					
 					logger.debug("Calling Outward Consent Access Authorisation Register status"+status);
 
 					if(status.equals("0")) {
 
 						////Create Cryptogram Data
-						Map<String, Object> claimsData = new HashMap<String, Object>();
+						Map<String, Object> claimsData = new LinkedHashMap<String, Object>();
 						claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
 						//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id());
 
@@ -3413,7 +3448,7 @@ public class IPSConnection {
 	}
 	
 	public ErrorRestResponse outwardDeleteConsentAccess(String x_request_id, String psuDeviceID, String psuIPAddress, String psuID,
-			String psuIDCountry, String psuIDType, String consentID) throws InvalidKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableEntryException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+			String psuIDCountry, String psuIDType, String consentID,String channelID) throws InvalidKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableEntryException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
 		List<ConsentOutwardAccessTable> consentDataList = ipsDao.getConsentData(consentID);
 
 		logger.debug("Calling Outward Delete Consent Access ");
@@ -3427,7 +3462,7 @@ public class IPSConnection {
 			
 			String res = ipsDao.consentOutwardDataDelete(x_request_id, psuDeviceID, psuIPAddress, psuID, psuIDCountry,
 					psuIDType, sender_participant_bic, sender_participant_member_id, receiver_participant_bic,
-					receiver_participant_member_id, consentID, "");
+					receiver_participant_member_id, consentID, "",channelID);
 			if (res.equals("0")) {
 				ResponseEntity<ErrorRestResponse> accountConsentResponse = consentIPSXservice
 						.deleteAccountConsent(x_request_id, listener.decryptDid(consentDataList.get(0).getCustom_device_id()),
@@ -3458,7 +3493,7 @@ public class IPSConnection {
 	
 	
 	public ConsentAccountBalance outwardConsentAccessBalances(String x_request_id, String psuDeviceID, String psuIPAddress,
-			String psuID, String psuIDCountry, String psuIDType, String consentID, String accountID) throws Exception {
+			String psuID, String psuIDCountry, String psuIDType, String consentID, String accountID,String channelID) throws Exception {
 		List<ConsentOutwardAccessTable> consentDataList = ipsDao.getConsentData(consentID);
 
 		logger.debug("Calling Outward Balance Consent Access "+consentDataList.size());
@@ -3472,7 +3507,7 @@ public class IPSConnection {
 			String receiver_participant_member_id=consentDataList.get(0).getReceiverparticipant_memberid();
 			
 		////Create Cryptogram Data
-			Map<String, Object> claimsData = new HashMap<String, Object>();
+			Map<String, Object> claimsData = new LinkedHashMap<String, Object>();
 			claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
 			//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
@@ -3487,7 +3522,7 @@ public class IPSConnection {
 			
 			String status = ipsDao.outwardConsentDataRegisterBalances(x_request_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
-					receiver_participant_bic, receiver_participant_member_id,consentID,accountID);
+					receiver_participant_bic, receiver_participant_member_id,consentID,accountID,channelID);
 			
 			logger.debug("Calling Outward Consent Access Balance Register status"+status);
 
@@ -3539,7 +3574,7 @@ public class IPSConnection {
 	
 	public TransactionListResponse outwardConsentAccessTransactionInc(String x_request_id, String psuDeviceID,
 			String psuIPAddress, String psuID, String psuIDCountry, String psuIDType, String consentID,
-			String accountID, String fromBookingDateTime, String toBookingDateTime) throws Exception {
+			String accountID, String fromBookingDateTime, String toBookingDateTime,String channelID) throws Exception {
 		List<ConsentOutwardAccessTable> consentDataList = ipsDao.getConsentData(consentID);
 
 		logger.debug("Calling Outward Consent Access Trancation Inquiry");
@@ -3551,7 +3586,7 @@ public class IPSConnection {
 			
 	
 		////Create Cryptogram Data
-			Map<String, Object> claimsData = new HashMap<String, Object>();
+			Map<String, Object> claimsData = new LinkedHashMap<String, Object>();
 			claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
 			//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
@@ -3571,7 +3606,7 @@ public class IPSConnection {
 
 			String status = ipsDao.outwardConsentDataRegisterTransactionInc(x_request_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
-					receiver_participant_bic, receiver_participant_member_id,consentID,accountID);
+					receiver_participant_bic, receiver_participant_member_id,consentID,accountID,channelID);
 			
 			logger.debug("Calling Outward Consent Access Balance Register status"+status);
 
@@ -3612,7 +3647,7 @@ public class IPSConnection {
 	
 	
 	public AccountListResponse outwardConsentAccessAccountListInc(String x_request_id, String psuDeviceID,
-			String psuIPAddress, String psuID, String psuIDCountry, String psuIDType, String consentID) throws Exception {
+			String psuIPAddress, String psuID, String psuIDCountry, String psuIDType, String consentID,String channelID) throws Exception {
 		List<ConsentOutwardAccessTable> consentDataList = ipsDao.getConsentData(consentID);
 
 		logger.debug("Calling Outward Consent Access Account List Inquiry");
@@ -3625,7 +3660,7 @@ public class IPSConnection {
 		////Create Cryptogram Data
 		
 			
-			Map<String, Object> claimsData = new HashMap<String, Object>();
+			Map<String, Object> claimsData = new LinkedHashMap<String, Object>();
 			claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
 			//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
@@ -3639,7 +3674,7 @@ public class IPSConnection {
 
 			String status = ipsDao.outwardConsentDataRegisterAccountListInc(x_request_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
-					receiver_participant_bic, receiver_participant_member_id,consentID);
+					receiver_participant_bic, receiver_participant_member_id,consentID,channelID);
 			
 			logger.debug("Calling Outward Consent Access Account List Register status"+status);
 
@@ -3683,7 +3718,7 @@ public class IPSConnection {
 	
 	public AccountsListAccounts outwardConsentAccessAccountInc(String x_request_id, String psuDeviceID,
 			String psuIPAddress, String psuID, String psuIDCountry, String psuIDType, String consentID,
-			String accountID) throws Exception {
+			String accountID,String channelID) throws Exception {
 		List<ConsentOutwardAccessTable> consentDataList = ipsDao.getConsentData(consentID);
 
 		logger.debug("Calling Outward Consent Access Account  Inquiry");
@@ -3696,7 +3731,7 @@ public class IPSConnection {
 			logger.info(accountID);
 			
 		////Create Cryptogram Data
-			Map<String, Object> claimsData = new HashMap<String, Object>();
+			Map<String, Object> claimsData = new LinkedHashMap<String, Object>();
 			claimsData.put("deviceId",listener.decryptDid(consentDataList.get(0).getCustom_device_id()));
 			//claimsData.put("deviceId",consentDataList.get(0).getCustom_device_id() );
 			claimsData.put("endToEndId",x_request_id);
@@ -3711,7 +3746,7 @@ public class IPSConnection {
 			
 			String status = ipsDao.outwardConsentDataRegisterAccountInc(x_request_id, psuDeviceID,
 					psuIPAddress, psuID, psuIDCountry, psuIDType, sender_participant_bic,sender_participant_member_id,
-					receiver_participant_bic, receiver_participant_member_id,consentID,accountID);
+					receiver_participant_bic, receiver_participant_member_id,consentID,accountID, channelID);
 			
 			logger.debug("Calling Outward Consent Access Account  Register status"+status);
 
@@ -3832,23 +3867,26 @@ public class IPSConnection {
 		return token;*/
 		 String token="";
          try {
-         	byte[] data = Base64.getDecoder().decode((privateKey.getBytes()));
-	            X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
-	            KeyFactory fact = KeyFactory.getInstance("RSA");
+         	////byte[] data = Base64.getDecoder().decode((privateKey.getBytes()));
+	        //    X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
+	         //   KeyFactory fact = KeyFactory.getInstance("RSA");
 	            
-	          String  rsaPrivateKey = privateKey.replace("-----BEGIN PRIVATE KEY-----", "");
-	          rsaPrivateKey = privateKey.replace("-----END PRIVATE KEY-----", "");
+	          String  rsaPrivateKey = privateKey.replace("-----BEGIN PRIVATE KEY-----", "")
+	          .replace("-----END PRIVATE KEY-----", "");
 
 	          PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(rsaPrivateKey));
-	          KeyFactory kf = KeyFactory.getInstance("RSA");
+	         
 	          PrivateKey privKey = kf.generatePrivate(keySpec);
 				
-	           
-	            
-	             token = Jwts.builder().setClaims(claimsData).signWith(SignatureAlgorithm.RS512,  privKey).compact();
-				return token;
+	          token = Jwts.builder().setClaims(claimsData).
+	        		  setHeaderParam("alg","RS512").
+	        		  setHeaderParam("typ","JWT").
+	        		  signWith(SignatureAlgorithm.RS512,  privKey).compact();
+				
+	             return token;
          }catch(Exception e) {
          	System.out.println("Exception:"+e.getMessage());
+         	logger.error("Token generate Error->"+e.getMessage());
          }
          return token;
 
@@ -3864,14 +3902,23 @@ public class IPSConnection {
 	public RTPbulkTransferResponse createBulkRTPconnection(String psuDeviceID, String psuIpAddress, String psuID,
 			RTPbulkTransferRequest rtpBulkTransferRequest,String p_id,String channelID,String resvfield1,String resvfield2) {
 		
-		String master_ref_id = env.getProperty("ipsx.userS") + sequence.generateSystemTraceAuditNumber();
-		String seqUniqueID1 = sequence.generateSeqUniqueID();
+		//String master_ref_id = env.getProperty("ipsx.userS") + sequence.generateSystemTraceAuditNumber();
+		//String seqUniqueID1 = sequence.generateSeqUniqueID();
+		
+		String sequenceData=sequence.generateSystemSequence();
+		String master_ref_id =sequence.generateMasterRef(sequenceData);
+		String seqUniqueID1 = sequence.generateSeqID(sequenceData);
 		
 		RTPbulkTransferResponse rtpbulkTransferResponse = null;
 		
+		for (int i = 0; i < rtpBulkTransferRequest.getBenAccount().size(); i++) {
+			taskExecutor.execute(new BulkEntry(psuDeviceID,psuIpAddress,psuID,
+					rtpBulkTransferRequest,p_id,channelID,resvfield1,resvfield2,
+					i,seqUniqueID1,master_ref_id));
+		}
 		
 			///// Starting Background Service
-			taskExecutor.execute(new Runnable() {
+			/*taskExecutor.execute(new Runnable() {
 				@Override
 				public void run() {
 
@@ -3946,7 +3993,7 @@ public class IPSConnection {
 					
 						////Generate JWT Token
 					    ////Create Cryptogram Data
-						Map<String, Object> claimsData = new HashMap<String, Object>();
+						Map<String, Object> claimsData = new LinkedHashMap<String, Object>();
 						try {
 							claimsData.put("deviceId",listener.decryptDid(regAccList.get(0).getCustom_device_id()));
 						} catch (InvalidKeyException | KeyStoreException | NoSuchAlgorithmException
@@ -4001,7 +4048,7 @@ public class IPSConnection {
 					}
 
 				}
-			});
+			});*/
 
 			///// Return Master Ref ID
 			rtpbulkTransferResponse = new RTPbulkTransferResponse(master_ref_id,
@@ -4507,7 +4554,7 @@ public class IPSConnection {
 					System.out.println(regAccList.get(0).getCustom_device_id());
 						////Generate JWT Token
 					    ////Create Cryptogram Data
-						Map<String, Object> claimsData = new HashMap<String, Object>();
+						Map<String, Object> claimsData = new LinkedHashMap<String, Object>();
 						try {
 							claimsData.put("deviceId",listener.decryptDid(regAccList.get(0).getCustom_device_id()));
 							System.out.println(listener.decryptDid(regAccList.get(0).getCustom_device_id()));
@@ -4568,152 +4615,143 @@ public class IPSConnection {
 
 
 	
-	public String incomingFundTransferConnection1(String acctNumber,String acctName, String trAmt, String currency,
-			String sysTraceAuditNumber, String SeqUniqueID,String trRmks,SendT request,
-			String debrAcctNumber,String debtAcctName,String instgAcct,String ctgyPurp,String rmtInfo,String instrId,String endToEndID) {
+	public String incomingFundTransferConnection1(String acctNumber, String acctName, String trAmt, String currency,
+			String sysTraceAuditNumber, String SeqUniqueID, String trRmks, SendT request, String debrAcctNumber,
+			String debtAcctName, String instgAcct, String ctgyPurp, String rmtInfo, String instrId, String endToEndID) {
+
+		
+		logger.info("Calling Connect 24 for Account Status");
 
 		String tranResponse = "";
-		logger.info(SeqUniqueID + ": Calling Connect 24 for Account Status");
-
-		//logger.info(String.valueOf(signDocument.verifySignParseDoc(request.getMessage().getBlock4())));
+		String response = ""; 
 		
-		//if(signDocument.verifySignParseDoc(request.getMessage().getBlock4())) {
+		//// Generate RequestUUID
+		String requestUUID = sequence.generateRequestUUId();
+
+		String settlReceivableAccount=settlAccountRep.findByAccountNuber("03");
+		//String settlReceivableAccount = settlAccountRep.findById("03").get().getAccount_number();
+		
+		List<OutwardTransactionMonitoringTable> outTranList = ipsDao.checkExistOutwardRTP(instrId, endToEndID);
+		
+		int sizeOutTran = outTranList.size();
+
 			
-			if (!acctNumber.equals("")) {
-				if (!trAmt.equals("0") && !trAmt.equals("0.00")&& !trAmt.equals("")) {
+		if(sizeOutTran>0) {
+			
+			OutwardTransactionMonitoringTable dataParse=outTranList.get(0);
+			
+			String initTranNumber = dataParse.getResv_field1() != null ? dataParse.getResv_field1()
+					: dataParse.getP_id();
 					
+			response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+					sysTraceAuditNumber, dataParse.getInit_channel_id(), initTranNumber, "True", "CR", "N", "",
+					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "RTP", "", rmtInfo, "",
+					"", new Date(), "RECEIVABLE", dataParse.getReq_unique_id(), "", "",
+					dataParse.getMaster_ref_id());
+			
+			
+		}else {
+			response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+					sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID, "True", "CR", "N", "",
+					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "NRT", "", rmtInfo, "",
+					"", new Date(), "RECEIVABLE", "", "", "", "");
+			
+			
+		}
 		
-					////Generate RequestUUID
-					String requestUUID=sequence.generateRequestUUId();
-					
-					String response="";
-					String settlReceivableAccount=settlAccountRep.findById("03").get().getAccount_number();
+		
+		if (response.equals("1")) {
 
-					List<OutwardTransactionMonitoringTable> outTranList=ipsDao.checkExistOutwardRTP(instrId,endToEndID);
-					
-					if(outTranList.size()>0) {
-						String initTranNumber="";
-						if(outTranList.get(0).getResv_field1()!=null) {
-							initTranNumber=outTranList.get(0).getResv_field1();
-						}else {
-							initTranNumber=outTranList.get(0).getP_id();
-						}
-						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-								sysTraceAuditNumber,outTranList.get(0).getInit_channel_id(),initTranNumber,"True","CR","N","",
-								acctNumber, trAmt, currency,
-								SeqUniqueID,settlReceivableAccount,acctName,"RTP","",rmtInfo,"","",new Date(),"RECEIVABLE",
-								outTranList.get(0).getReq_unique_id(),"","",outTranList.get(0).getMaster_ref_id());
-					}else {
-						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-								sysTraceAuditNumber,env.getProperty("cimCBS.incCRChannel"),endToEndID,"True","CR","N","",
-								acctNumber, trAmt, currency,
-								SeqUniqueID,settlReceivableAccount,acctName,"NRT","",rmtInfo,"","",new Date(),"RECEIVABLE",
-								"","","","");
-					}
-					/*if(ctgyPurp.equals("100")) {
-						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-								sysTraceAuditNumber,env.getProperty("cimCBS.incCRChannel"),"","True","CR","N","",
-								acctNumber, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","",new Date(),"RECEIVABLE");
-						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-								sysTraceAuditNumber,env.getProperty("cimCBS.incCRChannel"),"","True","CR","N","",
-								settlReceivableAccount, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","");
-					}else {
-						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-								sysTraceAuditNumber,env.getProperty("cimCBS.rtpCRChannel"),"","True","CR","N","",
-								acctNumber, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","",new Date(),"RECEIVABLE");
-					
-						response=ipsDao.registerCIMcbsIncomingData(requestUUID,env.getProperty("cimCBS.channelID"),
-								env.getProperty("cimCBS.servicereqversion"),env.getProperty("cimCBS.servicereqID"),new Date(),
-								sysTraceAuditNumber,env.getProperty("cimCBS.rtpCRChannel"),"","True","CR","N","",
-								settlReceivableAccount, trAmt, currency,
-								SeqUniqueID,debrAcctNumber,debtAcctName,"NRT/RTP","",rmtInfo,"","");
-					}*/
-					
-					
-					if(response.equals("1")) {
-					/*	ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice
-								.cdtFundRequest(requestUUID,acctNumber, trAmt, currency, sysTraceAuditNumber,
-										SeqUniqueID,trRmks);*/
-						
-						ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice
-								.cdtFundRequest(requestUUID);
-						logger.info("Response->"+connect24Response.toString());
-						if (connect24Response.getStatusCode() == HttpStatus.OK) {
+			
+			ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
+			logger.info("Response->" + connect24Response.toString());
+			if (connect24Response.getStatusCode() == HttpStatus.OK) {
+
+				if (!connect24Response.toString().equals("<200 OK OK,[]>")) {
+					//logger.info(SeqUniqueID + ": success");
+
+					if (connect24Response.getBody().getStatus() != null) {
+						if (connect24Response.getBody().getStatus().getIsSuccess()) {
+							logger.info(
+									SeqUniqueID + ": success" + connect24Response.getBody().getStatus().getIsSuccess());
+
+							updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+									"CBS_CREDIT_OK", "", "SUCCESS", connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(), connect24Response.getBody().getData().getTransactionNoFromCBS());
+							tranResponse = errorCode.ErrorCode("CIM0");
 							
-							if (!connect24Response.toString().equals("<200 OK OK,[]>")) {
-								logger.info(SeqUniqueID + ": success");
+//							logger.info("Calling Connect 24 for Account Status5");
+//							
+//							ipsDao.updateCIMcbsData(requestUUID, "SUCCESS",
+//									connect24Response.getBody().getStatus().getStatusCode(),
+//									connect24Response.getBody().getStatus().getMessage(),
+//									connect24Response.getBody().getData().getTransactionNoFromCBS());
+//							tranResponse = errorCode.ErrorCode("CIM0");
 
-								if(connect24Response.getBody().getStatus()!=null) {
-									if(connect24Response.getBody().getStatus().getIsSuccess()) {
-										logger.info(SeqUniqueID + ": success"+connect24Response.getBody().getStatus().getIsSuccess());
+							return tranResponse;
 
-										ipsDao.updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage(),connect24Response.getBody().getData().getTransactionNoFromCBS());
-										tranResponse = errorCode.ErrorCode("CIM0");
-										
-									}else {
-										logger.info(SeqUniqueID + ": Fail"+connect24Response.getBody().getStatus().getIsSuccess());
-										logger.info(SeqUniqueID + ": Fail"+connect24Response.getBody().getStatus().getMessage());
-
-										ipsDao.updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus().getStatusCode(),connect24Response.getBody().getStatus().getMessage(),connect24Response.getBody().getData().getTransactionNoFromCBS());
-										tranResponse = errorCode.ErrorCode(connect24Response.getBody().getStatus().getStatusCode());
-									}
-								}else {
-									ipsDao.updateCIMcbsData(requestUUID,"FAILURE","200","No Response return from CBS","");
-									tranResponse = errorCode.ErrorCode("CIM500");
-								}
-							}else {
-								ipsDao.updateCIMcbsData(requestUUID,"FAILURE","200","No Response return from CBS","");
-								tranResponse = errorCode.ErrorCode("CIM500");
-							}
-							
-							
 						} else {
-							ipsDao.updateCIMcbsData(requestUUID,"FAILURE","500","Internal Server Error","");
-							tranResponse = errorCode.ErrorCode("CIM500");
+							
+							logger.info(SeqUniqueID + ": Fail" + connect24Response.getBody().getStatus().getMessage());
+
+							updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+									"CBS_CREDIT_ERROR", connect24Response.getBody().getStatus().getMessage(), "FAILURE", connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(), 
+									"");
+//							ipsDao.updateCIMcbsData(requestUUID, "FAILURE",
+//									connect24Response.getBody().getStatus().getStatusCode(),
+//									connect24Response.getBody().getStatus().getMessage(),
+//									connect24Response.getBody().getData().getTransactionNoFromCBS());
+							tranResponse = errorCode.ErrorCode(connect24Response.getBody().getStatus().getStatusCode());
+							return tranResponse;
+
 						}
-					}else {
-						ipsDao.updateCIMcbsData(requestUUID,"FAILURE","500","Internal Server Error","");
+					} else {
+						//ipsDao.updateCIMcbsData(requestUUID, "FAILURE", "200", "No Response return from CBS", "");
+						
+						updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+								"CBS_CREDIT_ERROR", "No Response return from CBS", "FAILURE","200",
+								"No Response return from CBS", 
+								"");
+						
 						tranResponse = errorCode.ErrorCode("CIM500");
+						return tranResponse;
 					}
-
 				} else {
-					logger.info(SeqUniqueID + ": Zero amount");
-
-					ipsDao.updateCBSStatusError(SeqUniqueID, TranMonitorStatus.VALIDATION_ERROR.toString(),
-							"Validation Failed/Zero Amount", TranMonitorStatus.FAILURE.toString());
-					tranResponse = errorCode.ErrorCode("AM01");
+					
+					updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+							"CBS_CREDIT_ERROR", "No Response return from CBS", "FAILURE","200",
+							"No Response return from CBS", 
+							"");
+					
+					//ipsDao.updateCIMcbsData(requestUUID, "FAILURE", "200", "No Response return from CBS", "");
+					tranResponse = errorCode.ErrorCode("CIM500");
+					return tranResponse;
 				}
+
 			} else {
-				logger.info(SeqUniqueID + ": Creditor Account Number Missing");
-
-				ipsDao.updateCBSStatusError(SeqUniqueID, TranMonitorStatus.VALIDATION_ERROR.toString(),
-						"Validation Failed/Zero Amount", TranMonitorStatus.FAILURE.toString());
-				tranResponse = errorCode.ErrorCode("AC03");
+				//ipsDao.updateCIMcbsData(requestUUID, "FAILURE", "500", "Internal Server Error", "");
+				
+				updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+						"CBS_CREDIT_ERROR", "Internal Server Error", "FAILURE","500",
+						"Internal Server Error", 
+						"");
+				tranResponse = errorCode.ErrorCode("CIM500");
+				return tranResponse;
 			}
-		/*}else {
-			logger.info(SeqUniqueID + ": Signature Failed");
+		} else {
+			//ipsDao.updateCIMcbsData(requestUUID, "FAILURE", "500", "Internal Server Error", "");
+			updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+					"CBS_CREDIT_ERROR", "Internal Server Error", "FAILURE","500",
+					"Internal Server Error", 
+					"");
+			tranResponse = errorCode.ErrorCode("CIM500");
+			return tranResponse;
+		}
 
-			ipsDao.updateCBSStatusError(SeqUniqueID, TranMonitorStatus.VALIDATION_ERROR.toString(),
-					"Signature Failed",
-					TranMonitorStatus.FAILURE.toString());
-
-			tranResponse = errorCode.ErrorCode("BOB500");
-		}*/
-		
-			
-
-		return tranResponse;
-	}
-
-	
+	}	
 
 	
 	
@@ -5390,7 +5428,7 @@ public class IPSConnection {
 					String status=ipsDao.registerCIMGLPaymentData(requestUUID, env.getProperty("cimGL.channelID"),
 							env.getProperty("cimGL.servicereqversion"), env.getProperty("cimGL.servicereqID"),
 							env.getProperty("cimGL.countryCode"),tranNo,batchNo,env.getProperty("cimGL.module"),
-							new Date(),settleAmtData.getReceivable_acct_bal());
+							new Date(),settleAmtData.getReceivable_acct_bal(),glDate);
 					
 					if(status.equals("1")) {
 						 /////Call ESB Connection
@@ -5488,5 +5526,247 @@ public class IPSConnection {
 		}
 	}
 
+
+
+	public void initInformix() throws SQLException  {
+		//InformixConnectionManager conne=new InformixConnectionManager();
+		Connection conn=conne.getConnection();
+		
+		try {
+			
+			
+		     CallableStatement cstmt = conn.prepareCall("{call cimsp_insert_dig_payment_ips(?, ? ,?, ?,?,?,?,?,?,? )}");
+		     cstmt.setString(1, "MPOST");
+		     cstmt.setString(2, "AAL0100007");
+		     cstmt.setString(3, "TFP2000012");
+		     cstmt.setBigDecimal(4, new BigDecimal("20"));
+		     cstmt.setString(5, "2021-12-23");
+		     cstmt.setString(6, "17:20");
+		     cstmt.setString(7, "CASHIER04");
+		     cstmt.setString(8, "MPO01");
+		     cstmt.setString(9, "");
+		     cstmt.setString(10, "CASH");
+		     
+		     
+		     
+		     boolean hasResults = cstmt.execute();
+		      while(hasResults){
+		        ResultSet rs = cstmt.getResultSet();
+		        while(rs.next()){
+		        	logger.info( String.valueOf(rs.getInt("response_code")));
+		        	logger.info( String.valueOf(rs.getString("line1")));
+		        	logger.info( String.valueOf(rs.getString("response_msg")));
+		         
+		        }
+		        hasResults = cstmt.getMoreResults();
+		      } 
+		   
+		} catch (SQLException e) {
+			System.out.println(e.getLocalizedMessage());
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			conn.close();
+		}
+   
+		
+	}
+
 	
+	
+	 class BulkEntry implements Runnable {
+			
+			//private static final Logger logger = LoggerFactory.getLogger(BulkEntry.class);
+/*
+			@Autowired
+			Environment env;
+			
+			@Autowired
+			IPSDao ipsDao;
+			
+			@Autowired
+			SequenceGenerator sequence;
+			
+			@Autowired
+			ConsentOutwardAccessTableRep consentOutwardAccessTableRep;
+			
+			@Autowired
+			Listener listener;
+			
+			@Autowired
+			IPSXClient ipsxClient;
+			
+			@Autowired
+			IPSConnection ipsConnection;
+*/			
+			String psuDeviceID;
+			String psuIpAddress;
+			String psuID;
+			RTPbulkTransferRequest rtpBulkTransferRequest;
+			String p_id;
+			String channelID;
+			String resvfield1;String resvfield2;
+			int i;
+			String seqUniqueID1;
+			String masterRefID;
+
+		    public BulkEntry(String psuDeviceID, String psuIpAddress, String psuID,
+					RTPbulkTransferRequest rtpBulkTransferRequest,String p_id,String channelID,String resvfield1,String resvfield2,int i,
+					String seqUniqueID1,String masterRefID) {
+		        this.psuDeviceID = psuDeviceID;
+		        this.psuIpAddress = psuIpAddress;
+		        this.psuID = psuID;
+		        this.rtpBulkTransferRequest = rtpBulkTransferRequest;
+		        this.p_id = p_id;
+		        this.channelID = channelID;
+		        this.resvfield1 = resvfield1;
+		        this.i = i;
+		        this.seqUniqueID1 = seqUniqueID1;
+		        this.masterRefID = masterRefID;
+		    }
+
+		    
+
+			@Override
+		    public void run() {
+				int data=i+1;
+				////// Generate System Trace Audit Number
+				String sysTraceNumber = "";
+				////// Generate Sequence Unique ID
+				StringBuilder seqUniqueIDSB=new StringBuilder();
+				seqUniqueIDSB.append(seqUniqueID1).append("/").append(data);
+				String seqUniqueID =seqUniqueIDSB.toString();
+				///// Generate CIM Message ID
+				String cimMsgID = seqUniqueID;
+				///// Generate Msg Sequence
+				String msgSeq = sequence.generateMsgSequence();
+				///// Generate End To End ID
+				
+				StringBuilder endToIdSB=new StringBuilder();
+				endToIdSB.append( env.getProperty("ipsx.bicfi"))
+				.append( new SimpleDateFormat("YYYYMMdd").format(new Date()))
+				.append(msgSeq);
+				String endTOEndID =endToIdSB.toString();
+				
+			    /////Net Mir
+				StringBuilder msgNetMirSB=new StringBuilder();
+				msgNetMirSB.append(new SimpleDateFormat("YYMMdd").format(new Date()))
+				.append("0001").append(msgSeq);
+				String msgNetMir=msgNetMirSB.toString();
+
+				///// Register Manual Record
+				logger.info("Register Initial RTP Fund Transfer Record"+seqUniqueID);
+				
+				
+				////Beneficiary Accoubt
+				BenAccount benAcct=rtpBulkTransferRequest.getBenAccount().get(i);
+				
+				///Remitter Acount
+				RemitterAccount remAcct=rtpBulkTransferRequest.getRemitterAccount();
+				
+			    ////// Get Bank Agent Account and Agent Account
+				//BankAgentTable creditorAgent = ipsDao
+										//	.getOtherBankAgent(rtpBulkTransferRequest.getBenAccount().get(i).getBankCode());
+				
+				//logger.info("Register Initial RTP Fund Transfer Record"+creditorAgent.getBank_agent());
+
+				////Get Consent Data
+				List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
+						.getAccountNumber(remAcct.getAcctNumber());
+				ConsentOutwardAccessTable consentData=regAccList.get(0);
+				BankAgentTable bankAgentTable=ipsDao.findByBank(consentData.getReceiverparticipant_bic());
+				
+				String instgAgent=env.getProperty("ipsx.bicfi");
+				String instdAgent=bankAgentTable.getBank_agent();
+				String debtorAgent=bankAgentTable.getBank_agent();
+				String debtorAgentAcct=bankAgentTable.getBank_agent_account();
+				String CreditorAgent="CFSLMUM0";
+				String CreditorAgentAcct="CFSLNRT";
+				
+				////Check Creditor Account Number already registerd in BIPS
+				//boolean isRegisteredPISP=ipsDao.checkExistConsent(rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
+				//boolean isRegisteredPISP=true;
+				////Category Purpose
+				//String ctgyPurp=ipsDao.getCtgyPurp(instgAgent,debtorAgent,CreditorAgent,rtpBulkTransferRequest.getRemitterAccount().getAcctName(),rtpBulkTransferRequest.getBenAccount().get(i).getBenName(),isRegisteredPISP,
+						//regAccList.get(0).getPsu_id(),rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
+				
+				String ctgyPurp="101";
+				///Local Instrumentation
+				String lclInstr=TranMonitorStatus.CSDC.toString();
+				
+				///ChargeBearer
+				String chargeBearer=ChargeBearerType1Code1.SLEV.toString();
+				
+				ipsDao.RegisterBulkRTPRecord(psuDeviceID, psuIpAddress, sysTraceNumber,
+						cimMsgID, seqUniqueID, endTOEndID, masterRefID,msgNetMir,
+						instgAgent,instdAgent,debtorAgent,
+						debtorAgentAcct,CreditorAgent,CreditorAgentAcct,
+						seqUniqueID,"0100",lclInstr,ctgyPurp,ctgyPurp,remAcct.getAcctName(),
+						remAcct.getAcctNumber(),benAcct.getBankCode(),
+						remAcct.getCurrencyCode(),benAcct.getBenName(),
+						benAcct.getBenAcctNumber(),benAcct.getReqUniqueId(),
+						benAcct.getTrAmt(),benAcct.getTrRmks(),
+						p_id,benAcct.getReqUniqueId(),channelID,resvfield1,resvfield2,
+						bankAgentTable.getBank_code(),chargeBearer);
+			
+
+				
+		
+				logger.info("Create Cryptogram Message");
+				String cryptogram="";
+				
+				DecimalFormat df = new DecimalFormat("0.00");
+				String toTamount=df.format(Double.parseDouble(
+						benAcct.getTrAmt()));
+				
+				////Generate JWT Token
+			    ////Create Cryptogram Data
+				Map<String, Object> claimsData = new LinkedHashMap<String, Object>();
+				try {
+					
+					String privateKeyDa=consentData.getCustom_device_id();
+					logger.info("privateKey"+privateKeyDa);
+					String encDeviceID=listener.decryptDid(privateKeyDa);
+					
+					claimsData.put("deviceId",encDeviceID);
+					claimsData.put("amount",toTamount);
+					claimsData.put("currency",benAcct.getCurrencyCode());
+					claimsData.put("debtorAccount",remAcct.getAcctNumber());
+					claimsData.put("creditorAccount",benAcct.getBenAcctNumber());
+					claimsData.put("endToEndId",endTOEndID);
+					claimsData.put("consentId", consentData.getConsent_id());
+					
+					logger.info("Create Cryptogram Message Start"+encDeviceID);
+					
+
+					// String cryptogram="eyJhbGciOiJSUzUxMiJ9.eyJjb25zZW50SWQiOiI4LWh0ZEkyQVR3V1czazRFYzAxQldRIiwiaHJlZiI6Ii9hY2NvdW50cy1jb25zZW50cy84LWh0ZEkyQVR3V1czazRFYzAxQldRL2F1dGhvcmlzYXRpb25zLy1YUmRVb3EwUkxxMDNkdGpWMUhNdUEiLCJlbmRUb0VuZElkIjoiQ0lNMTAwUkVHMDAwMzciLCJkZXZpY2VJZCI6ImE3M2JhN2IyLWMxYTItNTA1Ny1iM2ViLTA5ZGFlOWZlNjBhYyJ9.f6zfIvv70rq1T2HxWq0b5UGS1rZdRp0LZZwHpDAKZGCvuDfhzHRF3xaEL3T3OJ0X1nCg43xPYaJh79OfkMVLsCLn2EtdgSC_j1jBpY7yOckPI9qo8b8hhGID-NLEYoRkBUoVbH0AnX2zhWIkTJyQCwD6RXHctObSt-vozFzKRBM";
+
+					cryptogram=generateJwtToken(claimsData,
+							listener.decrypt(consentData.getPrivate_key(),encDeviceID));
+				
+				} catch (Exception e1) {
+					e1.printStackTrace();
+					logger.error(e1.getLocalizedMessage());
+				}
+
+				////// Calling IPSX
+				logger.info("Calling IPSX");
+				ipsxClient.sendBulkRTPRequst(
+						remAcct.getAcctName(),
+						remAcct.getAcctNumber(),
+						remAcct.getCurrencyCode(),
+						benAcct.getBenName(),
+						benAcct.getBenAcctNumber(),
+						toTamount,
+						benAcct.getTrRmks(),
+						seqUniqueID,cimMsgID,msgSeq,
+						endTOEndID,msgNetMir,cryptogram,
+						instgAgent,instdAgent,debtorAgent,
+						debtorAgentAcct,CreditorAgent,
+						CreditorAgentAcct,lclInstr,ctgyPurp,chargeBearer);
+				
+			
+		    }
+		}
+
 }

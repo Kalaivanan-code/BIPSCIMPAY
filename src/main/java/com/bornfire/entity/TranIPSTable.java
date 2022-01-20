@@ -13,6 +13,10 @@ import javax.persistence.Table;
 @Table(name="BIPS_TRAN_IPS_TABLE")
 @IdClass(TranIPSTableID.class)
 public class TranIPSTable  implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String sequence_unique_id;
 	@Id
 	private String msg_id;
@@ -33,6 +37,7 @@ public class TranIPSTable  implements Serializable{
 	
 	@Lob 
 	private String mx_msg;
+	
 	
 	public String getSequence_unique_id() {
 		return sequence_unique_id;
@@ -129,6 +134,32 @@ public class TranIPSTable  implements Serializable{
 	}
 	public void setMx_msg(String mx_msg) {
 		this.mx_msg = mx_msg;
+	}
+	
+	
+	public TranIPSTable(String sequence_unique_id,String msg_id, String msg_sub_type, String msg_code, String msg_type, Date msg_date,
+			String response_status, String response_error_code, String response_error_desc, String msg_sender,
+			String msg_receiver, String net_mir, String user_ref, String end_end_id, String mx_msg) {
+		super();
+		this.sequence_unique_id = sequence_unique_id;
+		this.msg_id = msg_id;
+		this.msg_sub_type = msg_sub_type;
+		this.msg_code = msg_code;
+		this.msg_type = msg_type;
+		this.msg_date = msg_date;
+		this.response_status = response_status;
+		this.response_error_code = response_error_code;
+		this.response_error_desc = response_error_desc;
+		this.msg_sender = msg_sender;
+		this.msg_receiver = msg_receiver;
+		this.net_mir = net_mir;
+		this.user_ref = user_ref;
+		this.end_end_id = end_end_id;
+		this.mx_msg = mx_msg;
+	}
+	public TranIPSTable() {
+		super();
+		// TODO Auto-generated constructor stub
 	}
 	
 	

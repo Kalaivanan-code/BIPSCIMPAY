@@ -157,6 +157,7 @@ public class OutwardTransactionMonitoringTable {
 	private String conv_amount;
 
 	
+	
 	public String getP_id() {
 		return p_id;
 	}
@@ -1084,5 +1085,65 @@ public class OutwardTransactionMonitoringTable {
 	public void setConv_amount(String conv_amount) {
 		this.conv_amount = conv_amount;
 	}
+	
+	
+	public OutwardTransactionMonitoringTable(String p_id, String req_unique_id, String init_channel_id, String resv_field1,
+			String resv_field2, String msg_type, String tran_audit_number, String sequence_unique_id, String cim_message_id,
+			String cim_account, String ipsx_account, String receiver_bank, String initiator_bank,
+			BigDecimal tran_amount, Date tran_date, Date entry_time, String tran_currency, String tran_status, String device_id,
+			String device_ip, String nat_id, String master_ref_id, String end_end_id, String cim_account_name,
+			String ipsx_account_name, String tran_type_code, String net_mir, String instg_agt, String instd_agt,
+			String dbtr_agt, String dbtr_agt_acc, String cdtr_agt, String cdtr_agt_acc, String instr_id,
+			String svc_lvl, String lcl_instrm, String ctgy_purp, String chrg_br, String tran_rmks, Date value_date) {
+		super();
+		this.p_id = p_id;
+		this.req_unique_id = req_unique_id;
+		this.sequence_unique_id = sequence_unique_id;
+		this.cim_message_id = cim_message_id;
+		this.tran_audit_number = tran_audit_number;
+		this.tran_currency = tran_currency;
+		this.tran_status = tran_status;
+		this.master_ref_id = master_ref_id;
+		this.end_end_id = end_end_id;
+		this.msg_type = msg_type;
+		this.entry_time = entry_time;
+		this.cim_account = cim_account;
+		this.initiator_bank = initiator_bank;
+		this.receiver_bank = receiver_bank;
+		this.ipsx_account = ipsx_account;
+		this.tran_amount = tran_amount;
+		this.tran_date = tran_date;
+		this.device_id = device_id;
+		this.device_ip = device_ip;
+		this.nat_id = nat_id;
+		this.cim_account_name = cim_account_name;
+		this.ipsx_account_name = ipsx_account_name;
+		this.net_mir = net_mir;
+		this.tran_type_code = tran_type_code;
+		this.instg_agt = instg_agt;
+		this.instd_agt = instd_agt;
+		this.instr_id = instr_id;
+		this.svc_lvl = svc_lvl;
+		this.lcl_instrm = lcl_instrm;
+		this.ctgy_purp = ctgy_purp;
+		this.dbtr_agt = dbtr_agt;
+		this.dbtr_agt_acc = dbtr_agt_acc;
+		this.cdtr_agt = cdtr_agt;
+		this.cdtr_agt_acc = cdtr_agt_acc;
+		this.value_date = value_date;
+		this.init_channel_id = init_channel_id;
+		this.resv_field1 = resv_field1;
+		this.resv_field2 = resv_field2;
+		this.chrg_br = chrg_br;
+		this.tran_rmks = tran_rmks;
+
+		
+	}
+
+	public OutwardTransactionMonitoringTable() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
 	
 }

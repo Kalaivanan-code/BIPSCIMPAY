@@ -15,7 +15,9 @@ import javax.xml.ws.handler.MessageContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
@@ -34,7 +36,6 @@ import com.bornfire.jaxb.wsdl.ResultT;
 import com.bornfire.jaxb.wsdl.SendResponse;
 import com.bornfire.jaxb.wsdl.SendT;
 
-
 @Endpoint
 public class IpsEndPoint {
 
@@ -42,22 +43,68 @@ public class IpsEndPoint {
 	@Autowired
 	TaskExecutor taskExecutor;
 	
+	/*@Autowired
+	@Qualifier("asyncExecutor")
+	TaskExecutor asyncExecutor;
+	
+	@Autowired
+	@Qualifier("asyncExecutor1")
+	TaskExecutor asyncExecutor1;*/
+
 	@Autowired
 	IPSXClient ipsxClient;
-	
+
 	private static final String NAMESPACE_URI = "http://integration.gwclient.smallsystems.cma.se/";
 
-
-	
 	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "send")
 	@ResponsePayload
 	public JAXBElement<SendResponse> getRequest(@RequestPayload SendT request) {
-		
+
 		logger.info("Getting Request from IPSX: ");
-		logger.info("Sender :"+request.getMessage().getMsgSender()+", Message Type: "+request.getMessage().getMsgType()+"/"+request.getMessage().getMsgNetMir());
+		logger.info("Sender :" + request.getMessage().getMsgSender() + ", Message Type: "
+				+ request.getMessage().getMsgType() + "/" + request.getMessage().getMsgNetMir());
+
+		//String msgType = request.getMessage().getMsgType();
+
+		/*switch (msgType) {
+		case "pacs.008.001.08":
+			taskExecutor.execute(new Runnable() {
+				@Override
+				public void run() {
+
+					ipsxClient.doProcess(request);
+
+				}
+			});
+
+			break;
+			
+		case "pacs.002.001.10":
+			asyncExecutor1.execute(new Runnable() {
+				@Override
+				public void run() {
+
+					ipsxClient.doProcess(request);
+
+				}
+			});
+
+			break;
+		default:
+			asyncExecutor.execute(new Runnable() {
+				@Override
+				public void run() {
+
+					ipsxClient.doProcess(request);
+
+				}
+			});
+			
+			break;
+		}*/
 
 		SendResponse response = new SendResponse();
-		
+
 		ResultT result = new ResultT();
 
 		result.setType(AckNakType.ACK);
@@ -74,11 +121,12 @@ public class IpsEndPoint {
 		taskExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				
-					ipsxClient.doProcess(request);
-				
+
+				ipsxClient.doProcess(request);
+
 			}
 		});
+		
 		logger.info("RETURN");
 
 		return jaxbElement;
@@ -97,7 +145,7 @@ public class IpsEndPoint {
 		return response;
 
 	}
-	
+
 	@PayloadRoot(namespace = NAMESPACE_URI, localPart = "fault")
 	@ResponsePayload
 	public SendResponse getFault(@RequestPayload Fault request) {

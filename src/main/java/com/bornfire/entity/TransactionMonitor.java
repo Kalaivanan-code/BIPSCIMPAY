@@ -1,5 +1,6 @@
 package com.bornfire.entity;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -10,8 +11,14 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="BIPS_TRANSACTION_MONITORING_TABLE")
-public class TransactionMonitor {
 
+
+public class TransactionMonitor implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	@Column(name="cim_message_id")
 	private String bob_message_id;
 	private String ipsx_message_id;
@@ -125,6 +132,7 @@ public class TransactionMonitor {
 	private String rmt_info_nb;
 	
 	
+
 	@Override
 	public String toString() {
 		return "TransactionMonitor [bob_message_id=" + bob_message_id + ", ipsx_message_id=" + ipsx_message_id
@@ -674,6 +682,58 @@ public class TransactionMonitor {
 	}
 	public void setRmt_info_nb(String rmt_info_nb) {
 		this.rmt_info_nb = rmt_info_nb;
+	}
+	
+	public TransactionMonitor(String msg_type, String tran_audit_number, String bob_message_id, String ipsx_message_id,
+			String sequence_unique_id, String bob_account, String ipsx_account, String receiver_bank, BigDecimal tran_amount,
+			Date tran_date, Date entry_time, String cbs_status, String entry_user, String tran_currency, String tran_status,
+			String end_end_id, String ipsx_account_name, String bob_account_name, String tran_type_code, String instg_agt,
+			String instd_agt, String instr_id, String svc_lvl, String lcl_instrm, String ctgy_purp, String dbtr_agt,
+			String dbtr_agt_acc, String cdtr_agt, String cdtr_agt_acc, String chrg_br, String reg_rep, String rmt_info,
+			String clr_chennel, String rmt_info_issuer, String rmt_info_nb, Date value_date) {
+		
+		super();
+		this.bob_message_id = bob_message_id;
+		this.ipsx_message_id = ipsx_message_id;
+		this.sequence_unique_id = sequence_unique_id;
+		this.tran_audit_number = tran_audit_number;
+		this.cbs_status = cbs_status;
+		this.tran_currency = tran_currency;
+		this.tran_status = tran_status;
+		this.end_end_id = end_end_id;
+		this.msg_type = msg_type;
+		this.entry_time = entry_time;
+		this.entry_user = entry_user;
+		this.bob_account = bob_account;
+		this.receiver_bank = receiver_bank;
+		this.ipsx_account = ipsx_account;
+		this.tran_amount = tran_amount;
+		this.tran_date = tran_date;
+		this.bob_account_name = bob_account_name;
+		this.ipsx_account_name = ipsx_account_name;
+		this.tran_type_code = tran_type_code;
+		this.instg_agt = instg_agt;
+		this.instd_agt = instd_agt;
+		this.reg_rep = reg_rep;
+		this.rmt_info = rmt_info;
+		this.instr_id = instr_id;
+		this.svc_lvl = svc_lvl;
+		this.lcl_instrm = lcl_instrm;
+		this.ctgy_purp = ctgy_purp;
+		this.dbtr_agt = dbtr_agt;
+		this.dbtr_agt_acc = dbtr_agt_acc;
+		this.cdtr_agt = cdtr_agt;
+		this.cdtr_agt_acc = cdtr_agt_acc;
+		this.value_date = value_date;
+		this.chrg_br = chrg_br;
+		this.clr_chennel = clr_chennel;
+		this.rmt_info_issuer = rmt_info_issuer;
+		this.rmt_info_nb = rmt_info_nb;
+		
+	}
+	public TransactionMonitor() {
+		super();
+		// TODO Auto-generated constructor stub
 	}
 	
 	

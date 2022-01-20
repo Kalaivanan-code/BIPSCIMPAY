@@ -15,8 +15,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -356,6 +360,7 @@ public class IPSRestController {
 	public ResponseEntity<List<OtherBankDetResponse>> otherParticipantBanks(
 			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
 			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-Channel", required = false) String channelID,
 			@RequestHeader(value = "PSU-ID", required = false) String psuID) {
 
 		logger.info("Get Bank List flow Starts");
@@ -369,6 +374,7 @@ public class IPSRestController {
 	public ResponseEntity<List<OtherBankDetResponse>> otherBankDet(
 			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
 			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-Channel", required = false) String channelID,
 			@RequestHeader(value = "PSU-ID", required = false) String psuID) {
 
 		logger.info("Get Bank List flow Starts");
@@ -770,41 +776,6 @@ public class IPSRestController {
 
 	}
 
-	/*
-	 * @PostMapping(path = "api/ws/expenseAccount", produces = "application/json",
-	 * consumes = "application/json") public ResponseEntity<String>
-	 * expenseAccount(@RequestBody MCCreditTransferRequest mcCreditTransferRequest,
-	 * 
-	 * @RequestHeader(value = "USER_ID", required = true) String userID) { String
-	 * response=ipsConnection.expenseAccount(mcCreditTransferRequest,userID); return
-	 * new ResponseEntity<String>(response, HttpStatus.OK);
-	 * 
-	 * }
-	 * 
-	 * @PostMapping(path = "api/ws/incomeAccount", produces = "application/json",
-	 * consumes = "application/json") public ResponseEntity<String>
-	 * incomeAccount(@RequestBody MCCreditTransferRequest mcCreditTransferRequest,
-	 * 
-	 * @RequestHeader(value = "USER_ID", required = true) String userID) { String
-	 * response=ipsConnection.incomeAccount(mcCreditTransferRequest,userID); return
-	 * new ResponseEntity<String>(response, HttpStatus.OK);
-	 * 
-	 * }
-	 */
-
-	/*
-	 * @RequestMapping(value = "/ws/balancePayAcct") public ResponseEntity<String>
-	 * balancePayableAcct() {
-	 * 
-	 * ResponseEntity<C24FTResponse> balannce = connect24Service
-	 * .getBalance(settlAccountRep.findById("04").get().getAccount_number());
-	 * 
-	 * if (balannce.getStatusCode() == HttpStatus.OK) { return new
-	 * ResponseEntity<String>(balannce.getBody().getBalance().getAvailableBalance(),
-	 * HttpStatus.OK); }else { return new ResponseEntity<String>("Failure",
-	 * HttpStatus.OK); } }
-	 */
-
 	@RequestMapping(value = "/portal/ldap")
 	public String testLdap() {
 		// List<X509Certificate> se= cert.getCertificates();
@@ -817,75 +788,7 @@ public class IPSRestController {
 		return "success";
 	}
 
-	@RequestMapping(value = "/portal/test")
-	public String test() {
-		// List<X509Certificate> se= cert.getCertificates();
-		// System.out.println(se.toString());
-		// String res = ipsDao.RegisterInMsgRecord("1234", "BOB1234", "IPSX12345",
-		// "IPSX12345", "", "1234",
-		// new BigDecimal("100"), "MUR", TranMonitorStatus.INITIATED.toString());
-
-		// sequence.sms("32457", "23058884847");
-		String ame = "<Body>\n" + "<AppHdr xmlns=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.01\">\n"
-				+ "<Fr><FIId><FinInstnId><ClrSysMmbId><MmbId>BOMMMUPLIPS</MmbId></ClrSysMmbId></FinInstnId></FIId></Fr>\n"
-				+ "<To><FIId><FinInstnId><BICFI>BARBMUMU</BICFI></FinInstnId></FIId></To>\n"
-				+ "<BizMsgIdr>200625BOMMMUPLAIPS0001000071</BizMsgIdr>\n" + "<MsgDefIdr>pacs.002.001.10</MsgDefIdr>\n"
-				+ "<BizSvc>ACH</BizSvc>\n" + "<CreDt>2020-06-25T13:35:10Z</CreDt>\n"
-				+ "<Sgntr><ds:Signature xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\"><ds:SignedInfo><ds:CanonicalizationMethod Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"></ds:CanonicalizationMethod><ds:SignatureMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\"></ds:SignatureMethod><ds:Reference URI=\"#_64191869-fcad-48fa-94df-adbaa10c8ae6\"><ds:Transforms><ds:Transform Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"></ds:Transform></ds:Transforms><ds:DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"></ds:DigestMethod><ds:DigestValue>GtEGIaSqFnFLqVZR1AlG+Ee25BQ=</ds:DigestValue></ds:Reference><ds:Reference URI=\"#_ffa95b2b-df2d-4623-9333-c124c3af5519\" Type=\"http://uri.etsi.org/01903/v1.3.2#SignedProperties\"><ds:Transforms><ds:Transform Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"></ds:Transform></ds:Transforms><ds:DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"></ds:DigestMethod><ds:DigestValue>a2bkOviUGWcmPgeR712LasEryOM=</ds:DigestValue></ds:Reference><ds:Reference><ds:Transforms><ds:Transform Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"></ds:Transform></ds:Transforms><ds:DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"></ds:DigestMethod><ds:DigestValue>AN28DM1IDweM4PWH2wyMY9zSzv0=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>TJm1X0goJ3aCa5uVN536qD5p7XRz4gG53EmELWs9QJMdF8VIOP7gicNuqvL37H99HPF4NG7H2vquD3z7jsWCP6PRZNy8aAc9XJ1Pm+xHHS8C9Ycmn1OzhjKMRO/xfsVjQZicHaQX/yT53l/V172s8kvGyN7COukOs2e2XnMf6g4oaNd8IW2ftSaePRquCOAvrvc15885yjg+8PISbVBMkpIRK7+bJnqQcTGf2l5Y2QNpbnd96CyczV8agTVk5zDRUKke5UIJJcGz57AyMXIclWwlqCL9uAtxUiJFAoxz+WaOFYWWTsLaVzfnysr2Msg19P6Ob/YJHZoSlxt8oYunnQ==</ds:SignatureValue><ds:KeyInfo Id=\"_64191869-fcad-48fa-94df-adbaa10c8ae6\"><ds:X509Data><ds:X509IssuerSerial><ds:X509IssuerName>CN=IPSMAUCASMUCA,DC=IPS,DC=MAUCAS,DC=MU</ds:X509IssuerName><ds:X509SerialNumber>535217884808206288039911693999711158961963016</ds:X509SerialNumber></ds:X509IssuerSerial></ds:X509Data></ds:KeyInfo><ds:Object><xades:QualifyingProperties xmlns:xades=\"http://uri.etsi.org/01903/v1.3.2#\"><xades:SignedProperties Id=\"_ffa95b2b-df2d-4623-9333-c124c3af5519\"><xades:SignedSignatureProperties><xades:SigningTime>2020-06-25T09:35:10Z</xades:SigningTime></xades:SignedSignatureProperties></xades:SignedProperties></xades:QualifyingProperties></ds:Object></ds:Signature></Sgntr></AppHdr>\n"
-				+ "<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.002.001.10\">\n" + "	<FIToFIPmtStsRpt>\n"
-				+ "		<GrpHdr>\n" + "			<MsgId>M1254068/002</MsgId>\n"
-				+ "			<CreDtTm>2020-06-25T13:27:06</CreDtTm>\n" + "		</GrpHdr>\n"
-				+ "		<OrgnlGrpInfAndSts>\n" + "			<OrgnlMsgId>BARB200625132936673067</OrgnlMsgId>\n"
-				+ "			<OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId>\n"
-				+ "			<OrgnlCreDtTm>2020-06-25T13:29:41Z</OrgnlCreDtTm>\n" + "			<GrpSts>RJCT</GrpSts>\n"
-				+ "		</OrgnlGrpInfAndSts>\n" + "		<TxInfAndSts>\n" + "			<StsId>NOAN</StsId>\n"
-				+ "			<OrgnlInstrId>BARB200625132936673067</OrgnlInstrId>\n"
-				+ "			<OrgnlEndToEndId>BARBMUMU20200625233503</OrgnlEndToEndId>\n"
-				+ "			<OrgnlTxId>BARB200625132936673067</OrgnlTxId>\n" + "			<TxSts>RJCT</TxSts>\n"
-				+ "			<StsRsnInf>\n" + "				<Rsn>\n" + "					<Prtry>EL202</Prtry>\n"
-				+ "				</Rsn>\n" + "				<AddtlInf>NRT - Rejected by timeout</AddtlInf>\n"
-				+ "			</StsRsnInf>\n" + "			<AcctSvcrRef>2610</AcctSvcrRef>\n" + "			<InstgAgt>\n"
-				+ "				<FinInstnId>\n" + "					<BICFI>BARBMUMU</BICFI>\n"
-				+ "				</FinInstnId>\n" + "			</InstgAgt>\n" + "			<InstdAgt>\n"
-				+ "				<FinInstnId>\n" + "					<BICFI>ABCKMUMU</BICFI>\n"
-				+ "					<Othr>\n" + "						<Id>ONLINE</Id>\n"
-				+ "					</Othr>\n" + "				</FinInstnId>\n" + "			</InstdAgt>\n"
-				+ "			<OrgnlTxRef>\n" + "				<IntrBkSttlmAmt Ccy=\"MUR\">100</IntrBkSttlmAmt>\n"
-				+ "				<IntrBkSttlmDt>2020-06-25</IntrBkSttlmDt>\n" + "				<PmtTpInf>\n"
-				+ "					<ClrChanl>RTGS</ClrChanl>\n" + "					<SvcLvl>\n"
-				+ "						<Prtry>0100</Prtry>\n" + "					</SvcLvl>\n"
-				+ "					<LclInstrm>\n" + "						<Prtry>CSDC</Prtry>\n"
-				+ "					</LclInstrm>\n" + "					<CtgyPurp>\n"
-				+ "						<Prtry>100</Prtry>\n" + "					</CtgyPurp>\n"
-				+ "				</PmtTpInf>\n" + "			</OrgnlTxRef>\n" + "		</TxInfAndSts>\n"
-				+ "	</FIToFIPmtStsRpt>\n" + "</Document>\n" + "</Body>";
-		//signDocument.verifySignParseDoc(ame);
-
-		//logger.info(signDocument.verifySignParseDoc(ame).toString());
-		
-		ipsDao.updateMxMsg(ame);
-		return "";
-	}
-
-	@RequestMapping(value = "/portal/test1")
-	public ResponseEntity<AccountContactResponse> test1() {
-
-		// List<X509Certificate> se= cert.getCertificates();
-		// System.out.println(se.toString());
-		// ipsDao.updateIPSXStatusResponseRJCT("IPSX12345", "okkk", "",
-		// TranMonitorStatus.IN_PROGRESS.toString(),
-		// TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
-		// TranMonitorStatus.RJCT.toString(), "EL09");
-		// ipsDao.insertTranIPS("2", "1", "camt.025.001.05", "", "", "", "","O");
-
-		// NumberFormat formatter = new DecimalFormat("#0.00");
-
-		AccountContactResponse response = ipsConnection.test();
-		return new ResponseEntity<AccountContactResponse>(response, HttpStatus.OK);
-
-		// ipsDao.updateIPSFlow("767", "87", "", "");
-	}
-
+	
 ///// Wallet Registration
 	@PostMapping(path = "/api/ws/wallet_Access", produces = "application/json;charset=utf-8", consumes = "application/json")
 	public ResponseEntity<WalletAccessResponse> registerWalletAccess(
@@ -1016,6 +919,7 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
 			@Valid @RequestBody ConsentOutwardAccessRequest consentOutwardAccessRequest) throws Exception {
 
 		if (ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
@@ -1025,7 +929,7 @@ public class IPSRestController {
 						
 						if (!ipsDao.existConsentPermission(consentOutwardAccessRequest.getPermissions())) {
 							McConsentOutwardAccessResponse response = ipsConnection.outwardConsentAccess(x_request_id,
-									psuDeviceID, psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessRequest);
+									psuDeviceID, psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessRequest,channelID);
 
 							return new ResponseEntity<McConsentOutwardAccessResponse>(response, HttpStatus.OK);
 						}else {
@@ -1065,6 +969,7 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
 			@RequestBody ConsentOutwardAccessAuthRequest consentOutwardAccessAuthRequest)
 			throws NoSuchAlgorithmException, Exception {
 
@@ -1074,7 +979,7 @@ public class IPSRestController {
 			if (!ipsDao.existDocType(psuIDType)) {
 				ConsentOutwardAccessAuthResponse response = ipsConnection.outwardConsentAccessSCAAuth(x_request_id,
 						psuDeviceID, psuIPAddress, psuID, psuIDCountry, psuIDType, consentOutwardAccessAuthRequest,
-						consentID, authID);
+						consentID, authID,channelID);
 
 				return new ResponseEntity<ConsentOutwardAccessAuthResponse>(response, HttpStatus.OK);
 			}else {
@@ -1098,12 +1003,13 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
-			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType) throws NoSuchAlgorithmException, InvalidKeyException, KeyStoreException, CertificateException, UnrecoverableEntryException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID) throws NoSuchAlgorithmException, InvalidKeyException, KeyStoreException, CertificateException, UnrecoverableEntryException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
 
 		logger.debug("Calling Outward Consent Delete");
 		if (ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
 			ErrorRestResponse response = ipsConnection.outwardDeleteConsentAccess(x_request_id, psuDeviceID,
-					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID);
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID,channelID);
 
 			return new ResponseEntity<ErrorRestResponse>(response, HttpStatus.OK);
 		} else {
@@ -1123,13 +1029,14 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
-			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws Exception {
+			@RequestHeader(value = "Consent-ID", required = true) String consentID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID) throws Exception {
 
 		logger.debug("Calling Outward Consent Access Balance Inquiry");
 
 		if (ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
 			ConsentAccountBalance response = ipsConnection.outwardConsentAccessBalances(x_request_id, psuDeviceID,
-					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, accountID);
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, accountID,channelID);
 
 			return new ResponseEntity<ConsentAccountBalance>(response, HttpStatus.OK);
 		} else {
@@ -1150,6 +1057,7 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
 			@RequestHeader(value = "Consent-ID", required = true) String consentID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
 			@RequestParam(value = "fromBookingDateTime", required = false) String fromBookingDateTime,
 			@RequestParam(value = "toBookingDateTime", required = false) String toBookingDateTime) throws Exception {
 
@@ -1158,7 +1066,7 @@ public class IPSRestController {
 		if (ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
 			TransactionListResponse response = ipsConnection.outwardConsentAccessTransactionInc(x_request_id,
 					psuDeviceID, psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, accountID,
-					fromBookingDateTime, toBookingDateTime);
+					fromBookingDateTime, toBookingDateTime,channelID);
 
 			return new ResponseEntity<TransactionListResponse>(response, HttpStatus.OK);
 		} else {
@@ -1177,13 +1085,14 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
-			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws Exception {
+			@RequestHeader(value = "Consent-ID", required = true) String consentID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID) throws Exception {
 
 		logger.debug("Calling Outward Consent Access Account List Inquiry");
 
 		if (ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
 			AccountListResponse response = ipsConnection.outwardConsentAccessAccountListInc(x_request_id, psuDeviceID,
-					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID);
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID,channelID);
 
 			return new ResponseEntity<AccountListResponse>(response, HttpStatus.OK);
 		} else {
@@ -1203,13 +1112,14 @@ public class IPSRestController {
 			@RequestHeader(value = "PSU-ID", required = true) String psuID,
 			@RequestHeader(value = "PSU-ID-Country", required = true) String psuIDCountry,
 			@RequestHeader(value = "PSU-ID-Type", required = true) String psuIDType,
-			@RequestHeader(value = "Consent-ID", required = true) String consentID) throws Exception {
+			@RequestHeader(value = "Consent-ID", required = true) String consentID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID) throws Exception {
 
 		logger.debug("Calling Outward Consent Access Account Inquiry");
 
 		if (ipsDao.invalidConsentInqX_request_ID(x_request_id)) {
 			AccountsListAccounts response = ipsConnection.outwardConsentAccessAccountInc(x_request_id, psuDeviceID,
-					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, accountID);
+					psuIPAddress, psuID, psuIDCountry, psuIDType, consentID, accountID,channelID);
 
 			return new ResponseEntity<AccountsListAccounts>(response, HttpStatus.OK);
 		} else {
@@ -1224,7 +1134,8 @@ public class IPSRestController {
 	public ResponseEntity<List<RegConsentAccountList>> outwardconsentAccountList(
 			@PathVariable(value = "documentID", required = true) String documentID,
 			@RequestHeader(value = "PSU-Device-ID", required = true) String psuDeviceID,
-			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress) throws Exception {
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIPAddress,
+			@RequestHeader(value = "PSU-Channel", required = false) String channelID) throws Exception {
 
 		logger.debug("Calling Outward Consent Registered Account ");
 
@@ -1476,6 +1387,20 @@ public class IPSRestController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@GetMapping(path = "/api/ws/data")
+	public String getData() throws SQLException {
+
+		//ipsConnection.initGLPayment(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
+
+		ipsConnection.initInformix();
+		return "ff";
+	}
+	
+	private Date previousDay() {
+		final Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -1);
+		return cal.getTime();
+	}
 
 
 	

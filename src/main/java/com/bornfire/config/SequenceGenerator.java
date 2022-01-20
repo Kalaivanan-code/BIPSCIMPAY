@@ -564,5 +564,35 @@ public class SequenceGenerator {
 	}
 
 	
+	public String generateSystemSequence() {
+
+		StringBuffer randStr = new StringBuffer();
+		//randStr.append(new SimpleDateFormat("yyyyMMdd").format(new Date()));
+
+
+        Long cbs_Tran_no=tranCimCBSTableRep.getCBSTranNo();
+		
+		//randStr.append(String.format("%06d", cbs_Tran_no));
+		
+		return String.format("%06d", cbs_Tran_no);
+	}
+
+	public String generateMasterRef(String sequenceData) {
+		StringBuilder randStr = new StringBuilder();
+		randStr.append( env.getProperty("ipsx.userS") );
+		randStr.append(new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		randStr.append(sequenceData);
+		return randStr.toString();
+	}
+
+	public String generateSeqID(String sequenceData) {
+		StringBuilder randStr = new StringBuilder();
+		randStr.append(env.getProperty("ipsx.userS"));
+		randStr.append(new SimpleDateFormat("yyMMddHHmmss").format(new Date()));
+		randStr.append(sequenceData);
+
+		return randStr.toString();
+	}
+	
 
 }

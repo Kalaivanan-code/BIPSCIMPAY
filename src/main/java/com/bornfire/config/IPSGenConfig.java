@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -37,6 +39,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -59,6 +62,10 @@ public class IPSGenConfig {
 	
 	@Autowired
 	Environment env;
+	
+	private static final int CONNECT_REQ_TIMEOUT=(60*1000);
+	private static final int CONNECT_TIMEOUT=(60*1000);
+	private static final int READ_TIMEOUT=(60*1000);
 	@Bean
 	public SequenceGenerator sequence() {
 		return new SequenceGenerator();
@@ -93,10 +100,10 @@ public class IPSGenConfig {
     @Bean
 	public TaskExecutor taskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(400);
-		executor.setMaxPoolSize(750);
-		executor.setKeepAliveSeconds(120);
-		executor.setQueueCapacity(10000);
+		executor.setCorePoolSize(8000);
+		executor.setMaxPoolSize(15000);
+		executor.setKeepAliveSeconds(60);
+		executor.setQueueCapacity(75000);
 		executor.setThreadNamePrefix("Request>>");
 		executor.initialize();
 		return executor;
@@ -104,15 +111,29 @@ public class IPSGenConfig {
 	}
     
     @Bean(name = "asyncExecutor")
-    public Executor asyncExecutor() {
+    public TaskExecutor asyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(3);
-        executor.setMaxPoolSize(3);
-        executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("AsynchThread-");
+        executor.setCorePoolSize(8000);
+        executor.setMaxPoolSize(15000);
+        executor.setKeepAliveSeconds(80);
+        executor.setQueueCapacity(50000);
+        executor.setThreadNamePrefix("OutwardRequest");
         executor.initialize();
         return executor;
     }
+    
+    
+    /*@Bean(name = "asyncExecutor1")
+    public TaskExecutor asyncExecutor1() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5000);
+        executor.setMaxPoolSize(12000);
+        executor.setKeepAliveSeconds(120);
+        executor.setQueueCapacity(50000);
+        executor.setThreadNamePrefix("AsynchThread1-");
+        executor.initialize();
+        return executor;
+    }*/
    
     
 	@Bean
@@ -136,12 +157,13 @@ public class IPSGenConfig {
 		
 		//HttpClient httpClient=HttpClients.custom().setSSLContext(sslContext).build();
 		HttpClient httpClient=HttpClients.custom().setSSLSocketFactory(socketFactory).build();
-	
-		ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(
-				httpClient);
 		
-	
+		HttpComponentsClientHttpRequestFactory requestFactory =getHttpComponentsClientHttpRequestFactory(httpClient);
+
 		RestTemplate restTemplate = new RestTemplate(requestFactory);
+		
+		restTemplate.getMessageConverters()
+        .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
 		return restTemplate;
 		//return builder.errorHandler(getRestErrorHandler()).build();
 		
@@ -156,6 +178,17 @@ public class IPSGenConfig {
 	    return restTemplate;*/
 	}
 	
+	private HttpComponentsClientHttpRequestFactory getHttpComponentsClientHttpRequestFactory(HttpClient httpClient) {
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(
+				httpClient);
+		
+		requestFactory.setConnectionRequestTimeout(CONNECT_REQ_TIMEOUT);
+		requestFactory.setConnectTimeout(CONNECT_TIMEOUT);
+		requestFactory.setReadTimeout(READ_TIMEOUT);
+		
+		return requestFactory;
+	}
+
 	@Bean
 	public HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory() {
 		HttpComponentsClientHttpRequestFactory t=new HttpComponentsClientHttpRequestFactory();

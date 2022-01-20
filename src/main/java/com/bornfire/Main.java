@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -41,6 +43,23 @@ public class Main {
 	
 	
 	public static void main(String[] args) throws Exception {
+		System.out.println(new SimpleDateFormat("HH:mm").format(new Date()));
+		boolean b=false;
+		 try{
+		        InetSocketAddress sa = new InetSocketAddress("10.200.225.11", 11443);
+		        Socket ss = new Socket();
+		        System.out.println("Status");
+
+		        ss.connect(sa, 1);   
+		        ss.close();
+		        b=true;
+		        System.out.println("Status"+b);
+		    }catch(Exception e) {
+		    	System.out.println(e.getLocalizedMessage());
+		        b = false;
+		    }
+		 
+		 
 		try {
 			char[] pwdArray = "Passw0rd$".toCharArray();// ->JKS password
 			
@@ -59,7 +78,7 @@ public class Main {
 
 		    String angleFormated = df.format(angle);
 		    System.out.println(angleFormated); //output 20.30
-		    
+		    System.out.println(new SimpleDateFormat("yyyyMMdd").format(new Date()));
 		    System.out.println(df.format(Double.parseDouble("0")));
 			System.out.println(df.format(Double.parseDouble("0.00")));
 			System.out.println(df.format(Double.parseDouble("1")));

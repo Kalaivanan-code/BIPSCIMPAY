@@ -3,6 +3,7 @@ package com.bornfire.controller;
 import static com.bornfire.exception.ErrorResponseCode.SERVER_ERROR_CODE;
 
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -23,6 +24,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -80,8 +83,16 @@ public class CimCBSservice {
 	SequenceGenerator sequence;
 
 	public ResponseEntity<CimCBSresponse> cdtFundRequest(String requestUUID) {
+		
+		
 		HttpHeaders httpHeaders = new HttpHeaders();
+		
+		/*MediaType mediaType = 
+			    new MediaType( "application" , "json" , Charset.forName( "UTF-8" ) ); 
+		httpHeaders.set( "Content-Type",mediaType.toString());*/
+			
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		
 		
 		
 		TranCimCBSTable data=tranCimCBSTableRep.findById(requestUUID).get();
@@ -106,6 +117,13 @@ public class CimCBSservice {
 		}else {
 			cimCBSrequestData.setPostToCBS(Boolean.FALSE);
 		}
+		
+		if(data.getInit_channel().contains("Jmeter")||data.getInit_channel().contains("Postman")) {
+        	cimCBSrequestData.setBranchId("TESTING");
+		}
+		
+		/*cimCBSrequestData.setBranchId("TESTING");*/
+		
 		cimCBSrequestData.setTransactionType(data.getTran_type());
 		cimCBSrequestData.setIsReversal(data.getIsreversal());
 		cimCBSrequestData.setTransactionNoFromCBS((data.getTran_no_from_cbs()==null)?"":data.getTran_no_from_cbs());
@@ -138,8 +156,16 @@ public class CimCBSservice {
 		HttpEntity<CimCBSrequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
 				
 		ResponseEntity<CimCBSresponse> response = null;
+		
 		try {
 			logger.info("Sending message to connect24 credit using restTemplate");
+			/*restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+			restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+*/
+
+			/*restTemplate.getMessageConverters()
+	        .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));*/
+			
 			response = restTemplate.postForEntity(env.getProperty("cimESB.url")+"appname="+env.getProperty("cimESB.appname")+"&prgname="+env.getProperty("cimESB.prgname")+"&arguments="+env.getProperty("cimESB.arguments"),
 					entity, CimCBSresponse.class);
 
@@ -152,9 +178,12 @@ public class CimCBSservice {
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
 		} catch (HttpServerErrorException ex) {
+			logger.debug("HttpServert"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 		}catch (Exception ex) {
+			logger.debug("Ex Exception"+ex.getLocalizedMessage());
 			CimCBSresponse cbsResponse=new CimCBSresponse();
 			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
 		}
@@ -330,6 +359,7 @@ public class CimCBSservice {
 		/////////////////////Request Body Creation/////////////////////////////
 		CimCBSrequest cimCBSrequest=new CimCBSrequest();
 		
+		
 		CimCBSrequestHeader cimCBSrequestHeader=new CimCBSrequestHeader();
 		cimCBSrequestHeader.setRequestUUId(data.getRequest_uuid());
 		cimCBSrequestHeader.setChannelId(data.getChannel_id());
@@ -348,6 +378,11 @@ public class CimCBSservice {
 		}else {
 			cimCBSrequestData.setPostToCBS(Boolean.FALSE);
 		}
+		
+        if(data.getInit_channel().contains("Jmeter")||data.getInit_channel().contains("Postman")) {
+        	cimCBSrequestData.setBranchId("TESTING");
+		}
+			
 		cimCBSrequestData.setTransactionType(data.getTran_type());
 		cimCBSrequestData.setIsReversal(data.getIsreversal());
 		cimCBSrequestData.setTransactionNoFromCBS((data.getTran_no_from_cbs()==null)?"":data.getTran_no_from_cbs());
@@ -453,7 +488,7 @@ public class CimCBSservice {
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 		logger.debug(cimCBSrequest.toString());
-		//logger.debug(listener.generateJsonFormat1(cimCBSrequest));
+		logger.debug(listener.generateJsonFormat1(cimCBSrequest));
 	///////////////////////////////////////////////////
 	
 		HttpEntity<CimCBSrequestGL> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);

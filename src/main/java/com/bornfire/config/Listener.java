@@ -1,8 +1,6 @@
 package com.bornfire.config;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,9 +61,52 @@ import sun.security.x509.X509CertInfo;
 
 @Component
 public class Listener {
+	
+	
+	
+	 private static KeyStore keyStore;
+	 private static Cipher c;
+	 private static Cipher c1;
+	    static {
+	        try {
+	            // one time instance creation
+	        	keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+	        } catch (KeyStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    }
+	    
+	    static {
+	        try {
+	            
+	        	c = Cipher.getInstance("RSA");
+	        } catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    }
+	    
+	    static {
+	        try {
+	            
+	        	c1 =Cipher.getInstance("AES");
+	        } catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    }
+		 
 
 	@Autowired
 	Environment env;
+	
 
 	public XMLGregorianCalendar getxmlGregorianCalender(String type) {
 		String dataFormat = null;
@@ -171,10 +212,10 @@ public class Listener {
 		byte[] skey = rekey(sec).getEncoded();
 		
 		byte[] data1 = Base64.getDecoder().decode(encData);
-		Cipher c = Cipher.getInstance("AES");
+		//Cipher c = Cipher.getInstance("AES");
 		SecretKeySpec secretkey = new SecretKeySpec(skey, "AES");
-		c.init(Cipher.ENCRYPT_MODE, secretkey);
-		byte[] encryptedData = c.doFinal(data1);
+		c1.init(Cipher.ENCRYPT_MODE, secretkey);
+		byte[] encryptedData = c1.doFinal(data1);
 		return Base64.getEncoder().encodeToString(encryptedData);
 	}
 
@@ -183,10 +224,10 @@ public class Listener {
 
 
 		byte[] dv = Base64.getDecoder().decode(encryptedData);
-		Cipher c = Cipher.getInstance("AES");
+		//Cipher c = Cipher.getInstance("AES");
 		SecretKeySpec secretkey = new SecretKeySpec(skey, "AES");
-		c.init(Cipher.DECRYPT_MODE, secretkey);
-		byte[] decryptedData = c.doFinal(dv);
+		c1.init(Cipher.DECRYPT_MODE, secretkey);
+		byte[] decryptedData = c1.doFinal(dv);
 		return Base64.getEncoder().encodeToString(decryptedData);
 	}
 
@@ -212,7 +253,7 @@ public class Listener {
 	public String encryptDid(String data) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableEntryException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
 		
 		PublicKey publicKey= KeyPairGeneratorFromJkS().getPublic();
-		Cipher c = Cipher.getInstance("RSA");
+		//Cipher c = Cipher.getInstance("RSA");
 		c.init(Cipher.ENCRYPT_MODE, publicKey);
 
 		byte[] encrypyedText = c.doFinal(data.getBytes());
@@ -254,77 +295,9 @@ public class Listener {
 		return new KeyPair(publickey, privatekey);
 
 	}
-	public void storePubKey(KeyPair keyPair, String key)
-			throws IOException, GeneralSecurityException {
-
 		
-		char[] pwdArray = env.getProperty("cimSSL.jks.password").toCharArray();// ->JKS password
-		InputStream ins = new FileInputStream(env.getProperty("cimSSL.jks.file"));
-		KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-		ks.load(ins, pwdArray);
-		KeyStore.PasswordProtection keyPassword = new KeyStore.PasswordProtection(pwdArray);
 
-		Certificate[] chain = { generateCertificate("cn=Unknown", keyPair, 365, "SHA256withRSA") };
-
-		ks.setKeyEntry(key, keyPair.getPrivate(), pwdArray, chain);
-		FileOutputStream outputStream = new FileOutputStream(env.getProperty("cimSSL.jks.file"));
-		ks.store(outputStream, pwdArray);
-
-	}
 	
-	public String retrievePriKey(String key)
-			throws IOException, GeneralSecurityException {
-
-		char[] pwdArray = env.getProperty("cimSSL.jks.password").toCharArray();// ->JKS password
-		InputStream ins = new FileInputStream(env.getProperty("cimSSL.jks.file"));
-		KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-		ks.load(ins, pwdArray);
-		KeyStore.PasswordProtection keyPassword = new KeyStore.PasswordProtection(pwdArray);
-
-		KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) ks.getEntry(key, keyPassword);
-		Certificate origCert = privateKeyEntry.getCertificate();
-		
-		PrivateKey privateKey = privateKeyEntry.getPrivateKey();
-		
-		return Base64.getEncoder().encodeToString(privateKey.getEncoded());
-
-	}
-	
-	@SuppressWarnings("restriction")
-	private  X509Certificate generateCertificate(String dn, KeyPair keyPair, int validity, String sigAlgName)
-			throws GeneralSecurityException, IOException {
-		PrivateKey privateKey = keyPair.getPrivate();
-
-		X509CertInfo info = new X509CertInfo();
-
-		Date from = new Date();
-		Date to = new Date(from.getTime() + validity * 1000L * 24L * 60L * 60L);
-
-		CertificateValidity interval = new CertificateValidity(from, to);
-		BigInteger serialNumber = new BigInteger(64, new SecureRandom());
-		X500Name owner = new X500Name(dn);
-		AlgorithmId sigAlgId = new AlgorithmId(AlgorithmId.RSAEncryption_oid);
-
-		info.set(X509CertInfo.VALIDITY, interval);
-		info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(serialNumber));
-		info.set(X509CertInfo.SUBJECT, owner);
-		info.set(X509CertInfo.ISSUER, owner);
-		info.set(X509CertInfo.KEY, new CertificateX509Key(keyPair.getPublic()));
-		info.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3));
-		info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(sigAlgId));
-
-		X509CertImpl certificate = new X509CertImpl(info);
-		certificate.sign(privateKey, sigAlgName);
-
-		sigAlgId = (AlgorithmId) certificate.get(X509CertImpl.SIG_ALG);
-		info.set(CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, sigAlgId);
-		certificate = new X509CertImpl(info);
-		certificate.sign(privateKey, sigAlgName);
-
-		return certificate;
-
-	}
-
 	
 	
 

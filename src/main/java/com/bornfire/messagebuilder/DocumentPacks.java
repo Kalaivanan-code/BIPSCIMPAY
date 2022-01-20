@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -86,6 +88,7 @@ import com.bornfire.jaxb.pacs_008_001_08.PartyIdentification1351;
 import com.bornfire.jaxb.pacs_008_001_08.PaymentIdentification71;
 import com.bornfire.jaxb.pacs_008_001_08.PaymentTypeInformation281;
 import com.bornfire.jaxb.pacs_008_001_08.PostalAddress241;
+import com.bornfire.jaxb.pacs_008_001_08.Purpose2Choice1;
 import com.bornfire.jaxb.pacs_008_001_08.ReferredDocumentInformation71;
 import com.bornfire.jaxb.pacs_008_001_08.ReferredDocumentType3Choice1;
 import com.bornfire.jaxb.pacs_008_001_08.ReferredDocumentType41;
@@ -134,6 +137,55 @@ public class DocumentPacks implements Serializable{
 
 	@Autowired
 	Environment env;
+	
+	private static JAXBContext jaxbContextDocPacs008;
+	private static XMLInputFactory factoryPacs008;
+	private static JAXBContext jaxbContextDocPacs002;
+	private static JAXBContext jaxbContextDocPain001;
+	private static JAXBContext jaxbContextDocPain002;
+	
+	
+
+
+    static {
+        try {
+            // one time instance creation
+        	jaxbContextDocPacs008 = JAXBContext.newInstance(Document.class);
+        	factoryPacs008= XMLInputFactory.newInstance();
+        } catch (JAXBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+    
+    static {
+        try {
+            // one time instance creation
+        	jaxbContextDocPain001 = JAXBContext.newInstance(com.bornfire.jaxb.pain_001_001_09.Document.class);
+        	factoryPacs008= XMLInputFactory.newInstance();
+        } catch (JAXBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+    
+    static {
+        try {
+            // one time instance creation
+        	jaxbContextDocPacs002 = JAXBContext.newInstance(com.bornfire.jaxb.pacs_002_001_010.Document.class);
+        } catch (JAXBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+    
+    
+    static {
+        try {
+            // one time instance creation
+        	jaxbContextDocPain002 = JAXBContext.newInstance(com.bornfire.jaxb.pain_002_001_10.Document.class);
+        } catch (JAXBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
 
 	/**** Create Document of Pacs.008.001.08 ****/
 	public String getPacs_008_001_01Doc(String msgId, CIMCreditTransferRequest mcCreditTransferRequest,
@@ -271,6 +323,12 @@ public class DocumentPacks implements Serializable{
 		cdtrAcct.setId(id4);
 		creditTransferTransaction391.setCdtrAcct(cdtrAcct);
 		
+		Purpose2Choice1 purpose1=new Purpose2Choice1();
+		purpose1.setPrtry("Credit Transfer");
+		creditTransferTransaction391.setPurp(purpose1);
+		
+		
+		
 		////Remitter Information
 		RemittanceInformation161 rmtInf=new RemittanceInformation161();
 		
@@ -296,12 +354,12 @@ public class DocumentPacks implements Serializable{
 		document.setFIToFICstmrCdtTrf(fiToFICstmrCdtTrf);
 
 ///Convert Document XMl element to String
-		JAXBContext jaxbContext;
+		//JAXBContext jaxbContext;
 		Marshaller jaxbMarshaller;
 		StringWriter sw = null;
 		try {
-			jaxbContext = JAXBContext.newInstance(Document.class);
-			jaxbMarshaller = jaxbContext.createMarshaller();
+			//jaxbContext = JAXBContext.newInstance(Document.class);
+			jaxbMarshaller = jaxbContextDocPacs008.createMarshaller();
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 			jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -520,12 +578,12 @@ public class DocumentPacks implements Serializable{
 		document.setFIToFICstmrCdtTrf(fiToFICstmrCdtTrf);
 
 ///Convert Document XMl element to String
-		JAXBContext jaxbContext;
+		//JAXBContext jaxbContext;
 		Marshaller jaxbMarshaller;
 		StringWriter sw = null;
 		try {
-			jaxbContext = JAXBContext.newInstance(Document.class);
-			jaxbMarshaller = jaxbContext.createMarshaller();
+			//jaxbContext = JAXBContext.newInstance(Document.class);
+			jaxbMarshaller = jaxbContextDocPacs008.createMarshaller();
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 			jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -727,12 +785,12 @@ public class DocumentPacks implements Serializable{
 
 		docPacs002_001_10.setFIToFIPmtStsRpt(fiToFIPmtStsRpt);
 
-		JAXBContext jaxbContext;
+		//JAXBContext jaxbContext;
 		Marshaller jaxbMarshaller;
 		StringWriter sw = null;
 		try {
-			jaxbContext = JAXBContext.newInstance(com.bornfire.jaxb.pacs_002_001_010.Document.class);
-			jaxbMarshaller = jaxbContext.createMarshaller();
+			//jaxbContext = JAXBContext.newInstance(com.bornfire.jaxb.pacs_002_001_010.Document.class);
+			jaxbMarshaller = jaxbContextDocPacs002.createMarshaller();
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 			jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -757,15 +815,24 @@ public class DocumentPacks implements Serializable{
 		final int end = block4.indexOf("</Document>");
 
 		InputStream stream = null;
-		JAXBContext jaxBContext;
+		//JAXBContext jaxBContext;
 		JAXBElement<Document> jaxbElement = null;
 		try {
 			stream = new ByteArrayInputStream(block4.substring(start, end + 11).getBytes("UTF-8"));
-			jaxBContext = JAXBContext.newInstance(Document.class);
-			Unmarshaller unMarshaller = jaxBContext.createUnmarshaller();
+			//String stream = block4.substring(start, end + 11);
+			//jaxBContext = JAXBContext.newInstance(Document.class);
+			Unmarshaller unMarshaller = jaxbContextDocPacs008.createUnmarshaller();
+		
 			XMLInputFactory factory = XMLInputFactory.newInstance();
-			XMLEventReader xmlEventReader = factory.createXMLEventReader(stream);
+			XMLStreamReader xmlEventReader = factory.createXMLStreamReader(stream);
 			jaxbElement = unMarshaller.unmarshal(xmlEventReader, Document.class);
+			
+			/*XMLInputFactory factory = XMLInputFactory.newInstance();
+			XMLEventReader xmlEventReader = factory.createXMLEventReader(stream);
+			jaxbElement = unMarshaller.unmarshal(xmlEventReader, Document.class);*/
+
+          //  return (Document)unMarshaller.unmarshal(new StringReader(block4.substring(start, end + 11)));
+
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
@@ -774,6 +841,7 @@ public class DocumentPacks implements Serializable{
 			e.printStackTrace();
 		}
 		Document document = jaxbElement.getValue();
+		//return null;
 
 		return document;
 	}
@@ -784,13 +852,13 @@ public class DocumentPacks implements Serializable{
 		final int end = block4.indexOf("</Document>");
 
 		InputStream stream = null;
-		JAXBContext jaxBContext;
+		//JAXBContext jaxBContext;
 		JAXBElement<com.bornfire.jaxb.pacs_002_001_010.Document> jaxbElement = null;
 
 		try {
 			stream = new ByteArrayInputStream(block4.substring(start, end + 11).getBytes("UTF-8"));
-			jaxBContext = JAXBContext.newInstance(com.bornfire.jaxb.pacs_002_001_010.Document.class);
-			Unmarshaller unMarshaller = jaxBContext.createUnmarshaller();
+			//jaxBContext = JAXBContext.newInstance(com.bornfire.jaxb.pacs_002_001_010.Document.class);
+			Unmarshaller unMarshaller = jaxbContextDocPacs002.createUnmarshaller();
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader xmlEventReader = factory.createXMLEventReader(stream);
 			jaxbElement = unMarshaller.unmarshal(xmlEventReader, com.bornfire.jaxb.pacs_002_001_010.Document.class);
@@ -871,13 +939,13 @@ public class DocumentPacks implements Serializable{
 		final int end = block4.indexOf("</Document>");
 
 		InputStream stream = null;
-		JAXBContext jaxBContext;
+		//JAXBContext jaxBContext;
 		JAXBElement<com.bornfire.jaxb.pain_001_001_09.Document> jaxbElement = null;
 
 		try {
 			stream = new ByteArrayInputStream(block4.substring(start, end + 11).getBytes("UTF-8"));
-			jaxBContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_001_001_09.Document.class);
-			Unmarshaller unMarshaller = jaxBContext.createUnmarshaller();
+			//jaxBContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_001_001_09.Document.class);
+			Unmarshaller unMarshaller = jaxbContextDocPain001.createUnmarshaller();
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader xmlEventReader = factory.createXMLEventReader(stream);
 			jaxbElement = unMarshaller.unmarshal(xmlEventReader, com.bornfire.jaxb.pain_001_001_09.Document.class);
@@ -1324,12 +1392,12 @@ public class DocumentPacks implements Serializable{
 		document.setFIToFICstmrCdtTrf(fiToFICstmrCdtTrf);
 
 		/// Convert Document XMl element to String
-		JAXBContext jaxbContext;
+		//JAXBContext jaxbContext;
 		Marshaller jaxbMarshaller;
 		StringWriter sw = null;
 		try {
-			jaxbContext = JAXBContext.newInstance(Document.class);
-			jaxbMarshaller = jaxbContext.createMarshaller();
+			//jaxbContext = JAXBContext.newInstance(Document.class);
+			jaxbMarshaller = jaxbContextDocPacs008.createMarshaller();
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 			jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -1460,12 +1528,12 @@ public class DocumentPacks implements Serializable{
 
 		docPain002.setCstmrPmtStsRpt(cstmrPmtStsRpt);
 
-		JAXBContext jaxbContext;
+		//JAXBContext jaxbContext;
 		Marshaller jaxbMarshaller;
 		StringWriter sw = null;
 		try {
-			jaxbContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_002_001_10.Document.class);
-			jaxbMarshaller = jaxbContext.createMarshaller();
+			//jaxbContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_002_001_10.Document.class);
+			jaxbMarshaller = jaxbContextDocPain002.createMarshaller();
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 			jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -1489,13 +1557,13 @@ public class DocumentPacks implements Serializable{
 		final int end = block4.indexOf("</Document>");
 
 		InputStream stream = null;
-		JAXBContext jaxBContext;
+		//JAXBContext jaxBContext;
 		JAXBElement<com.bornfire.jaxb.pain_002_001_10.Document> jaxbElement = null;
 
 		try {
 			stream = new ByteArrayInputStream(block4.substring(start, end + 11).getBytes("UTF-8"));
-			jaxBContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_002_001_10.Document.class);
-			Unmarshaller unMarshaller = jaxBContext.createUnmarshaller();
+			//jaxBContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_002_001_10.Document.class);
+			Unmarshaller unMarshaller = jaxbContextDocPain002.createUnmarshaller();
 			XMLInputFactory factory = XMLInputFactory.newInstance();
 			XMLEventReader xmlEventReader = factory.createXMLEventReader(stream);
 			jaxbElement = unMarshaller.unmarshal(xmlEventReader, com.bornfire.jaxb.pain_002_001_10.Document.class);
@@ -1840,6 +1908,16 @@ public class DocumentPacks implements Serializable{
 				id4.setOthr(gen4);
 				cdtrAcct.setId(id4);
 				creditTransferTransaction391.setCdtrAcct(cdtrAcct);
+				
+				Purpose2Choice1 purpose1=new Purpose2Choice1();
+				purpose1.setPrtry("Credit Transfer");
+				creditTransferTransaction391.setPurp(purpose1);
+				
+			////Remitter Information
+				RemittanceInformation161 rmtInf=new RemittanceInformation161();
+				rmtInf.setUstrd(Arrays.asList("Credit Transfer"));
+				creditTransferTransaction391.setRmtInf(rmtInf);
+				
 				cdtTrfTxInf.add(creditTransferTransaction391);
 
 		///Financial Customer Credit Transfer		
@@ -1852,12 +1930,12 @@ public class DocumentPacks implements Serializable{
 				document.setFIToFICstmrCdtTrf(fiToFICstmrCdtTrf);
 
 		///Convert Document XMl element to String
-				JAXBContext jaxbContext;
+				//JAXBContext jaxbContext;
 				Marshaller jaxbMarshaller;
 				StringWriter sw = null;
 				try {
-					jaxbContext = JAXBContext.newInstance(Document.class);
-					jaxbMarshaller = jaxbContext.createMarshaller();
+					//jaxbContext = JAXBContext.newInstance(Document.class);
+					jaxbMarshaller = jaxbContextDocPacs008.createMarshaller();
 					jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 					jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 					jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -2003,6 +2081,16 @@ public class DocumentPacks implements Serializable{
 				id4.setOthr(gen4);
 				cdtrAcct.setId(id4);
 				creditTransferTransaction391.setCdtrAcct(cdtrAcct);
+				
+				Purpose2Choice1 purpose1=new Purpose2Choice1();
+				purpose1.setPrtry("Credit Transfer");
+				creditTransferTransaction391.setPurp(purpose1);
+				
+			////Remitter Information
+				RemittanceInformation161 rmtInf=new RemittanceInformation161();
+				rmtInf.setUstrd(Arrays.asList("Credit Transfer"));
+				creditTransferTransaction391.setRmtInf(rmtInf);
+				
 				cdtTrfTxInf.add(creditTransferTransaction391);
 
 		///Financial Customer Credit Transfer		
@@ -2015,12 +2103,12 @@ public class DocumentPacks implements Serializable{
 				document.setFIToFICstmrCdtTrf(fiToFICstmrCdtTrf);
 
 		///Convert Document XMl element to String
-				JAXBContext jaxbContext;
+				//JAXBContext jaxbContext;
 				Marshaller jaxbMarshaller;
 				StringWriter sw = null;
 				try {
-					jaxbContext = JAXBContext.newInstance(Document.class);
-					jaxbMarshaller = jaxbContext.createMarshaller();
+					//jaxbContext = JAXBContext.newInstance(Document.class);
+					jaxbMarshaller = jaxbContextDocPacs008.createMarshaller();
 					jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 					jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 					jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -2190,8 +2278,13 @@ public class DocumentPacks implements Serializable{
 		
 		Purpose2Choice purp=new Purpose2Choice();
 		//purp.setCd("101");
-		purp.setPrtry("0763");
-		//cdtTrfTxInf.setPurp(purp);
+		/*if(trRmks.equals("null")&&trRmks.equals("")) {
+			purp.setPrtry("Transfer");
+		}else {
+			purp.setPrtry(trRmks);
+		}*/
+		purp.setPrtry("Transfer");
+		cdtTrfTxInf.setPurp(purp);
 		
 		com.bornfire.jaxb.pain_001_001_09.RegulatoryReporting31 rgltryRptgList=new com.bornfire.jaxb.pain_001_001_09.RegulatoryReporting31();
 		com.bornfire.jaxb.pain_001_001_09.StructuredRegulatoryReporting31 dtls=new com.bornfire.jaxb.pain_001_001_09.StructuredRegulatoryReporting31();
@@ -2221,12 +2314,12 @@ public class DocumentPacks implements Serializable{
 		com.bornfire.jaxb.pain_001_001_09.Document document = new com.bornfire.jaxb.pain_001_001_09.Document();
 		document.setCstmrCdtTrfInitn(CstmrCdtTrfInitn);
 
-		JAXBContext jaxbContext;
+		//JAXBContext jaxbContext;
 		Marshaller jaxbMarshaller;
 		StringWriter sw = null;
 		try {
-			jaxbContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_001_001_09.Document.class);
-			jaxbMarshaller = jaxbContext.createMarshaller();
+			
+			jaxbMarshaller = jaxbContextDocPain001.createMarshaller();
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 			jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -2453,12 +2546,12 @@ public class DocumentPacks implements Serializable{
 		com.bornfire.jaxb.pain_001_001_09.Document document = new com.bornfire.jaxb.pain_001_001_09.Document();
 		document.setCstmrCdtTrfInitn(CstmrCdtTrfInitn);
 
-		JAXBContext jaxbContext;
+		//JAXBContext jaxbContext;
 		Marshaller jaxbMarshaller;
 		StringWriter sw = null;
 		try {
-			jaxbContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_001_001_09.Document.class);
-			jaxbMarshaller = jaxbContext.createMarshaller();
+			//jaxbContext = JAXBContext.newInstance(com.bornfire.jaxb.pain_001_001_09.Document.class);
+			jaxbMarshaller = jaxbContextDocPain001.createMarshaller();
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
 			jaxbMarshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");

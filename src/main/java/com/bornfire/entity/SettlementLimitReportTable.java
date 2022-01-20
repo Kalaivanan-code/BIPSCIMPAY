@@ -3,6 +3,7 @@ package com.bornfire.entity;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -12,6 +13,7 @@ import javax.persistence.Table;
 public class SettlementLimitReportTable {
 	
 	@Id
+	@Column(name="cim_msg_id")
 	private String bob_msg_id;
 	private String ipsx_msg_id;
 	private String ipsx_response_status;

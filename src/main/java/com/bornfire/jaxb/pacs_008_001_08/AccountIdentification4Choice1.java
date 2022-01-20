@@ -8,6 +8,8 @@
 
 package com.bornfire.jaxb.pacs_008_001_08;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -43,9 +45,9 @@ import javax.xml.bind.annotation.XmlType;
     "iban",
     "othr"
 })
-public class AccountIdentification4Choice1 {
+public class AccountIdentification4Choice1{
 
-    @XmlElement(name = "IBAN")
+	@XmlElement(name = "IBAN")
     protected String iban;
     @XmlElement(name = "Othr")
     protected GenericAccountIdentification11 othr;

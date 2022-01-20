@@ -11,6 +11,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CimCBSrequestData {
 	
+	@JsonProperty("branchId")
+	private String branchId;
+	
 	@JsonProperty("transactionNo")
 	private String transactionNo;
 	
@@ -255,6 +258,16 @@ public class CimCBSrequestData {
 
 	public void setIpsMasterRefId(String ipsMasterRefId) {
 		this.ipsMasterRefId = ipsMasterRefId;
+	}
+	
+	
+
+	public String getBranchId() {
+		return branchId;
+	}
+
+	public void setBranchId(String branchId) {
+		this.branchId = branchId;
 	}
 
 	@Override

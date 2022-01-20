@@ -37,6 +37,9 @@ public class TranCimGLTable implements Serializable{
 	private String tran_desc1;
 	private String tran_remarks1;
 	private String rate1;
+	private Date value_date;
+	
+	
 	private String srl_no2;
 	private String tran_type2;
 	private String acct_no2;
@@ -254,6 +257,14 @@ public class TranCimGLTable implements Serializable{
 	}
 	public void setMessage(String message) {
 		this.message = message;
+	}
+	
+	
+	public Date getValue_date() {
+		return value_date;
+	}
+	public void setValue_date(Date value_date) {
+		this.value_date = value_date;
 	}
 	@Override
 	public String toString() {

@@ -31,6 +31,15 @@ public class ConsentOutwardInquiryTable {
 	private String del_user;
 	private Date del_time;
 	private String del_flg;
+	private String psu_channel;
+	
+	
+	public String getPsu_channel() {
+		return psu_channel;
+	}
+	public void setPsu_channel(String psu_channel) {
+		this.psu_channel = psu_channel;
+	}
 	public String getX_request_id() {
 		return x_request_id;
 	}

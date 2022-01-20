@@ -418,11 +418,16 @@ public class CronJobScheduler {
 		}
 	}
 
-	@Scheduled(cron = "0 0/5 00-01 * * *")
+	@Scheduled(cron = "0 3/5 00 * * *")
 	public void initIncGLPayment() {
-		logger.info("GL Payment : Start"+new Date());
 		
-		ipsConnection.initGLPayment(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
+		String getMinutes=new SimpleDateFormat("mm").format(new Date());
+		//logger.info("GL get : Start"+getMinutes);
+		if(Double.parseDouble(getMinutes)<20) {
+			logger.info("GL Payment : Start"+new Date());
+			ipsConnection.initGLPayment(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
+		}
+		
 	}
 	
 ///// Get Settlement Amount from Connect24
