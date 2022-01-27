@@ -4628,7 +4628,7 @@ public class IPSConnection {
 		//// Generate RequestUUID
 		String requestUUID = sequence.generateRequestUUId();
 
-		String settlReceivableAccount=settlAccountRep.findByAccountNuber("03");
+		String settlReceivableAccount=settlAccountRep.findByAccountNuber(env.getProperty("settl.receivable"));
 		//String settlReceivableAccount = settlAccountRep.findById("03").get().getAccount_number();
 		
 		List<OutwardTransactionMonitoringTable> outTranList = ipsDao.checkExistOutwardRTP(instrId, endToEndID);
@@ -5666,7 +5666,7 @@ public class IPSConnection {
 				
 			    ////// Get Bank Agent Account and Agent Account
 				//BankAgentTable creditorAgent = ipsDao
-										//	.getOtherBankAgent(rtpBulkTransferRequest.getBenAccount().get(i).getBankCode());
+											//.getOtherBankAgent(benAcct.getBankCode());
 				
 				//logger.info("Register Initial RTP Fund Transfer Record"+creditorAgent.getBank_agent());
 
@@ -5680,8 +5680,10 @@ public class IPSConnection {
 				String instdAgent=bankAgentTable.getBank_agent();
 				String debtorAgent=bankAgentTable.getBank_agent();
 				String debtorAgentAcct=bankAgentTable.getBank_agent_account();
-				String CreditorAgent="CFSLMUM0";
-				String CreditorAgentAcct="CFSLNRT";
+				String CreditorAgent=env.getProperty("ipsx.dbtragt");
+				String CreditorAgentAcct=env.getProperty("ipsx.dbtragtacct");
+				//String CreditorAgent=creditorAgent.getBank_agent();
+				//String CreditorAgentAcct=creditorAgent.getBank_agent_account();
 				
 				////Check Creditor Account Number already registerd in BIPS
 				//boolean isRegisteredPISP=ipsDao.checkExistConsent(rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());

@@ -498,6 +498,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					//int bankAgentExistSize=bankAgentTableRep.findByCustomBankName1
 					//(instgAgtPacs008,debtorAgent008,instdAgtPacs008).size();
 					
+				logger.info("trAmount"+trAmount008.toString());
 					String trAmount008S=trAmount008.toString();
 					String trAmount008D= String.valueOf(Double.parseDouble(trAmount008S));
 					String totInttBkSettlAmtPacs008D=String.valueOf(Double.parseDouble(totInttBkSettlAmtPacs008.toString()));
@@ -507,7 +508,6 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					String CreditStatusDesc = null;
 
 					String responseIncomeMsg = "";
-					
 					
 					
 					if(ctgy_purp_pacs008.equals("102") || ctgy_purp_pacs008.equals("300")||
@@ -526,7 +526,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						
 						if(creditorAccount008.equals("")) {
 							responseIncomeMsg=errorCode.ErrorCode("AC03");
-						}else if(trAmount008S.equals("0") || !trAmount008S.equals("0.00")||
+						}else if(trAmount008S.equals("0") || trAmount008S.equals("0.00")||
 								trAmount008S.equals("")) {
 							responseIncomeMsg=errorCode.ErrorCode("AM01");
 						}else {
@@ -908,6 +908,20 @@ public class IPSXClient extends WebServiceGatewaySupport {
 
 			ipsDao.insertTranIPS(orglMsgIdCamt019, orglMsgIdCamt019, "camt.019.001.07", "", "", "",
 					"", "I", msgSender, msgReceiver, msgNetMIR, userReference,"",docPacs.getCamt019_001_07UnMarshalDocXML(request));
+
+
+			break;
+			
+		case "pacs.004.001.09":
+			logger.info("---pacs.004.001.09---");
+
+			com.bornfire.jaxb.pacs_004_001_09.Document docPacs_004_001_09 = docPacs
+					.getPacs004_001_09UnMarshalDoc(request);
+
+			String orglMsgIdPacs004 = docPacs_004_001_09.getPmtRtr().getGrpHdr().getMsgId();
+
+			ipsDao.insertTranIPS(orglMsgIdPacs004, orglMsgIdPacs004, "pacs.004.001.09", "", "", "",
+					"", "I", msgSender, msgReceiver, msgNetMIR, userReference,"",docPacs.getPacs004_001_09UnMarshalDocXML(request));
 
 
 			break;

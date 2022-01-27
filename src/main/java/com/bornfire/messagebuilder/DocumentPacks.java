@@ -2642,6 +2642,34 @@ public class DocumentPacks implements Serializable{
 		return document;
 	}
 	
+	public com.bornfire.jaxb.pacs_004_001_09.Document getPacs004_001_09UnMarshalDoc(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<Document");
+		final int end = block4.indexOf("</Document>");
+		
+		InputStream stream = null;
+		JAXBContext jaxBContext;
+		JAXBElement<com.bornfire.jaxb.pacs_004_001_09.Document> jaxbElement = null;
+
+		try {
+			stream = new ByteArrayInputStream(block4.substring(start, end + 11).getBytes("UTF-8"));
+			jaxBContext = JAXBContext.newInstance(com.bornfire.jaxb.pacs_004_001_09.Document.class);
+			Unmarshaller unMarshaller = jaxBContext.createUnmarshaller();
+			XMLInputFactory factory = XMLInputFactory.newInstance();
+			XMLEventReader xmlEventReader = factory.createXMLEventReader(stream);
+			jaxbElement = unMarshaller.unmarshal(xmlEventReader, com.bornfire.jaxb.pacs_004_001_09.Document.class);
+
+		} catch (JAXBException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (XMLStreamException e) {
+			e.printStackTrace();
+		}
+		com.bornfire.jaxb.pacs_004_001_09.Document document = jaxbElement.getValue();
+		//System.out.println(document.getRtrLmt().getRptOrErr().getBizRpt().getCurLmt().get(0).getLmtOrErr().getBizErr().getDesc());
+		return document;
+	}
 
 	
 
@@ -2911,6 +2939,17 @@ public String getCamt053_001_08UnMarshalDocXML(SendT request) {
 	}
 
 	public String getCamt019_001_07UnMarshalDocXML(SendT request) {
+		String block4 = request.getMessage().getBlock4();
+		final int start = block4.indexOf("<DataPDU");
+		final int end = block4.indexOf("</DataPDU>");
+
+		String XMLData=block4.substring(start, end + 10);
+
+		return XMLData;	
+		
+	}
+	
+	public String getPacs004_001_09UnMarshalDocXML(SendT request) {
 		String block4 = request.getMessage().getBlock4();
 		final int start = block4.indexOf("<DataPDU");
 		final int end = block4.indexOf("</DataPDU>");
