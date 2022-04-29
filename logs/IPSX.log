@@ -1219,3 +1219,13 @@
 2022-01-27 17:34:00,020 INFO com.bornfire.config.CronJobScheduler$CertMapper [scheduling-1] Mapper[B@2970e021
 2022-01-27 17:34:00,029 INFO com.bornfire.config.CronJobScheduler$CertMapper [scheduling-1] EMAILADDRESS=cert_publisher_test@ips.maucas.mu, CN=BOMMMUPLXIPS, O=BOMM, L=Port-Louis, C=MU
 2022-01-27 17:34:00,030 INFO com.bornfire.config.CronJobScheduler [scheduling-1] LDAP Cert:Success
+2022-01-27 17:35:00,199 INFO com.bornfire.config.CronJobScheduler$CertMapper [scheduling-1] 0------
+2022-01-27 17:35:00,199 INFO com.bornfire.config.CronJobScheduler$CertMapper [scheduling-1] Mapper[B@29ffa32c
+2022-01-27 17:35:00,202 INFO com.bornfire.config.CronJobScheduler$CertMapper [scheduling-1] EMAILADDRESS=cert_publisher_test@ips.maucas.mu, CN=BOMMMUPLXIPS, O=BOMM, L=Port-Louis, C=MU
+2022-01-27 17:35:00,203 INFO com.bornfire.config.CronJobScheduler [scheduling-1] LDAP Cert:Success
+2022-01-27 17:35:43,139 INFO org.springframework.boot.admin.SpringApplicationAdminMXBeanRegistrar$SpringApplicationAdmin [RMI TCP Connection(2)-127.0.0.1] Application shutdown requested.
+2022-01-27 17:35:43,143 INFO org.springframework.scheduling.concurrent.ExecutorConfigurationSupport [RMI TCP Connection(2)-127.0.0.1] Shutting down ExecutorService 'taskScheduler'
+2022-01-27 17:35:43,149 INFO org.springframework.scheduling.concurrent.ExecutorConfigurationSupport [RMI TCP Connection(2)-127.0.0.1] Shutting down ExecutorService 'asyncExecutor'
+2022-01-27 17:35:43,150 INFO org.springframework.scheduling.concurrent.ExecutorConfigurationSupport [RMI TCP Connection(2)-127.0.0.1] Shutting down ExecutorService 'taskExecutor'
+2022-01-27 17:35:43,165 INFO com.zaxxer.hikari.HikariDataSource [RMI TCP Connection(2)-127.0.0.1] HikariBIPS - Shutdown initiated...
+2022-01-27 17:35:43,215 INFO com.zaxxer.hikari.HikariDataSource [RMI TCP Connection(2)-127.0.0.1] HikariBIPS - Shutdown completed.
