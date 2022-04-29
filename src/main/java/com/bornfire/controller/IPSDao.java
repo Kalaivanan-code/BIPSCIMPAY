@@ -6917,4 +6917,18 @@ public class IPSDao {
 
 	}
 	
+	public String getMaxAmountPerDay(String acctNumber,List<BenAccount> benBankCodeList) {
+		String totMaxAmt=tranRep.getMaxTranAmt(acctNumber);
+		Double Tran_amt =new Double(0);
+		for(BenAccount benAccount:benBankCodeList) {
+			Tran_amt +=Double.parseDouble(benAccount.getTrAmt());
+		}
+		Double d2=Double.parseDouble(totMaxAmt)+(Tran_amt);
+		String totAmt= d2.toString();
+		// TODO Auto-generated method stub
+		return totAmt;
+	}
+
+	
+	
 }

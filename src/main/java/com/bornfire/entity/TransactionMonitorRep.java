@@ -36,6 +36,8 @@ public interface TransactionMonitorRep extends JpaRepository<TransactionMonitor,
 	
 	
 	
+	@Query(value = "select nvl(sum(tran_amount),0) from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where ipsx_account=?1 and tran_status='SUCCESS' and  ( msg_type='OUTGOING' or msg_type='OUTWARD_BULK_RTP')", nativeQuery = true)
+	String getMaxTranAmt(String acctNumber);
 
 	
 }

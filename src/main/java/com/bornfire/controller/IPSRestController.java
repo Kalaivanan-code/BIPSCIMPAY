@@ -1173,6 +1173,10 @@ public class IPSRestController {
 		logger.info("PSU_ID:" + psuID);
 
 		logger.info("RTP Bulk Request->" + rtpBulkTransferRequest);
+		
+		String consAmt=	ipsDao.getMaxAmountPerDay(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber(),rtpBulkTransferRequest.getBenAccount());
+
+		
 
 		if (ipsDao.invalidP_ID(p_id)) {
 			
@@ -1180,14 +1184,22 @@ public class IPSRestController {
 				if (!ipsDao.invalidBankCode(rtpBulkTransferRequest.getRemitterAccount().getBankCode())) {
 					if (!ipsDao.invalidRTPCurrencyCode(rtpBulkTransferRequest)) {
 						if(!ipsDao.invalidRTPBenBankCode(rtpBulkTransferRequest.getBenAccount())) {
+							
 							List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
 									.getAccountNumber(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber());
 							if (regAccList.size() > 0) {
 								
 								if(regAccList.get(0).getReceiverparticipant_bic().equals
 										(ipsDao.getOtherBankAgent(rtpBulkTransferRequest.getRemitterAccount().getBankCode()).getBank_agent())) {
+									if (Double.parseDouble(consAmt)<=Integer.parseInt(env.getProperty("cim.maxamount"))) {
 									response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID,
 											rtpBulkTransferRequest, p_id, channelID, resvfield1, resvfield2);
+									
+									}else {
+										String responseStatus = errorCode.validationError("BIPS12");
+										throw new IPSXException(responseStatus);
+									}
+									
 								}else {
 									String responseStatus = errorCode.validationError("BIPS22");
 									throw new IPSXException(responseStatus);
