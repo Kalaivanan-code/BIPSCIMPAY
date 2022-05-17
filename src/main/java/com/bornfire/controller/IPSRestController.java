@@ -1174,7 +1174,9 @@ public class IPSRestController {
 
 		logger.info("RTP Bulk Request->" + rtpBulkTransferRequest);
 		
-		String consAmt=	ipsDao.getMaxAmountPerDay(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber(),rtpBulkTransferRequest.getBenAccount());
+		String dailyamt=	ipsDao.getMaxAmountPerDay(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber(),rtpBulkTransferRequest.getBenAccount());
+		String weeklyamt=	ipsDao.getMaxAmountPerDay(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber(),rtpBulkTransferRequest.getBenAccount());
+		String monthlyamt=	ipsDao.getMaxAmountPerDay(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber(),rtpBulkTransferRequest.getBenAccount());
 
 		
 
@@ -1191,12 +1193,23 @@ public class IPSRestController {
 								
 								if(regAccList.get(0).getReceiverparticipant_bic().equals
 										(ipsDao.getOtherBankAgent(rtpBulkTransferRequest.getRemitterAccount().getBankCode()).getBank_agent())) {
-									if (Double.parseDouble(consAmt)<=Integer.parseInt(env.getProperty("cim.maxamount"))) {
-									response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID,
-											rtpBulkTransferRequest, p_id, channelID, resvfield1, resvfield2);
+									if (Double.parseDouble(dailyamt)<=Integer.parseInt(env.getProperty("cim.maxamountdaily"))) {
+										if (Double.parseDouble(weeklyamt)<=Integer.parseInt(env.getProperty("cim.maxamountweekly"))) {
+											if (Double.parseDouble(monthlyamt)<=Integer.parseInt(env.getProperty("cim.maxamountmonthly"))) {
+												response = ipsConnection.createBulkRTPconnection(psuDeviceID, psuIpAddress, psuID,
+														rtpBulkTransferRequest, p_id, channelID, resvfield1, resvfield2);
+											}else {
+												String responseStatus = errorCode.validationError("BIPS53");
+												throw new IPSXException(responseStatus);
+											}
+										}else {
+											String responseStatus = errorCode.validationError("BIPS52");
+											throw new IPSXException(responseStatus);
+										}
+									
 									
 									}else {
-										String responseStatus = errorCode.validationError("BIPS12");
+										String responseStatus = errorCode.validationError("BIPS51");
 										throw new IPSXException(responseStatus);
 									}
 									

@@ -40,4 +40,9 @@ public interface TransactionMonitorRep extends JpaRepository<TransactionMonitor,
 	String getMaxTranAmt(String acctNumber);
 
 	
+	@Query(value = "select sum(tran) from ( select nvl(sum(tran_amount),0) as tran from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where ipsx_account=?1 and tran_status='SUCCESS' and  ( msg_type='OUTGOING' or msg_type='OUTWARD_BULK_RTP') union all select nvl(sum(tran_amount),0) as tran from BIPS_OUTWARD_TRANSACTION_hist_MONITORING_TABLE where tran_date >= sysdate-6 and  ipsx_account=?1 and tran_status='SUCCESS' and  ( msg_type='OUTGOING' or msg_type='OUTWARD_BULK_RTP'))", nativeQuery = true)
+	String getMaxTranAmtweekly(String acctNumber);
+	
+	@Query(value = "select sum(tran) from ( select nvl(sum(tran_amount),0) as tran from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where ipsx_account=?1 and tran_status='SUCCESS' and  ( msg_type='OUTGOING' or msg_type='OUTWARD_BULK_RTP') union all select nvl(sum(tran_amount),0) as tran from BIPS_OUTWARD_TRANSACTION_hist_MONITORING_TABLE where trim(to_char(tran_date,'Mon-YYYY'))=?2 and  ipsx_account=?1 and tran_status='SUCCESS' and  ( msg_type='OUTGOING' or msg_type='OUTWARD_BULK_RTP'))", nativeQuery = true)
+	String getMaxTranAmtmonthly(String acctNumber, String trandate);
 }

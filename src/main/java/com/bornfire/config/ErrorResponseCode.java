@@ -175,6 +175,12 @@ public class ErrorResponseCode {
 			responseDesc = "BIPS32:Document ID doesn't Exist";
 		}else if(code.equals("BIPS501")) {
 			responseDesc = "BIPS501:Internal Server Problem";
+		}else if(code.equals("BIPS51")) {
+			responseDesc = "BIPS51:Daily Limit Exceeded";
+		}else if(code.equals("BIPS52")) {
+			responseDesc = "BIPS52:Weekly Limit Exceeded";
+		}else if(code.equals("BIPS53")) {
+			responseDesc = "BIPS53:Monthly Limit Exceeded";
 		}
 		
 		return responseDesc;

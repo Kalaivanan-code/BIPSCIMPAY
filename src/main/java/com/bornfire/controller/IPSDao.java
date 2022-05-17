@@ -6929,6 +6929,31 @@ public class IPSDao {
 		return totAmt;
 	}
 
+	public String getMaxAmountWeekly(String acctNumber,List<BenAccount> benBankCodeList) {
+		String totMaxAmt=tranRep.getMaxTranAmtweekly(acctNumber);
+		Double Tran_amt =new Double(0);
+		for(BenAccount benAccount:benBankCodeList) {
+			Tran_amt +=Double.parseDouble(benAccount.getTrAmt());
+		}
+		Double d2=Double.parseDouble(totMaxAmt)+(Tran_amt);
+		String totAmt= d2.toString();
+		// TODO Auto-generated method stub
+		return totAmt;
+	}
 	
-	
+	public String getMaxAmountMonthly(String acctNumber,List<BenAccount> benBankCodeList) {
+		String tranDate = "";
+		DateFormat dateFormat = new SimpleDateFormat("MMM-yyyy");
+		tranDate = dateFormat.format(new Date());
+		
+		String totMaxAmt=tranRep.getMaxTranAmtmonthly(acctNumber,tranDate);
+		Double Tran_amt =new Double(0);
+		for(BenAccount benAccount:benBankCodeList) {
+			Tran_amt +=Double.parseDouble(benAccount.getTrAmt());
+		}
+		Double d2=Double.parseDouble(totMaxAmt)+(Tran_amt);
+		String totAmt= d2.toString();
+		// TODO Auto-generated method stub
+		return totAmt;
+	}
 }
