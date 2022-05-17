@@ -173,6 +173,8 @@ public class ErrorResponseCode {
 			responseDesc = "BIPS31:UnRegistered Remitter Account Exist";
 		}else if(code.equals("BIPS32")) {
 			responseDesc = "BIPS32:Document ID doesn't Exist";
+		}else if(code.equals("BIPS33")) {
+			responseDesc = "BIPS33:Daily Limit Exceeds";
 		}else if(code.equals("BIPS501")) {
 			responseDesc = "BIPS501:Internal Server Problem";
 		}else if(code.equals("BIPS51")) {

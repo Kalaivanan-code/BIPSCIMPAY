@@ -1178,6 +1178,7 @@ public class IPSRestController {
 		String weeklyamt=	ipsDao.getMaxAmountPerDay(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber(),rtpBulkTransferRequest.getBenAccount());
 		String monthlyamt=	ipsDao.getMaxAmountPerDay(rtpBulkTransferRequest.getRemitterAccount().getAcctNumber(),rtpBulkTransferRequest.getBenAccount());
 
+		System.out.println("BANKCODE :"+consAmt);
 		
 
 		if (ipsDao.invalidP_ID(p_id)) {
@@ -1209,7 +1210,11 @@ public class IPSRestController {
 									
 									
 									}else {
+<<<<<<< Updated upstream
 										String responseStatus = errorCode.validationError("BIPS51");
+=======
+										String responseStatus = errorCode.validationError("BIPS33");
+>>>>>>> Stashed changes
 										throw new IPSXException(responseStatus);
 									}
 									
