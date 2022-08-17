@@ -7,7 +7,6 @@ PURPOSE		: IPS Rest Controller
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -16,22 +15,15 @@ import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.management.monitor.Monitor;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 
@@ -50,7 +42,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -58,14 +49,11 @@ import com.bornfire.clientService.IPSXClient;
 import com.bornfire.config.CronJobScheduler;
 import com.bornfire.config.ErrorResponseCode;
 import com.bornfire.config.IpsCertificateDAO;
-import com.bornfire.config.LdapConfig;
 import com.bornfire.config.SequenceGenerator;
-import com.bornfire.entity.AccountContactResponse;
 import com.bornfire.entity.AccountListResponse;
 import com.bornfire.entity.AccountsListAccounts;
 import com.bornfire.entity.BukCreditTransferRequest;
 import com.bornfire.entity.BulkDebitFndTransferRequest;
-import com.bornfire.entity.C24FTResponse;
 import com.bornfire.entity.CIMCreditTransferRequest;
 import com.bornfire.entity.CIMMerchantDecodeQRFormatResponse;
 import com.bornfire.entity.CIMMerchantDirectFndRequest;
@@ -95,7 +83,6 @@ import com.bornfire.entity.SCAAthenticationResponse;
 import com.bornfire.entity.SCAAuthenticatedData;
 import com.bornfire.entity.SettlementAccountRep;
 import com.bornfire.entity.SettlementLimitResponse;
-import com.bornfire.entity.TranCBSTable;
 import com.bornfire.entity.TranCimCBSTable;
 import com.bornfire.entity.TranIPSTableRep;
 import com.bornfire.entity.TransactionListResponse;
@@ -111,11 +98,11 @@ import com.bornfire.exception.ErrorRestResponse;
 import com.bornfire.exception.FieldValidation;
 import com.bornfire.exception.IPSXException;
 import com.bornfire.exception.IPSXRestException;
-import com.bornfire.jaxb.wsdl.SendT;
 import com.bornfire.messagebuilder.DocumentPacks;
 import com.bornfire.messagebuilder.SignDocument;
 import com.bornfire.qrcode.core.isos.Country;
 import com.bornfire.qrcode.core.isos.Currency;
+import com.bornfire.upiqrcodeentity.NpciupiReqcls;
 
 @RestController
 @Validated
@@ -1429,6 +1416,19 @@ public class IPSRestController {
 		return cal.getTime();
 	}
 
+
+	//// NPCI Request UPI Validation
+	@PostMapping(path = "/mvc/0/public-service/reqvalqr", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<String> ReqValQr(
+			@RequestHeader(value = "X-Request-ID", required = true)   String p_id,
+			@RequestBody NpciupiReqcls bulkDebitFndTransferRequest) {
+
+		String response = "SUCCESS";
+
+		//response = ipsConnection.createBulkDebitConnection(psuDeviceID, psuIpAddress, bulkDebitFndTransferRequest,userID,p_id,channelID,resvfield1,resvfield2);
+
+		return new ResponseEntity<String>(response, HttpStatus.OK);
+	}
 
 	
 }
