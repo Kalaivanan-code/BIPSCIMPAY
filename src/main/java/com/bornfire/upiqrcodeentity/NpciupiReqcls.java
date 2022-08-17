@@ -6,10 +6,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NpciupiReqcls {
 
-	@JsonProperty("txn")
+	@JsonProperty("Txn")
 	private NpciupiReqtransaction txn;
 	
-	@JsonProperty("qrPayLoad")
+	@JsonProperty("QrPayLoad")
 	private String QrPayLoad;
 
 	public NpciupiReqtransaction getTxn() {

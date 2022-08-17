@@ -102,7 +102,14 @@ import com.bornfire.messagebuilder.DocumentPacks;
 import com.bornfire.messagebuilder.SignDocument;
 import com.bornfire.qrcode.core.isos.Country;
 import com.bornfire.qrcode.core.isos.Currency;
+import com.bornfire.upiqrcodeentity.Invoice;
+import com.bornfire.upiqrcodeentity.Merchant;
+import com.bornfire.upiqrcodeentity.MerchantIdentifier;
 import com.bornfire.upiqrcodeentity.NpciupiReqcls;
+import com.bornfire.upiqrcodeentity.Payee;
+import com.bornfire.upiqrcodeentity.QRUrlGlobalEntity;
+import com.bornfire.upiqrcodeentity.RespEntity;
+import com.bornfire.upiqrcodeentity.UPIRespEntity;
 
 @RestController
 @Validated
@@ -164,6 +171,9 @@ public class IPSRestController {
 	
 	@Autowired
 	DocumentPacks docPacs;
+	
+	@Autowired
+	NPCIQrcodeValidation npciqrcode;
 
 	/* Credit Fund Transfer Initiated from MConnect Application */
 	/* MConnect Initiate the request */
@@ -1419,15 +1429,51 @@ public class IPSRestController {
 
 	//// NPCI Request UPI Validation
 	@PostMapping(path = "/mvc/0/public-service/reqvalqr", produces = "application/json", consumes = "application/json")
-	public ResponseEntity<String> ReqValQr(
+	public ResponseEntity<UPIRespEntity> ReqValQr(
 			@RequestHeader(value = "X-Request-ID", required = true)   String p_id,
-			@RequestBody NpciupiReqcls bulkDebitFndTransferRequest) {
+			@RequestBody NpciupiReqcls npcireq) {
 
-		String response = "SUCCESS";
-
+		UPIRespEntity response = new UPIRespEntity();
+		String qrcode = npcireq.getQrPayLoad().substring(16);
+		QRUrlGlobalEntity qrdet= npciqrcode.getQrentityValue(qrcode);
+		response.setQrPayLoad(npcireq.getQrPayLoad());
+		RespEntity resp = new RespEntity();
+		resp.setResult("FAILURE");
+		resp.setReqMsgId(npcireq.getTxn().getID());
+		response.setResp(resp);
+		
+		Payee pay = new Payee();
+		pay.setAddr("HOME");
+		pay.setMCC(qrdet.getMc());
+		pay.setType("ENTITY");
+		Merchant mr = new Merchant();
+		MerchantIdentifier id = new MerchantIdentifier();
+		id.setSubCode("1111");
+		id.setMid(qrdet.getMid());
+		id.setSid(qrdet.getMsid());
+		id.setTid(qrdet.getTid());
+		id.setMerchantType("SMALL");
+		id.setMerchantGenre("ONLINE");
+		id.setOnBoardingType("BANK");
+	//	id.setRegId(regId);
+		mr.setIdentifier(id);
+		
+		response.setPayee(pay);
+		
+		Invoice in = new Invoice();
+		in.setDate(qrdet.getInvoicedate());
+		in.setNum(qrdet.getInvoiceno());
+		response.setInvoice(in);
+		npcireq.getQrPayLoad().substring(10);
+		logger.info(npcireq.getQrPayLoad().substring(16));
+		
+		
+		
+       
+        
 		//response = ipsConnection.createBulkDebitConnection(psuDeviceID, psuIpAddress, bulkDebitFndTransferRequest,userID,p_id,channelID,resvfield1,resvfield2);
 
-		return new ResponseEntity<String>(response, HttpStatus.OK);
+		return new ResponseEntity<UPIRespEntity>(response, HttpStatus.OK);
 	}
 
 	

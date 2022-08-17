@@ -1,6 +1,5 @@
 package com.bornfire.upiqrcodeentity;
 
-import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -10,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Invoice {
 
 	@JsonProperty("date")
-	private Date date;
+	private String date;
 	
 	@JsonProperty("num")
 	private String num;
@@ -27,11 +26,11 @@ public class Invoice {
 	@JsonProperty("creditAccount")
 	private String creditAccount;
 
-	public Date getDate() {
+	public String getDate() {
 		return date;
 	}
 
-	public void setDate(Date date) {
+	public void setDate(String date) {
 		this.date = date;
 	}
 

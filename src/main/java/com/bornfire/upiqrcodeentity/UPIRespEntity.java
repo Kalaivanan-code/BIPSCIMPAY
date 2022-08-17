@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class UPIRespEntity {
 
 	@JsonProperty("Resp")
-	private ResponseEntity resp;
+	private RespEntity resp;
 	
 	@JsonProperty("Payee")
 	private Payee payee;
@@ -18,11 +18,11 @@ public class UPIRespEntity {
 	@JsonProperty("QrPayLoad")
 	private String qrPayLoad;
 
-	public ResponseEntity getResp() {
+	public RespEntity getResp() {
 		return resp;
 	}
 
-	public void setResp(ResponseEntity resp) {
+	public void setResp(RespEntity resp) {
 		this.resp = resp;
 	}
 
