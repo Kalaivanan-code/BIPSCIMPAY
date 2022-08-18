@@ -1,4 +1,4 @@
-package com.bornfire.upiqrcodeentity;
+package com.bornfire.entity;
 
 import java.math.BigDecimal;
 import java.util.Date;

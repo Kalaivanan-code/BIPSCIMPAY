@@ -1,10 +1,22 @@
 package com.bornfire.controller;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.bornfire.upiqrcodeentity.QRUrlGlobalEntity;
+import com.bornfire.entity.QRUrlGlobalEntity;
+import com.bornfire.entity.UPIQREntityRep;
+import com.bornfire.upiqrcodeentity.Invoice;
+import com.bornfire.upiqrcodeentity.Merchant;
+import com.bornfire.upiqrcodeentity.MerchantIdentifier;
+import com.bornfire.upiqrcodeentity.NpciupiReqcls;
+import com.bornfire.upiqrcodeentity.Payee;
+import com.bornfire.upiqrcodeentity.RespEntity;
+import com.bornfire.upiqrcodeentity.UPIRespEntity;
+
 
 @Component
 public class NPCIQrcodeValidation {
@@ -12,6 +24,54 @@ public class NPCIQrcodeValidation {
 	private static final Logger logger = LoggerFactory.getLogger(NPCIQrcodeValidation.class);
 
 	
+	@Autowired
+	UPIQREntityRep upiqrRep;
+	
+	
+	public UPIRespEntity getreqdet(NpciupiReqcls npcireq,String pid) {
+	
+	UPIRespEntity response = new UPIRespEntity();
+	String qrcode = npcireq.getQrPayLoad().substring(16);
+	QRUrlGlobalEntity qrdet= getQrentityValue(qrcode);
+	response.setQrPayLoad(npcireq.getQrPayLoad());
+	RespEntity resp = new RespEntity();
+	Optional<QRUrlGlobalEntity> qr= upiqrRep.findById(qrdet.getMid());
+	if(qr.isPresent()) {
+		resp.setResult("SUCCESS");
+	}else {
+		resp.setResult("FAILURE");
+	}
+	
+	resp.setReqMsgId(npcireq.getTxn().getID());
+	response.setResp(resp);
+	
+	Payee pay = new Payee();
+	pay.setAddr("HOME");
+	pay.setMCC(qrdet.getMc());
+	pay.setType("ENTITY");
+	Merchant mr = new Merchant();
+	MerchantIdentifier id = new MerchantIdentifier();
+	id.setSubCode("1111");
+	id.setMid(qrdet.getMid());
+	id.setSid(qrdet.getMsid());
+	id.setTid(qrdet.getTid());
+	id.setMerchantType("SMALL");
+	id.setMerchantGenre("ONLINE");
+	id.setOnBoardingType("BANK");
+//	id.setRegId(regId);
+	mr.setIdentifier(id);
+	
+	response.setPayee(pay);
+	
+	Invoice in = new Invoice();
+	in.setDate(qrdet.getInvoicedate());
+	in.setNum(qrdet.getInvoiceno());
+	response.setInvoice(in);
+	npcireq.getQrPayLoad().substring(10);
+	logger.info(npcireq.getQrPayLoad().substring(16));
+	
+	return response;
+}
 	public QRUrlGlobalEntity getQrentityValue(String qrcode) {
 		
 		QRUrlGlobalEntity qrdet = new QRUrlGlobalEntity();

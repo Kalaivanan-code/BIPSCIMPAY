@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -87,6 +86,7 @@ import com.bornfire.entity.SettlementLimitResponse;
 import com.bornfire.entity.TranCimCBSTable;
 import com.bornfire.entity.TranIPSTableRep;
 import com.bornfire.entity.TransactionListResponse;
+import com.bornfire.entity.UPIQREntityRep;
 import com.bornfire.entity.UserRegistrationRequest;
 import com.bornfire.entity.UserRegistrationResponse;
 import com.bornfire.entity.WalletAccessRequest;
@@ -103,14 +103,7 @@ import com.bornfire.messagebuilder.DocumentPacks;
 import com.bornfire.messagebuilder.SignDocument;
 import com.bornfire.qrcode.core.isos.Country;
 import com.bornfire.qrcode.core.isos.Currency;
-import com.bornfire.upiqrcodeentity.Invoice;
-import com.bornfire.upiqrcodeentity.Merchant;
-import com.bornfire.upiqrcodeentity.MerchantIdentifier;
 import com.bornfire.upiqrcodeentity.NpciupiReqcls;
-import com.bornfire.upiqrcodeentity.Payee;
-import com.bornfire.upiqrcodeentity.QRUrlGlobalEntity;
-import com.bornfire.upiqrcodeentity.RespEntity;
-import com.bornfire.upiqrcodeentity.UPIQREntityRep;
 import com.bornfire.upiqrcodeentity.UPIRespEntity;
 
 @RestController
@@ -177,8 +170,7 @@ public class IPSRestController {
 	@Autowired
 	NPCIQrcodeValidation npciqrcode;
 	
-	@Autowired
-	UPIQREntityRep upiqrRep;
+	
 
 	/* Credit Fund Transfer Initiated from MConnect Application */
 	/* MConnect Initiate the request */
@@ -1438,51 +1430,13 @@ public class IPSRestController {
 			@RequestHeader(value = "X-Request-ID", required = true)   String p_id,
 			@RequestBody NpciupiReqcls npcireq) {
 
+		
 		UPIRespEntity response = new UPIRespEntity();
-		String qrcode = npcireq.getQrPayLoad().substring(16);
-		QRUrlGlobalEntity qrdet= npciqrcode.getQrentityValue(qrcode);
-		response.setQrPayLoad(npcireq.getQrPayLoad());
-		RespEntity resp = new RespEntity();
-		Optional<QRUrlGlobalEntity> qr= upiqrRep.findById(qrdet.getMid());
-		if(qr.isPresent()) {
-			resp.setResult("SUCCESS");
-		}else {
-			resp.setResult("FAILURE");
-		}
-		
-		resp.setReqMsgId(npcireq.getTxn().getID());
-		response.setResp(resp);
-		
-		Payee pay = new Payee();
-		pay.setAddr("HOME");
-		pay.setMCC(qrdet.getMc());
-		pay.setType("ENTITY");
-		Merchant mr = new Merchant();
-		MerchantIdentifier id = new MerchantIdentifier();
-		id.setSubCode("1111");
-		id.setMid(qrdet.getMid());
-		id.setSid(qrdet.getMsid());
-		id.setTid(qrdet.getTid());
-		id.setMerchantType("SMALL");
-		id.setMerchantGenre("ONLINE");
-		id.setOnBoardingType("BANK");
-	//	id.setRegId(regId);
-		mr.setIdentifier(id);
-		
-		response.setPayee(pay);
-		
-		Invoice in = new Invoice();
-		in.setDate(qrdet.getInvoicedate());
-		in.setNum(qrdet.getInvoiceno());
-		response.setInvoice(in);
-		npcireq.getQrPayLoad().substring(10);
-		logger.info(npcireq.getQrPayLoad().substring(16));
-		
 		
 		
       
        
-		//response = ipsConnection.createBulkDebitConnection(psuDeviceID, psuIpAddress, bulkDebitFndTransferRequest,userID,p_id,channelID,resvfield1,resvfield2);
+	response = npciqrcode.getreqdet(npcireq,p_id);
 
 		return new ResponseEntity<UPIRespEntity>(response, HttpStatus.OK);
 	}
