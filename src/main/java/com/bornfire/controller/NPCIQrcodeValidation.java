@@ -78,6 +78,9 @@ public class NPCIQrcodeValidation {
 	        	}if(strs[i].substring(0,4).equals("QRex")) {
 	        		String mode = strs[i].substring(9);
 	        		qrdet.setQrexpire(mode);
+	        	}if(strs[i].substring(0,4).equals("tier")) {
+	        		String mode = strs[i].substring(5);
+	        		qrdet.setTiers(mode);
 	        	}
 	        }
 		

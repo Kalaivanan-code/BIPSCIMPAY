@@ -22,10 +22,11 @@ public class QRUrlGlobalEntity {
 	private String tid;
 	private String tr;
 	private String tn;
-	@Id
+	
 	private String pa;
 	private String pn;
 	private String mc;
+	@Id
 	private String mid;
 	private String msid;
 	private String mtid;
