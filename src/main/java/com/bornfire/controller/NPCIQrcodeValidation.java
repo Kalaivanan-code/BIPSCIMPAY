@@ -24,6 +24,10 @@ public class NPCIQrcodeValidation {
 
 	@Autowired
 	UPIQREntityRep upiqrRep;
+	
+	@Autowired
+	ConsentIPSXservice consentIPSXservice;
+	
 
 	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) {
 
@@ -70,6 +74,8 @@ public class NPCIQrcodeValidation {
 		return response;
 	}
 	
+	
+	
 	public String ValidateQrcode(NpciupiReqcls npcireq,String pid) {
 		
 		String qrcode = npcireq.getQrPayLoad().substring(16);
@@ -78,6 +84,7 @@ public class NPCIQrcodeValidation {
 		Optional<QRUrlGlobalEntity> qr= upiqrRep.findById(qrdet.getMid());
 		if(qr.isPresent()) {
 			response="SUCCESS";
+			consentIPSXservice.respvalQr(npcireq, pid);
 		}else {
 			response=("FAILURE");
 		}

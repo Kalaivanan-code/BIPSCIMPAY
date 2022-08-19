@@ -41,6 +41,8 @@ import com.bornfire.entity.SettlementAccount;
 import com.bornfire.entity.TranMonitorStatus;
 import com.bornfire.entity.TransactionListResponse;
 import com.bornfire.exception.ErrorRestResponse;
+import com.bornfire.upiqrcodeentity.NpciupiReqcls;
+import com.bornfire.upiqrcodeentity.UPIRespEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -60,6 +62,9 @@ public class ConsentIPSXservice {
 	@Autowired
 	Listener listener;
 
+	@Autowired
+	NPCIQrcodeValidation npsqrcode;
+	
 	private static final Logger logger = LoggerFactory.getLogger(ConsentIPSXservice.class);
 
 	public ResponseEntity<ConsentAccessResponse> accountConsent(String x_request_id, String psuDeviceID,
@@ -715,6 +720,77 @@ public class ConsentIPSXservice {
 			return new ResponseEntity<>(c24ftResponse, ex.getStatusCode());	
 			
 		}
+	}
+	
+	
+	
+	public ResponseEntity<String> respvalQr(NpciupiReqcls npcireq,String x_request_id) {
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		
+		httpHeaders.set("X-Request-ID",x_request_id );
+		
+		UPIRespEntity qr =  npsqrcode.getreqdet(npcireq,x_request_id);
+		logger.debug("---Header Parameter---");
+		logger.debug("X-Request-ID:"+x_request_id);
+		
+		String authStr = env.getProperty("ipsxconsent.user")+":"+env.getProperty("ipsxconsent.passwd");
+		String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
+		httpHeaders.set("Authorization", "Basic " + base64Creds);
+		
+		logger.debug("Authorization:Basic "+base64Creds);
+
+
+		logger.debug("Json Body:"+listener.generateJsonFormat(qr.toString()));
+		
+		HttpEntity<UPIRespEntity> entity = new HttpEntity<>(qr, httpHeaders);
+		ResponseEntity<String> response = null;
+	
+		try {
+			logger.info("Sending consent Access message to ipsx Rest WebService");
+			
+			response = restTemplate.postForEntity(env.getProperty("ipsxconsent.url")+"/respvalqr",
+					entity, String.class);
+			
+			return new ResponseEntity<String>(response.getBody(), HttpStatus.OK);
+			
+		} catch (HttpClientErrorException ex) {
+			
+			logger.info("HttpClientErrorException --------->");
+			logger.info("HttpClientStatusCode --------->"+ex.getStatusCode());
+			
+/*			if (ex.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
+				logger.info("HttpClientErrorException --------->Bad Request");
+				ConsentAccessResponse errorRestResponse = new Gson().fromJson(ex.getResponseBodyAsString().toString(), ConsentAccessResponse.class);
+				return new ResponseEntity<ConsentAccessResponse>(errorRestResponse, HttpStatus.BAD_REQUEST);
+			} else if(ex.getStatusCode().equals(HttpStatus.NO_CONTENT)){
+				logger.info("HttpClientErrorException --------->No Content");
+				ConsentAccessResponse c24ftResponse = new ConsentAccessResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("23").split(":")[0]),
+						errorCode.ErrorCodeRegistration("23").split(":")[1]);
+				return new ResponseEntity<ConsentAccessResponse>(c24ftResponse, HttpStatus.NO_CONTENT);
+			}else if(ex.getStatusCode().equals(HttpStatus.UNAUTHORIZED)){
+				logger.info("HttpClientErrorException --------->UnAuthorised");
+				ConsentAccessResponse c24ftResponse = new ConsentAccessResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("24").split(":")[0]),
+						errorCode.ErrorCodeRegistration("24").split(":")[1]);
+				return new ResponseEntity<ConsentAccessResponse>(c24ftResponse, HttpStatus.UNAUTHORIZED);
+			}else {
+				logger.info("HttpClientErrorException --------->Other");
+				ConsentAccessResponse c24ftResponse = new ConsentAccessResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("25").split(":")[0]),
+						errorCode.ErrorCodeRegistration("25").split(":")[1]);
+				return new ResponseEntity<ConsentAccessResponse>(c24ftResponse, ex.getStatusCode());
+			}*/
+			return new ResponseEntity<String>(response.getBody(), ex.getStatusCode());
+
+		} catch (HttpServerErrorException ex) {
+			logger.info("HttpServerErrorException --------->");
+			
+			ConsentAccessResponse c24ftResponse = new ConsentAccessResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("23").split(":")[0]),
+					errorCode.ErrorCodeRegistration("23").split(":")[1]);
+			return new ResponseEntity<String>(response.getBody(), ex.getStatusCode());	
+			
+		}
+
 	}
 
 }
