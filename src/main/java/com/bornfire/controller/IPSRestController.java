@@ -103,6 +103,7 @@ import com.bornfire.messagebuilder.DocumentPacks;
 import com.bornfire.messagebuilder.SignDocument;
 import com.bornfire.qrcode.core.isos.Country;
 import com.bornfire.qrcode.core.isos.Currency;
+import com.bornfire.upiqrcodeentity.ErrorResponseforUPI;
 import com.bornfire.upiqrcodeentity.NpciupiReqcls;
 import com.bornfire.upiqrcodeentity.UPIRespEntity;
 
@@ -1426,19 +1427,23 @@ public class IPSRestController {
 
 ////NPCI Request UPI Validation
 	@PostMapping(path = "/mvc/0/public-service/reqvalqr", produces = "application/json", consumes = "application/json")
-	public ResponseEntity<UPIRespEntity> ReqValQr(
+	public ResponseEntity<ErrorResponseforUPI> ReqValQr(
 			@RequestHeader(value = "X-Request-ID", required = true)   String p_id,
 			@RequestBody NpciupiReqcls npcireq) {
 
 		
-		UPIRespEntity response = new UPIRespEntity();
+		//UPIRespEntity response = new UPIRespEntity();
 		
-		
-      
-       
-	response = npciqrcode.getreqdet(npcireq,p_id);
+		String response = npciqrcode.ValidateQrcode(npcireq,p_id);
+		ErrorResponseforUPI errRes = new ErrorResponseforUPI();
+		if(response.equals("SUCCESS")) {
+			
+		}else if(response.equals("FAILURE")) {
+			errRes.setErrorCode("01");
+			errRes.setDescription("QR CODE VALIDATION FAILED");
+		}
 
-		return new ResponseEntity<UPIRespEntity>(response, HttpStatus.OK);
+		return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.OK);
 	}
 
 	
