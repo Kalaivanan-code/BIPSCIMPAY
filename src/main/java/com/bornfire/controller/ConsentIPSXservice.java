@@ -724,7 +724,10 @@ public class ConsentIPSXservice {
 	
 	
 	
-	public ResponseEntity<String> respvalQr(NpciupiReqcls npcireq,String x_request_id) {
+
+
+
+public ResponseEntity<ErrorRestResponse> respvalQr(NpciupiReqcls npcireq,String x_request_id) {
 		
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -738,59 +741,76 @@ public class ConsentIPSXservice {
 		String authStr = env.getProperty("ipsxconsent.user")+":"+env.getProperty("ipsxconsent.passwd");
 		String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
 		httpHeaders.set("Authorization", "Basic " + base64Creds);
+		//httpHeaders.set("Authorization", "Basic QkFSQk1VTTBBTlJUOjE=");
 		
 		logger.debug("Authorization:Basic "+base64Creds);
 
-
-		logger.debug("Json Body:"+listener.generateJsonFormat(qr.toString()));
+		UPIRespEntity sCAAuthenticatedData = new UPIRespEntity();
+		sCAAuthenticatedData.setInvoice(qr.getInvoice());
+		sCAAuthenticatedData.setPayee(qr.getPayee());
+		sCAAuthenticatedData.setQrPayLoad(qr.getQrPayLoad());
+		sCAAuthenticatedData.setResp(qr.getResp());
 		
-		HttpEntity<UPIRespEntity> entity = new HttpEntity<>(qr, httpHeaders);
+		logger.debug("Json Body:"+listener.generateJsonFormat(sCAAuthenticatedData.toString()));
+
+		logger.debug("Json Body:"+ (qr.getQrPayLoad().toString()+ "QRMSG :"+qr.getResp().getReqMsgId().toString()));
+		
+		HttpEntity<UPIRespEntity> entity = new HttpEntity<>(sCAAuthenticatedData, httpHeaders);
 		ResponseEntity<String> response = null;
-	
+		logger.info("RESPONSE BODY :"+sCAAuthenticatedData.toString());
+		logger.info("REQUEST URL :"+env.getProperty("ipsxconsent.url")+"/respvalqr");
 		try {
-			logger.info("Sending consent Access message to ipsx Rest WebService");
+			logger.info("Sending RESP VAL QR message to ipsx Rest WebService");
 			
 			response = restTemplate.postForEntity(env.getProperty("ipsxconsent.url")+"/respvalqr",
 					entity, String.class);
 			
-			return new ResponseEntity<String>(response.getBody(), HttpStatus.OK);
+			if(response.getStatusCode().equals(HttpStatus.OK)) {
+				//logger.info(response.getBody().toString());
+				ErrorRestResponse ee=new  ErrorRestResponse();
+				return new ResponseEntity<ErrorRestResponse>(ee, HttpStatus.OK);
+
+			}else {
+				ErrorRestResponse c24ftResponse = new ErrorRestResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("23").split(":")[0]),
+						errorCode.ErrorCodeRegistration("23").split(":")[1]);
+				return new ResponseEntity<ErrorRestResponse>(c24ftResponse, HttpStatus.NO_CONTENT);
+			}
+		 
 			
 		} catch (HttpClientErrorException ex) {
 			
 			logger.info("HttpClientErrorException --------->");
 			logger.info("HttpClientStatusCode --------->"+ex.getStatusCode());
 			
-/*			if (ex.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
-				logger.info("HttpClientErrorException --------->Bad Request");
-				ConsentAccessResponse errorRestResponse = new Gson().fromJson(ex.getResponseBodyAsString().toString(), ConsentAccessResponse.class);
-				return new ResponseEntity<ConsentAccessResponse>(errorRestResponse, HttpStatus.BAD_REQUEST);
+			if (ex.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
+				logger.info("HttpClientErrorException --------->Bad Request"+ex.getResponseBodyAsString().toString());
+				ErrorRestResponse errorRestResponse = new Gson().fromJson(ex.getResponseBodyAsString().toString(), ErrorRestResponse.class);
+				return new ResponseEntity<ErrorRestResponse>(errorRestResponse, HttpStatus.BAD_REQUEST);
 			} else if(ex.getStatusCode().equals(HttpStatus.NO_CONTENT)){
 				logger.info("HttpClientErrorException --------->No Content");
-				ConsentAccessResponse c24ftResponse = new ConsentAccessResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("23").split(":")[0]),
+				ErrorRestResponse c24ftResponse = new ErrorRestResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("23").split(":")[0]),
 						errorCode.ErrorCodeRegistration("23").split(":")[1]);
-				return new ResponseEntity<ConsentAccessResponse>(c24ftResponse, HttpStatus.NO_CONTENT);
+				return new ResponseEntity<ErrorRestResponse>(c24ftResponse, ex.getStatusCode());
 			}else if(ex.getStatusCode().equals(HttpStatus.UNAUTHORIZED)){
 				logger.info("HttpClientErrorException --------->UnAuthorised");
-				ConsentAccessResponse c24ftResponse = new ConsentAccessResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("24").split(":")[0]),
+				ErrorRestResponse c24ftResponse = new ErrorRestResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("24").split(":")[0]),
 						errorCode.ErrorCodeRegistration("24").split(":")[1]);
-				return new ResponseEntity<ConsentAccessResponse>(c24ftResponse, HttpStatus.UNAUTHORIZED);
+				return new ResponseEntity<ErrorRestResponse>(c24ftResponse, ex.getStatusCode());
 			}else {
 				logger.info("HttpClientErrorException --------->Other");
-				ConsentAccessResponse c24ftResponse = new ConsentAccessResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("25").split(":")[0]),
+				ErrorRestResponse c24ftResponse = new ErrorRestResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("25").split(":")[0]),
 						errorCode.ErrorCodeRegistration("25").split(":")[1]);
-				return new ResponseEntity<ConsentAccessResponse>(c24ftResponse, ex.getStatusCode());
-			}*/
-			return new ResponseEntity<String>(response.getBody(), ex.getStatusCode());
+				return new ResponseEntity<ErrorRestResponse>(c24ftResponse, ex.getStatusCode());
+			}
 
 		} catch (HttpServerErrorException ex) {
 			logger.info("HttpServerErrorException --------->");
 			
-			ConsentAccessResponse c24ftResponse = new ConsentAccessResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("23").split(":")[0]),
+			ErrorRestResponse c24ftResponse = new ErrorRestResponse(Integer.parseInt(errorCode.ErrorCodeRegistration("23").split(":")[0]),
 					errorCode.ErrorCodeRegistration("23").split(":")[1]);
-			return new ResponseEntity<String>(response.getBody(), ex.getStatusCode());	
+			return new ResponseEntity<ErrorRestResponse>(c24ftResponse, ex.getStatusCode());	
 			
 		}
 
 	}
-
 }
