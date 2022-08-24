@@ -27,6 +27,11 @@ public class NpciupiReqcls {
 	public void setQrPayLoad(String qrPayLoad) {
 		QrPayLoad = qrPayLoad;
 	}
+
+	@Override
+	public String toString() {
+		return "NpciupiReqcls [Txn=" + txn + ", QrPayLoad=" + QrPayLoad + "]";
+	}
 	
 	
 }

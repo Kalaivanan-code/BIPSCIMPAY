@@ -38,6 +38,11 @@ public class RespEntity {
 	public void setReqMsgId(String reqMsgId) {
 		this.reqMsgId = reqMsgId;
 	}
+
+	@Override
+	public String toString() {
+		return "RespEntity [result=" + result + ", err=" + err + ", reqMsgId=" + reqMsgId + "]";
+	}
 	
 	
 

@@ -13,9 +13,12 @@ import com.bornfire.upiqrcodeentity.Invoice;
 import com.bornfire.upiqrcodeentity.Merchant;
 import com.bornfire.upiqrcodeentity.MerchantIdentifier;
 import com.bornfire.upiqrcodeentity.NpciupiReqcls;
+import com.bornfire.upiqrcodeentity.NpciupiReqtransaction;
 import com.bornfire.upiqrcodeentity.Payee;
 import com.bornfire.upiqrcodeentity.RespEntity;
 import com.bornfire.upiqrcodeentity.UPIRespEntity;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class NPCIQrcodeValidation {
@@ -45,7 +48,14 @@ public class NPCIQrcodeValidation {
 
 		resp.setReqMsgId(npcireq.getTxn().getID());
 		response.setResp(resp);
-
+		NpciupiReqtransaction TRAN = new NpciupiReqtransaction();
+		TRAN.setCustRef(npcireq.getTxn().getCustRef());
+		TRAN.setID(npcireq.getTxn().getID());
+		TRAN.setNote(npcireq.getTxn().getNote());
+		TRAN.setRefId(npcireq.getTxn().getRefId());
+		TRAN.setRefUrl(npcireq.getTxn().getRefUrl());
+		TRAN.setTs(npcireq.getTxn().getTs());
+		response.setTxn(TRAN);
 		Payee pay = new Payee();
 		pay.setAddr("HOME");
 		pay.setMCC(qrdet.getMc());
@@ -76,8 +86,18 @@ public class NPCIQrcodeValidation {
 	
 	
 	
-	public String ValidateQrcode(NpciupiReqcls npcireq,String pid) {
+	
+public String ValidateQrcode(NpciupiReqcls npcireq,String pid) {
 		
+		ObjectMapper mapper = new ObjectMapper();
+		// Converting the Object to JSONString
+		String jsonString = "";
+		try {
+			jsonString = mapper.writeValueAsString(npcireq.toString());
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		logger.info("reqvalqr Request->"+jsonString);
 		String qrcode = npcireq.getQrPayLoad().substring(16);
 		QRUrlGlobalEntity qrdet= getQrentityValue(qrcode);
 		String response = "";
@@ -86,7 +106,7 @@ public class NPCIQrcodeValidation {
 			response="SUCCESS";
 			consentIPSXservice.respvalQr(npcireq, pid);
 		}else {
-			response=("FAILURE");
+			response="FAILURE";
 		}
 				
 		return response;

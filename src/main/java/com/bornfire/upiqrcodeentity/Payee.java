@@ -73,6 +73,12 @@ public class Payee {
 	public void setMerchant(Merchant merchant) {
 		this.merchant = merchant;
 	}
+
+	@Override
+	public String toString() {
+		return "Payee [addr=" + addr + ", name=" + name + ", seqNum=" + seqNum + ", type=" + type + ", MCC=" + MCC
+				+ ", merchant=" + merchant + "]";
+	}
 	
 
 

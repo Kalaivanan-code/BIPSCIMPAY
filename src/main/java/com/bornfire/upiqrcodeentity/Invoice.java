@@ -73,6 +73,12 @@ public class Invoice {
 	public void setCreditAccount(String creditAccount) {
 		this.creditAccount = creditAccount;
 	}
+
+	@Override
+	public String toString() {
+		return "Invoice [date=" + date + ", num=" + num + ", name=" + name + ", FxList=" + FxList + ", creditBIC="
+				+ creditBIC + ", creditAccount=" + creditAccount + "]";
+	}
 	
 	
 	

@@ -17,6 +17,9 @@ public class UPIRespEntity {
 	
 	@JsonProperty("QrPayLoad")
 	private String qrPayLoad;
+	
+	@JsonProperty("Txn")
+	private NpciupiReqtransaction txn;
 
 	public RespEntity getResp() {
 		return resp;
@@ -49,6 +52,21 @@ public class UPIRespEntity {
 	public void setQrPayLoad(String qrPayLoad) {
 		this.qrPayLoad = qrPayLoad;
 	}
+
+	public NpciupiReqtransaction getTxn() {
+		return txn;
+	}
+
+	public void setTxn(NpciupiReqtransaction txn) {
+		this.txn = txn;
+	}
+
+	@Override
+	public String toString() {
+		return "UPIRespEntity [Resp=" + resp + ", Payee=" + payee + ", Invoice=" + invoice + ", QrPayLoad=" + qrPayLoad
+				+ ", Txn=" + txn + "]";
+	}
+	
 	
 	
 }

@@ -75,6 +75,12 @@ public class NpciupiReqtransaction {
 	public void setCustRef(String custRef) {
 		CustRef = custRef;
 	}
+
+	@Override
+	public String toString() {
+		return "NpciupiReqtransaction [ID=" + ID + ", Note=" + Note + ", RefId=" + RefId + ", RefUrl=" + RefUrl
+				+ ", ts=" + ts + ", CustRef=" + CustRef + "]";
+	}
 	
 
 
