@@ -21,7 +21,7 @@ public class Payee {
 	private String type;
 	
 	@JsonProperty("MCC")
-	private String MCC;
+	private String mcc;
 	
 	@JsonProperty("Merchant")
 	private Merchant merchant;
@@ -58,12 +58,12 @@ public class Payee {
 		this.type = type;
 	}
 
-	public String getMCC() {
-		return MCC;
+	public String getmcc() {
+		return mcc;
 	}
 
-	public void setMCC(String mCC) {
-		MCC = mCC;
+	public void setmcc(String mcc) {
+		this.mcc = mcc;
 	}
 
 	public Merchant getMerchant() {
@@ -76,7 +76,7 @@ public class Payee {
 
 	@Override
 	public String toString() {
-		return "Payee [addr=" + addr + ", name=" + name + ", seqNum=" + seqNum + ", type=" + type + ", MCC=" + MCC
+		return "Payee [addr=" + addr + ", name=" + name + ", seqNum=" + seqNum + ", type=" + type + ", MCC=" + mcc
 				+ ", merchant=" + merchant + "]";
 	}
 	
