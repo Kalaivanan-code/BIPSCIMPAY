@@ -58,7 +58,7 @@ public class NPCIQrcodeValidation {
 		response.setTxn(TRAN);
 		Payee pay = new Payee();
 		pay.setAddr("HOME");
-		pay.setMCC(qrdet.getMc());
+		pay.setmcc(qrdet.getMc());
 		pay.setType("ENTITY");
 		Merchant mr = new Merchant();
 		MerchantIdentifier id = new MerchantIdentifier();
