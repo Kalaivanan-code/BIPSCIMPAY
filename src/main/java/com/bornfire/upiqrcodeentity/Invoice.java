@@ -18,7 +18,7 @@ public class Invoice {
 	private String name;
 	
 	@JsonProperty("FxList")
-	private List<String> FxList;
+	private List<BaseCurr> FxList;
 	
 	@JsonProperty("creditBIC")
 	private String creditBIC;
@@ -50,11 +50,11 @@ public class Invoice {
 		this.name = name;
 	}
 
-	public List<String> getFxList() {
+	public List<BaseCurr> getFxList() {
 		return FxList;
 	}
 
-	public void setFxList(List<String> fxList) {
+	public void setFxList(List<BaseCurr> fxList) {
 		FxList = fxList;
 	}
 

@@ -1,5 +1,9 @@
 package com.bornfire.controller;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -9,9 +13,11 @@ import org.springframework.stereotype.Component;
 
 import com.bornfire.entity.QRUrlGlobalEntity;
 import com.bornfire.entity.UPIQREntityRep;
+import com.bornfire.upiqrcodeentity.BaseCurr;
 import com.bornfire.upiqrcodeentity.Invoice;
 import com.bornfire.upiqrcodeentity.Merchant;
 import com.bornfire.upiqrcodeentity.MerchantIdentifier;
+import com.bornfire.upiqrcodeentity.MerchantName;
 import com.bornfire.upiqrcodeentity.NpciupiReqcls;
 import com.bornfire.upiqrcodeentity.NpciupiReqtransaction;
 import com.bornfire.upiqrcodeentity.Payee;
@@ -33,7 +39,6 @@ public class NPCIQrcodeValidation {
 	
 
 	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) {
-
 		UPIRespEntity response = new UPIRespEntity();
 		String qrcode = npcireq.getQrPayLoad().substring(16);
 		QRUrlGlobalEntity qrdet = getQrentityValue(qrcode);
@@ -60,6 +65,8 @@ public class NPCIQrcodeValidation {
 		pay.setAddr("HOME");
 		pay.setmcc(qrdet.getMc());
 		pay.setType("ENTITY");
+		pay.setName(qr.get().getPn());
+		pay.setSeqNum("123");
 		Merchant mr = new Merchant();
 		MerchantIdentifier id = new MerchantIdentifier();
 		id.setSubCode("1111");
@@ -71,12 +78,25 @@ public class NPCIQrcodeValidation {
 		id.setOnBoardingType("BANK");
 //	id.setRegId(regId);
 		mr.setIdentifier(id);
-
+		MerchantName mn = new MerchantName();
+		
+		mn.setBrand("Restaurant");
+		mr.setName(mn);
+		pay.setMerchant(mr);
 		response.setPayee(pay);
 
+		SimpleDateFormat st = new SimpleDateFormat("YYYY-MM-dd");
+		String dat = st.format(new Date());
 		Invoice in = new Invoice();
-		in.setDate(qrdet.getInvoicedate());
-		in.setNum(qrdet.getInvoiceno());
+		//in.setDate(qr.get().getInvoicedate());
+		in.setDate(dat.toString());
+		in.setNum(qr.get().getInvoiceno());
+		in.setName(qr.get().getPn());
+		 List<BaseCurr> bascurv =  new ArrayList<>();
+		 BaseCurr bs = new BaseCurr();
+		 bs.setBaseCurr("MUR");
+		 bascurv.add(0,bs);
+		 in.setFxList(bascurv);
 		response.setInvoice(in);
 		npcireq.getQrPayLoad().substring(10);
 		logger.info(npcireq.getQrPayLoad().substring(16));

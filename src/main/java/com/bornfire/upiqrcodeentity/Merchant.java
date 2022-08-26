@@ -8,7 +8,7 @@ public class Merchant {
 
 	
 	@JsonProperty("Identifier")
-	private MerchantIdentifier Identifier;
+	private MerchantIdentifier identifier;
 	
 	@JsonProperty("Name")
 	private MerchantName name;
@@ -17,11 +17,11 @@ public class Merchant {
 	private MerchantOwnership ownership;
 
 	public MerchantIdentifier getIdentifier() {
-		return Identifier;
+		return identifier;
 	}
 
 	public void setIdentifier(MerchantIdentifier identifier) {
-		Identifier = identifier;
+		identifier = identifier;
 	}
 
 	public MerchantName getName() {
@@ -38,6 +38,11 @@ public class Merchant {
 
 	public void setOwnership(MerchantOwnership ownership) {
 		this.ownership = ownership;
+	}
+
+	@Override
+	public String toString() {
+		return "Merchant [identifier=" + identifier + ", name=" + name + ", ownership=" + ownership + "]";
 	}
 	
 	
