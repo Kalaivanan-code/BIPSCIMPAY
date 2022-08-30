@@ -21,7 +21,7 @@ public class Merchant {
 	}
 
 	public void setIdentifier(MerchantIdentifier identifier) {
-		identifier = identifier;
+		this.identifier = identifier;
 	}
 
 	public MerchantName getName() {

@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 
 import com.bornfire.entity.QRUrlGlobalEntity;
 import com.bornfire.entity.UPIQREntityRep;
+import com.bornfire.entity.UPI_REQ_QRCODE;
+import com.bornfire.entity.UPI_REQ_REP;
 import com.bornfire.upiqrcodeentity.BaseCurr;
 import com.bornfire.upiqrcodeentity.Invoice;
 import com.bornfire.upiqrcodeentity.Merchant;
@@ -37,7 +39,9 @@ public class NPCIQrcodeValidation {
 	@Autowired
 	ConsentIPSXservice consentIPSXservice;
 	
-
+	@Autowired
+	UPI_REQ_REP uPI_REQ_REP;
+	
 	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) {
 		UPIRespEntity response = new UPIRespEntity();
 		String qrcode = npcireq.getQrPayLoad().substring(16);
@@ -128,6 +132,19 @@ public String ValidateQrcode(NpciupiReqcls npcireq,String pid) {
 		}else {
 			response="FAILURE";
 		}
+		
+UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
+		
+		qrreq.setCustRef(npcireq.getTxn().getCustRef());
+		qrreq.setIds(npcireq.getTxn().getID());
+		qrreq.setNote(npcireq.getTxn().getNote());
+		qrreq.setQrPayLoad(npcireq.getQrPayLoad());
+		qrreq.setRefId(npcireq.getTxn().getRefId());
+		qrreq.setRefUrl(npcireq.getTxn().getRefUrl());
+		qrreq.setReq_id(pid);
+		qrreq.setTs(new Date());
+		qrreq.setResponse(response);
+		uPI_REQ_REP.save(qrreq);
 				
 		return response;
 	}
@@ -224,3 +241,23 @@ public String ValidateQrcode(NpciupiReqcls npcireq,String pid) {
 		return qrdet;
 	}
 }
+
+
+/*CREATE TABLE "IPS"."BIPS_UPI_REQUEST" 
+(	"QRPAYLOAD" VARCHAR2(4000 BYTE), 
+	"NOTE" VARCHAR2(100 BYTE), 
+	"REFID" VARCHAR2(100 BYTE), 
+	"REFURL" VARCHAR2(100 BYTE), 
+	"TS" DATE, 
+	"CUSTREF" VARCHAR2(100 BYTE), 
+	"IDS" VARCHAR2(100 BYTE), 
+	"REQ_ID" VARCHAR2(100 BYTE), 
+	"RESPONSE" VARCHAR2(20 BYTE)
+) SEGMENT CREATION IMMEDIATE 
+PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 
+NOCOMPRESS LOGGING
+STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1
+BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+TABLESPACE "USERS" ;
+*/
