@@ -733,6 +733,7 @@ public ResponseEntity<ErrorRestResponse> respvalQr(NpciupiReqcls npcireq,String 
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 		
 		httpHeaders.set("X-Request-ID",x_request_id );
+		httpHeaders.set("Receiver-Participant-Code","NPCIMUM0" );
 		
 		UPIRespEntity qr =  npsqrcode.getreqdet(npcireq,x_request_id);
 		logger.debug("---Header Parameter---");
@@ -750,6 +751,7 @@ public ResponseEntity<ErrorRestResponse> respvalQr(NpciupiReqcls npcireq,String 
 		sCAAuthenticatedData.setPayee(qr.getPayee());
 		sCAAuthenticatedData.setQrPayLoad(qr.getQrPayLoad());
 		sCAAuthenticatedData.setResp(qr.getResp());
+		sCAAuthenticatedData.setTxn(qr.getTxn());
 		
 		logger.debug("Json Body:"+listener.generateJsonFormat(sCAAuthenticatedData.toString()));
 
