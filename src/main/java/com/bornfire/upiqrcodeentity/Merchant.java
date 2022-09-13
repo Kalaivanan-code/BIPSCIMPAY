@@ -6,15 +6,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Merchant {
 
+	@JsonProperty("Name")
+	private MerchantName name;
 	
 	@JsonProperty("Identifier")
 	private MerchantIdentifier identifier;
 	
-	@JsonProperty("Name")
-	private MerchantName name;
 	
-	@JsonProperty("Ownership")
-	private MerchantOwnership ownership;
+	@JsonProperty("OwnershipType")
+	private String ownership;
 
 	public MerchantIdentifier getIdentifier() {
 		return identifier;
@@ -32,19 +32,21 @@ public class Merchant {
 		this.name = name;
 	}
 
-	public MerchantOwnership getOwnership() {
+	public String getOwnership() {
 		return ownership;
 	}
 
-	public void setOwnership(MerchantOwnership ownership) {
+	public void setOwnership(String ownership) {
 		this.ownership = ownership;
 	}
 
 	@Override
 	public String toString() {
-		return "Merchant [identifier=" + identifier + ", name=" + name + ", ownership=" + ownership + "]";
+		return "Merchant [Name=" + name + ", Identifier=" + identifier + ", ownership=" + ownership + "]";
 	}
-	
+
+
+
 	
 	
 }

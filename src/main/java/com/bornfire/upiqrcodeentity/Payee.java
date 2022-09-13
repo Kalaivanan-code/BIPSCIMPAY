@@ -58,11 +58,11 @@ public class Payee {
 		this.type = type;
 	}
 
-	public String getmcc() {
+	public String getMCC() {
 		return mcc;
 	}
 
-	public void setmcc(String mcc) {
+	public void setMCC(String mcc) {
 		this.mcc = mcc;
 	}
 
@@ -77,7 +77,7 @@ public class Payee {
 	@Override
 	public String toString() {
 		return "Payee [addr=" + addr + ", name=" + name + ", seqNum=" + seqNum + ", type=" + type + ", MCC=" + mcc
-				+ ", merchant=" + merchant + "]";
+				+ ", Merchant=" + merchant + "]";
 	}
 	
 

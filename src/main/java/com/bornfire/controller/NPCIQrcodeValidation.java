@@ -1,5 +1,6 @@
 package com.bornfire.controller;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,7 +43,9 @@ public class NPCIQrcodeValidation {
 	@Autowired
 	UPI_REQ_REP uPI_REQ_REP;
 	
+
 	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) {
+
 		UPIRespEntity response = new UPIRespEntity();
 		String qrcode = npcireq.getQrPayLoad().substring(16);
 		QRUrlGlobalEntity qrdet = getQrentityValue(qrcode);
@@ -67,11 +70,18 @@ public class NPCIQrcodeValidation {
 		response.setTxn(TRAN);
 		Payee pay = new Payee();
 		pay.setAddr("HOME");
-		pay.setmcc(qrdet.getMc());
+		pay.setMCC(qrdet.getMc());
 		pay.setType("ENTITY");
 		pay.setName(qr.get().getPn());
 		pay.setSeqNum("123");
 		Merchant mr = new Merchant();
+MerchantName mn = new MerchantName();
+		
+		mn.setBrand("Restaurant");
+		mn.setFranchise("INDIAN");
+		mn.setLegal("01");
+		
+		mr.setName(mn);
 		MerchantIdentifier id = new MerchantIdentifier();
 		id.setSubCode("1111");
 		id.setMid(qrdet.getMid());
@@ -80,12 +90,15 @@ public class NPCIQrcodeValidation {
 		id.setMerchantType("SMALL");
 		id.setMerchantGenre("ONLINE");
 		id.setOnBoardingType("BANK");
-//	id.setRegId(regId);
+		id.setMerchantLoc("PortLouis");
+		id.setMerchantInstCode("merchantLoc");
+		id.setTier(qr.get().getTiers());
+		id.setPinCode(new BigDecimal(qr.get().getPincode()));
+		id.setRegId(qr.get().getMid());
 		mr.setIdentifier(id);
-		MerchantName mn = new MerchantName();
 		
-		mn.setBrand("Restaurant");
-		mr.setName(mn);
+		mr.setOwnership("PRIVATE");
+		
 		pay.setMerchant(mr);
 		response.setPayee(pay);
 
@@ -96,17 +109,22 @@ public class NPCIQrcodeValidation {
 		in.setDate(dat.toString());
 		in.setNum(qr.get().getInvoiceno());
 		in.setName(qr.get().getPn());
+		/*
+		 * in.setCreditBIC("BARBMUM0"); in.setCreditAccount("90310190013109");
+		 */
 		 List<BaseCurr> bascurv =  new ArrayList<>();
 		 BaseCurr bs = new BaseCurr();
 		 bs.setBaseCurr("MUR");
 		 bascurv.add(0,bs);
 		 in.setFxList(bascurv);
 		response.setInvoice(in);
+		
 		npcireq.getQrPayLoad().substring(10);
 		logger.info(npcireq.getQrPayLoad().substring(16));
 
 		return response;
 	}
+	
 	
 	
 	
