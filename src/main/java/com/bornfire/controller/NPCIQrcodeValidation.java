@@ -69,11 +69,11 @@ public class NPCIQrcodeValidation {
 		TRAN.setTs(npcireq.getTxn().getTs());
 		response.setTxn(TRAN);
 		Payee pay = new Payee();
-		pay.setAddr("HOME");
+		pay.setAddr(qr.get().getPa());
 		pay.setMCC(qrdet.getMc());
 		pay.setType("ENTITY");
 		pay.setName(qr.get().getPn());
-		pay.setSeqNum("123");
+		pay.setSeqNum("1");
 		Merchant mr = new Merchant();
 MerchantName mn = new MerchantName();
 		
@@ -219,10 +219,18 @@ UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
 			if (strs[i].substring(0, 4).equals("msid")) {
 				String mode = strs[i].substring(5);
 				qrdet.setMsid(mode);
+			}if (strs[i].substring(0, 4).equals("sid=")) {
+				String mode = strs[i].substring(4);
+				qrdet.setMsid(mode);
+			}
+			
+if (strs[i].substring(0, 4).equals("tid=")) {
+				String mode = strs[i].substring(4);
+				qrdet.setTid(mode);
 			}
 			if (strs[i].substring(0, 4).equals("mtid")) {
 				String mode = strs[i].substring(5);
-				qrdet.setMtid(mode);
+				qrdet.setTid(mode);
 			}
 			if (strs[i].substring(0, 3).equals("cc=")) {
 				String mode = strs[i].substring(3);
