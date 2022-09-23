@@ -1427,7 +1427,7 @@ public class IPSRestController {
 	}
 
 
-	@PostMapping(path = "/api/ws/RTPTransferStatus", produces = "application/json", consumes = "application/json")
+	@PostMapping(path = "/api/ws/InwTransferStatus", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<RTPTransferStatusResponse> bulkRTPTransfer(
 			@RequestHeader(value = "X-Request-ID", required = true) @NotEmpty(message = "Required") String p_id,
 			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
