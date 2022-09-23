@@ -184,6 +184,9 @@ public class ErrorResponseCode {
 		}else if(code.equals("BIPS53")) {
 			responseDesc = "BIPS53:Monthly Limit Exceeded";
 		}
+		else if(code.equals("BIPS34")) {
+			responseDesc = "BIPS34:Tran ID doesn't Exist";
+		}
 		
 		return responseDesc;
 	}

@@ -76,6 +76,8 @@ import com.bornfire.entity.MCCreditTransferResponse;
 import com.bornfire.entity.ManualFndTransferRequest;
 import com.bornfire.entity.McConsentOutwardAccessResponse;
 import com.bornfire.entity.OtherBankDetResponse;
+import com.bornfire.entity.RTPTransferRequestStatus;
+import com.bornfire.entity.RTPTransferStatusResponse;
 import com.bornfire.entity.RTPbulkTransferRequest;
 import com.bornfire.entity.RTPbulkTransferResponse;
 import com.bornfire.entity.RegConsentAccountList;
@@ -1425,6 +1427,26 @@ public class IPSRestController {
 	}
 
 
+	@PostMapping(path = "/api/ws/RTPTransferStatus", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<RTPTransferStatusResponse> bulkRTPTransfer(
+			@RequestHeader(value = "X-Request-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@Valid @RequestBody RTPTransferRequestStatus rtpTransferRequeststatus)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		logger.info("Service Status RTP Starts :" + p_id);
+
+		RTPTransferStatusResponse response = null;
+
+		logger.info("RTP Status Request->" + rtpTransferRequeststatus);
+		
+		 response = ipsDao.invalidTran_ID(rtpTransferRequeststatus);
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
 ////NPCI Request UPI Validation
 	@PostMapping(path = "/mvc/0/public-service/reqvalqr", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<ErrorResponseforUPI> ReqValQr(

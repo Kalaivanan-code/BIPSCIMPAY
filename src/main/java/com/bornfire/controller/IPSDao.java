@@ -103,11 +103,14 @@ import com.bornfire.entity.OutwardTransHistMonitorTable;
 import com.bornfire.entity.OutwardTransHistMonitoringTableRep;
 import com.bornfire.entity.OutwardTransactionMonitoringTable;
 import com.bornfire.entity.OutwardTransactionMonitoringTableRep;
+import com.bornfire.entity.RTPTransferRequestStatus;
+import com.bornfire.entity.RTPTransferStatusResponse;
 import com.bornfire.entity.RTPbulkTransferRequest;
 import com.bornfire.entity.RegPublicKey;
 import com.bornfire.entity.RegPublicKeyRep;
 import com.bornfire.entity.RegPublicKeyTmp;
 import com.bornfire.entity.RegPublicKeyTmpRep;
+import com.bornfire.entity.RtpResponse;
 import com.bornfire.entity.SCAAthenticationResponse;
 import com.bornfire.entity.SCAAuthenticatedData;
 import com.bornfire.entity.SettlementAccount;
@@ -6956,4 +6959,63 @@ public class IPSDao {
 		// TODO Auto-generated method stub
 		return totAmt;
 	}
+
+	public RTPTransferStatusResponse invalidTran_ID(RTPTransferRequestStatus tran_ID) {
+		boolean valid = false;
+		List<Object[]> otm = null;
+		try {
+			
+			if(!tran_ID.getTranID().equals("")) {
+				System.out.println("TRANID"+tran_ID.getTranID());
+				otm = outwardTranRep.existsByTranID(tran_ID.getTranID());
+			}else if(!tran_ID.getReqId().equals("")) {
+				System.out.println("REFID");
+				 otm = outwardTranRep.existsByRefID(tran_ID.getReqId());
+			}
+			
+
+			if (otm.size()>0) {
+				System.out.println("REFID1");
+				RTPTransferStatusResponse rtp = new RTPTransferStatusResponse();
+				
+				Object[] otmotm=otm.get(0);
+				rtp.setTranId(otmotm[2].toString());
+				rtp.setReqId(otmotm[3].toString());
+				System.out.println("otm.get(0); "+otm.get(0).toString());
+				if(otmotm[0].toString().equals("SUCCESS")){
+					System.out.println("SUCCESS");
+					RtpResponse rtpResponse = new RtpResponse();
+					rtpResponse.setStatus("Success");
+					rtp.setRtpResponse(rtpResponse); 
+				}else if(otmotm[0].toString().equals("FAILURE")){
+					System.out.println("FAILURE");
+					RtpResponse rtpResponse = new RtpResponse();
+					rtpResponse.setStatus("Failure");
+					if(!otmotm[1].toString().equals("")) {
+						rtpResponse.setErrorStatus(otmotm[1].toString());
+					}else {
+						rtpResponse.setErrorStatus("");
+					}
+					System.out.println("FAILURE");
+					rtp.setRtpResponse(rtpResponse); 
+				}else {
+					RtpResponse rtpResponse = new RtpResponse();
+					rtpResponse.setStatus("Inprogress");
+					rtp.setRtpResponse(rtpResponse); 
+				}
+				
+				return rtp;
+				
+				
+			} else {
+				String responseStatus = errorCode.validationError("BIPS34");
+				throw new IPSXException(responseStatus);
+			}
+		} catch (Exception e) {
+			String responseStatus = errorCode.validationError("BIPS501");
+			throw new IPSXException(responseStatus);
+		}
+
+	}
+
 }

@@ -55,4 +55,9 @@ public interface OutwardTransactionMonitoringTableRep extends JpaRepository<Outw
 	void updateCBSStatusRTPError(String sysTraceNumber008, String endToEndID008, String cbsStatus,
 			String error_desc,String cbsResTime);
 	
+	@Query(value = "select tran_status,DECODE(IPSX_STATUS_ERROR,'',CBS_STATUS_ERROR,IPSX_STATUS_ERROR),SEQUENCE_UNIQUE_ID,P_ID from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where SEQUENCE_UNIQUE_ID=?1 Union all select tran_status,DECODE(IPSX_STATUS_ERROR,'',CBS_STATUS_ERROR,IPSX_STATUS_ERROR),SEQUENCE_UNIQUE_ID,P_ID from BIPS_OUTWARD_TRANSACTION_HIST_MONITORING_TABLE where SEQUENCE_UNIQUE_ID=?1", nativeQuery = true)
+	List<Object[]> existsByTranID(String p_id);
+	
+	@Query(value = "select tran_status,DECODE(IPSX_STATUS_ERROR,'',CBS_STATUS_ERROR,IPSX_STATUS_ERROR),SEQUENCE_UNIQUE_ID,P_ID from BIPS_OUTWARD_TRANSACTION_MONITORING_TABLE where P_ID=?1 Union all select tran_status,DECODE(IPSX_STATUS_ERROR,'',CBS_STATUS_ERROR,IPSX_STATUS_ERROR),SEQUENCE_UNIQUE_ID,P_ID  from BIPS_OUTWARD_TRANSACTION_HIST_MONITORING_TABLE where P_ID=?1", nativeQuery = true)
+	List<Object[]> existsByRefID(String p_id);
 }
