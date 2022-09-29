@@ -262,6 +262,23 @@ if (strs[i].substring(0, 4).equals("tid=")) {
 				String mode = strs[i].substring(5);
 				qrdet.setTiers(mode);
 			}
+			if (strs[i].substring(0, 4).equals("mTyp")) {
+				String mode = strs[i].substring(6);
+				qrdet.setMtype(mode);
+			}
+			if (strs[i].substring(0, 3).equals("mGr")) {
+				String mode = strs[i].substring(4);
+				qrdet.setMgr(mode);
+			}if (strs[i].substring(0, 4).equals("mOnb")) {
+				String mode = strs[i].substring(12);
+				qrdet.setMerchant_onboarding(mode);
+			}if (strs[i].substring(0, 4).equals("mLoc")) {
+				String mode = strs[i].substring(5);
+				qrdet.setMerchant_location(mode);
+			}if (strs[i].substring(0, 4).equals("bran")) {
+				String mode = strs[i].substring(6);
+				qrdet.setBrand(mode);
+			}
 		}
 
 		return qrdet;

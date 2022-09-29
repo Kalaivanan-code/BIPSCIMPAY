@@ -71,6 +71,13 @@ public class QRUrlGlobalEntity {
 	private String verify_user;
 	private byte[] qrcode;
 
+	private String 	mtype;
+	private String 	mgr;
+	private String 	merchant_onboarding;
+	private String 	merchant_location;
+	private String 	brand;
+	private String 	entips;
+	
 	public String getVers() {
 		return vers;
 	}
@@ -428,13 +435,62 @@ public class QRUrlGlobalEntity {
 		// TODO Auto-generated constructor stub
 	}
 
+	public String getMtype() {
+		return mtype;
+	}
+
+	public void setMtype(String mtype) {
+		this.mtype = mtype;
+	}
+
+	public String getMgr() {
+		return mgr;
+	}
+
+	public void setMgr(String mgr) {
+		this.mgr = mgr;
+	}
+
+	public String getMerchant_onboarding() {
+		return merchant_onboarding;
+	}
+
+	public void setMerchant_onboarding(String merchant_onboarding) {
+		this.merchant_onboarding = merchant_onboarding;
+	}
+
+	public String getMerchant_location() {
+		return merchant_location;
+	}
+
+	public void setMerchant_location(String merchant_location) {
+		this.merchant_location = merchant_location;
+	}
+
+	public String getBrand() {
+		return brand;
+	}
+
+	public void setBrand(String brand) {
+		this.brand = brand;
+	}
+
+	public String getEntips() {
+		return entips;
+	}
+
+	public void setEntips(String entips) {
+		this.entips = entips;
+	}
+
 	public QRUrlGlobalEntity(String vers, String modes, String purpose, String orgid, String tid, String tr, String tn,
 			String pa, String pn, String mc, String mid, String msid, String mtid, String ccs, BigDecimal bam,
 			String curr, String qrmedium, String invoiceno, String invoicedate, String qrexpire, String signs,
 			String categorys, String urls, BigDecimal am, String cu, Date qrts, String splits, String pincode,
 			String tiers, String txntype, String consent, String querys, String base64, Character verify_flg,
 			Character entity_flg, Character del_flg, Character modify_flg, Date entry_date, Date modify_date,
-			Date verify_date, String entry_user, String modify_user, String verify_user, byte[] qrcode) {
+			Date verify_date, String entry_user, String modify_user, String verify_user, byte[] qrcode, String mtype,
+			String mgr, String merchant_onboarding, String merchant_location, String brand, String entips) {
 		super();
 		this.vers = vers;
 		this.modes = modes;
@@ -480,6 +536,15 @@ public class QRUrlGlobalEntity {
 		this.modify_user = modify_user;
 		this.verify_user = verify_user;
 		this.qrcode = qrcode;
+		this.mtype = mtype;
+		this.mgr = mgr;
+		this.merchant_onboarding = merchant_onboarding;
+		this.merchant_location = merchant_location;
+		this.brand = brand;
+		this.entips = entips;
 	}
+
+
+
 
 }
