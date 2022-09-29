@@ -38,6 +38,11 @@ public class MerchantName {
 	public void setLegal(String legal) {
 		this.legal = legal;
 	}
+
+	@Override
+	public String toString() {
+		return "MerchantName [brand=" + brand + ", franchise=" + franchise + ", legal=" + legal + "]";
+	}
 	
 	
 }

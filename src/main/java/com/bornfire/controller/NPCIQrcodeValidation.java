@@ -1,6 +1,8 @@
 package com.bornfire.controller;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -87,10 +89,10 @@ MerchantName mn = new MerchantName();
 		id.setMid(qrdet.getMid());
 		id.setSid(qrdet.getMsid());
 		id.setTid(qrdet.getTid());
-		id.setMerchantType("SMALL");
-		id.setMerchantGenre("ONLINE");
-		id.setOnBoardingType("BANK");
-		id.setMerchantLoc("PortLouis");
+		id.setMerchantType(qrdet.getMtype());
+		id.setMerchantGenre(qrdet.getMgr());
+		id.setOnBoardingType(qrdet.getMerchant_onboarding());
+		id.setMerchantLoc(qrdet.getMerchant_location());
 		id.setMerchantInstCode("merchantLoc");
 		id.setTier(qr.get().getTiers());
 		id.setPinCode(new BigDecimal(qr.get().getPincode()));
@@ -129,7 +131,7 @@ MerchantName mn = new MerchantName();
 	
 	
 	
-public String ValidateQrcode(NpciupiReqcls npcireq,String pid) {
+public String ValidateQrcode(NpciupiReqcls npcireq,String pid) throws ParseException {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		// Converting the Object to JSONString
@@ -144,13 +146,23 @@ public String ValidateQrcode(NpciupiReqcls npcireq,String pid) {
 		QRUrlGlobalEntity qrdet= getQrentityValue(qrcode);
 		String response = "";
 		Optional<QRUrlGlobalEntity> qr= upiqrRep.findById(qrdet.getMid());
-		if(qr.isPresent()) {
-			response="SUCCESS";
-			consentIPSXservice.respvalQr(npcireq, pid);
-		}else {
-			response="FAILURE";
-		}
 		
+if (qr.isPresent()) {
+			
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
+			Date dat;
+			
+			dat = dateFormat.parse(qrdet.getQrexpire());
+			
+			if(dat.compareTo(new Date()) >0) {
+				response = "SUCCESS";
+				consentIPSXservice.respvalQr(npcireq, pid);
+			}else {
+				response = "EXPIRED";
+			}
+		} else {
+			response = "FAILURE";
+		}
 UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
 		
 		qrreq.setCustRef(npcireq.getTxn().getCustRef());

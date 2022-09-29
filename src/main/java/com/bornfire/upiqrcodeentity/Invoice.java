@@ -18,7 +18,7 @@ public class Invoice {
 	private String name;
 	
 	@JsonProperty("FxList")
-	private List<BaseCurr> FxList;
+	private List<BaseCurr> fxList;
 	
 	@JsonProperty("creditBIC")
 	private String creditBIC;
@@ -51,11 +51,11 @@ public class Invoice {
 	}
 
 	public List<BaseCurr> getFxList() {
-		return FxList;
+		return fxList;
 	}
 
 	public void setFxList(List<BaseCurr> fxList) {
-		FxList = fxList;
+		this.fxList = fxList;
 	}
 
 	public String getCreditBIC() {
@@ -76,7 +76,7 @@ public class Invoice {
 
 	@Override
 	public String toString() {
-		return "Invoice [date=" + date + ", num=" + num + ", name=" + name + ", FxList=" + FxList + ", creditBIC="
+		return "Invoice [date=" + date + ", num=" + num + ", name=" + name + ", FxList=" + fxList + ", creditBIC="
 				+ creditBIC + ", creditAccount=" + creditAccount + "]";
 	}
 	
