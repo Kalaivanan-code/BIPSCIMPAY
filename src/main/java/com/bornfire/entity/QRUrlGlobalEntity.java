@@ -78,6 +78,55 @@ public class QRUrlGlobalEntity {
 	private String 	brand;
 	private String 	entips;
 	
+
+	public String getMtype() {
+		return mtype;
+	}
+
+	public void setMtype(String mtype) {
+		this.mtype = mtype;
+	}
+
+	public String getMgr() {
+		return mgr;
+	}
+
+	public void setMgr(String mgr) {
+		this.mgr = mgr;
+	}
+
+	public String getMerchant_onboarding() {
+		return merchant_onboarding;
+	}
+
+	public void setMerchant_onboarding(String merchant_onboarding) {
+		this.merchant_onboarding = merchant_onboarding;
+	}
+
+	public String getMerchant_location() {
+		return merchant_location;
+	}
+
+	public void setMerchant_location(String merchant_location) {
+		this.merchant_location = merchant_location;
+	}
+
+	public String getBrand() {
+		return brand;
+	}
+
+	public void setBrand(String brand) {
+		this.brand = brand;
+	}
+
+	public String getEntips() {
+		return entips;
+	}
+
+	public void setEntips(String entips) {
+		this.entips = entips;
+	}
+
 	public String getVers() {
 		return vers;
 	}

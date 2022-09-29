@@ -15,6 +15,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -1451,18 +1452,21 @@ public class IPSRestController {
 	@PostMapping(path = "/mvc/0/public-service/reqvalqr", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<ErrorResponseforUPI> ReqValQr(
 			@RequestHeader(value = "X-Request-ID", required = true)   String p_id,
-			@RequestBody NpciupiReqcls npcireq) {
+			@RequestBody NpciupiReqcls npcireq) throws ParseException {
 
 		
 		//UPIRespEntity response = new UPIRespEntity();
 		
 		String response = npciqrcode.ValidateQrcode(npcireq,p_id);
 		ErrorResponseforUPI errRes = new ErrorResponseforUPI();
-		if(response.equals("SUCCESS")) {
+if(response.equals("SUCCESS")) {
 			
 		}else if(response.equals("FAILURE")) {
 			errRes.setErrorCode("01");
 			errRes.setDescription("QR CODE VALIDATION FAILED");
+		}else if(response.equals("EXPIRED")) {
+			errRes.setErrorCode("02");
+			errRes.setDescription("EXPIRED QR CODE");
 		}
 
 		return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.OK);

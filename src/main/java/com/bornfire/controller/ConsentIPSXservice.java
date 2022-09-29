@@ -768,7 +768,7 @@ public ResponseEntity<ErrorRestResponse> respvalQr(NpciupiReqcls npcireq,String 
 					entity, String.class);
 			
 			if(response.getStatusCode().equals(HttpStatus.OK)) {
-				//logger.info(response.getBody().toString());
+				logger.info(response.getStatusCode().toString());
 				ErrorRestResponse ee=new  ErrorRestResponse();
 				return new ResponseEntity<ErrorRestResponse>(ee, HttpStatus.OK);
 
