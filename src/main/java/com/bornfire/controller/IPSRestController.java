@@ -1454,22 +1454,27 @@ public class IPSRestController {
 			@RequestHeader(value = "X-Request-ID", required = true)   String p_id,
 			@RequestBody NpciupiReqcls npcireq) throws ParseException {
 
-		
+		logger.info("reqvalqr Request->" + npcireq.toString());
 		//UPIRespEntity response = new UPIRespEntity();
-		
+		ErrorResponseforUPI resp=null;
 		String response = npciqrcode.ValidateQrcode(npcireq,p_id);
 		ErrorResponseforUPI errRes = new ErrorResponseforUPI();
-if(response.equals("SUCCESS")) {
+		if(response.equals("SUCCESS")) {
 			
 		}else if(response.equals("FAILURE")) {
-			errRes.setErrorCode("01");
-			errRes.setDescription("QR CODE VALIDATION FAILED");
+			String responseStatus = errorCode.ErrorCodeRegistration("31");
+		//	errRes.setErrorCode("400");
+		//	errRes.setDescription("QR CODE VALIDATION FAILED");
+			throw new IPSXException(responseStatus);
 		}else if(response.equals("EXPIRED")) {
-			errRes.setErrorCode("02");
-			errRes.setDescription("EXPIRED QR CODE");
+			String responseStatus = errorCode.ErrorCodeRegistration("32");
+		//	errRes.setErrorCode("400");
+		//	errRes.setDescription("Payment validity expired");
+			throw new IPSXException(responseStatus);
 		}
 
-		return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.OK);
+		//return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.OK);
+		return new ResponseEntity<>(resp, HttpStatus.OK);
 	}
 
 	

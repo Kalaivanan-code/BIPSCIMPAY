@@ -233,6 +233,10 @@ public class ErrorResponseCode {
 			responseDesc="401:wrong credentials";
 		}else if(code.equals("25")) {
 			responseDesc="500:Internal Server Error";
+		}else if(code.equals("31")){
+			responseDesc = "400:QR CODE VALIDATION FAILED";
+		}else if(code.equals("32")){
+			responseDesc = "PE:Payment validity expired";
 		}
 		
 		else {
