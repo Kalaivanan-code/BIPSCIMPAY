@@ -2,6 +2,7 @@ package com.bornfire.controller;
 
 import static com.bornfire.exception.ErrorResponseCode.SERVER_ERROR_CODE;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
@@ -727,7 +728,7 @@ public class ConsentIPSXservice {
 
 
 
-public ResponseEntity<ErrorRestResponse> respvalQr(NpciupiReqcls npcireq,String x_request_id) {
+public ResponseEntity<ErrorRestResponse> respvalQr(NpciupiReqcls npcireq,String x_request_id) throws ParseException {
 		
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);

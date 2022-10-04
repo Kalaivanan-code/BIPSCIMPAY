@@ -35,7 +35,9 @@ public class QRUrlGlobalEntity {
 	private String curr;
 	private String qrmedium;
 	private String invoiceno;
-	private String invoicedate;
+	@Temporal(TemporalType.DATE)
+	@DateTimeFormat(pattern = "dd/MM/yyyy")
+	private Date invoicedate;
 	private String qrexpire;
 	private String signs;
 	private String categorys;
@@ -271,11 +273,11 @@ public class QRUrlGlobalEntity {
 		this.invoiceno = invoiceno;
 	}
 
-	public String getInvoicedate() {
+	public Date getInvoicedate() {
 		return invoicedate;
 	}
 
-	public void setInvoicedate(String invoicedate) {
+	public void setInvoicedate(Date invoicedate) {
 		this.invoicedate = invoicedate;
 	}
 
@@ -484,57 +486,11 @@ public class QRUrlGlobalEntity {
 		// TODO Auto-generated constructor stub
 	}
 
-	public String getMtype() {
-		return mtype;
-	}
 
-	public void setMtype(String mtype) {
-		this.mtype = mtype;
-	}
-
-	public String getMgr() {
-		return mgr;
-	}
-
-	public void setMgr(String mgr) {
-		this.mgr = mgr;
-	}
-
-	public String getMerchant_onboarding() {
-		return merchant_onboarding;
-	}
-
-	public void setMerchant_onboarding(String merchant_onboarding) {
-		this.merchant_onboarding = merchant_onboarding;
-	}
-
-	public String getMerchant_location() {
-		return merchant_location;
-	}
-
-	public void setMerchant_location(String merchant_location) {
-		this.merchant_location = merchant_location;
-	}
-
-	public String getBrand() {
-		return brand;
-	}
-
-	public void setBrand(String brand) {
-		this.brand = brand;
-	}
-
-	public String getEntips() {
-		return entips;
-	}
-
-	public void setEntips(String entips) {
-		this.entips = entips;
-	}
 
 	public QRUrlGlobalEntity(String vers, String modes, String purpose, String orgid, String tid, String tr, String tn,
 			String pa, String pn, String mc, String mid, String msid, String mtid, String ccs, BigDecimal bam,
-			String curr, String qrmedium, String invoiceno, String invoicedate, String qrexpire, String signs,
+			String curr, String qrmedium, String invoiceno, Date invoicedate, String qrexpire, String signs,
 			String categorys, String urls, BigDecimal am, String cu, Date qrts, String splits, String pincode,
 			String tiers, String txntype, String consent, String querys, String base64, Character verify_flg,
 			Character entity_flg, Character del_flg, Character modify_flg, Date entry_date, Date modify_date,

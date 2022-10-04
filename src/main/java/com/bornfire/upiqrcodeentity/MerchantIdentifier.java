@@ -139,6 +139,14 @@ public class MerchantIdentifier {
 	public void setMerchantInstCode(String merchantInstCode) {
 		this.merchantInstCode = merchantInstCode;
 	}
+
+	@Override
+	public String toString() {
+		return "MerchantIdentifier [subCode=" + subCode + ", mid=" + mid + ", sid=" + sid + ", tid=" + tid
+				+ ", merchantType=" + merchantType + ", merchantGenre=" + merchantGenre + ", onBoardingType="
+				+ onBoardingType + ", regId=" + regId + ", pinCode=" + pinCode + ", tier=" + tier + ", merchantLoc="
+				+ merchantLoc + ", merchantInstCode=" + merchantInstCode + "]";
+	}
 	
 	
 	

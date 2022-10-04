@@ -46,7 +46,7 @@ public class NPCIQrcodeValidation {
 	UPI_REQ_REP uPI_REQ_REP;
 	
 
-	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) {
+	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) throws ParseException {
 
 		UPIRespEntity response = new UPIRespEntity();
 		String qrcode = npcireq.getQrPayLoad().substring(16);
@@ -79,7 +79,7 @@ public class NPCIQrcodeValidation {
 		Merchant mr = new Merchant();
 MerchantName mn = new MerchantName();
 		
-		mn.setBrand("Restaurant");
+		mn.setBrand(qr.get().getBrand());
 		mn.setFranchise("INDIAN");
 		mn.setLegal("01");
 		
@@ -107,10 +107,11 @@ MerchantName mn = new MerchantName();
 		SimpleDateFormat st = new SimpleDateFormat("YYYY-MM-dd");
 		String dat = st.format(new Date());
 		Invoice in = new Invoice();
-		//in.setDate(qr.get().getInvoicedate());
-		in.setDate(dat.toString());
+		in.setDate(st.format(qrdet.getInvoicedate()));
+//		in.setDate(dat.toString());
 		in.setNum(qr.get().getInvoiceno());
 		in.setName(qr.get().getPn());
+		
 		/*
 		 * in.setCreditBIC("BARBMUM0"); in.setCreditAccount("90310190013109");
 		 */
@@ -179,7 +180,7 @@ UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
 		return response;
 	}
 
-	public QRUrlGlobalEntity getQrentityValue(String qrcode) {
+	public QRUrlGlobalEntity getQrentityValue(String qrcode) throws ParseException {
 
 		QRUrlGlobalEntity qrdet = new QRUrlGlobalEntity();
 		String[] strs = qrcode.split("&");
@@ -263,7 +264,9 @@ if (strs[i].substring(0, 4).equals("tid=")) {
 				}
 				if (strs[i].substring(0, 11).equals("invoiceDate")) {
 					String mode = strs[i].substring(12);
-					qrdet.setInvoicedate(mode);
+					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
+					Date dat;
+					qrdet.setInvoicedate(dateFormat.parse(mode));
 				}
 			}
 			if (strs[i].substring(0, 4).equals("QRex")) {

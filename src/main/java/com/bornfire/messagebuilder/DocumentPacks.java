@@ -723,15 +723,37 @@ public class DocumentPacks implements Serializable{
 
 		// paymentTransaction1101.setAcctSvcrRef("2385");
 
+
 		com.bornfire.jaxb.pacs_002_001_010.BranchAndFinancialInstitutionIdentification61 instgAgt = new com.bornfire.jaxb.pacs_002_001_010.BranchAndFinancialInstitutionIdentification61();
 		com.bornfire.jaxb.pacs_002_001_010.FinancialInstitutionIdentification181 finInstnId = new com.bornfire.jaxb.pacs_002_001_010.FinancialInstitutionIdentification181();
 		// finInstnId.setBICFI(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId().getBICFI());
 		com.bornfire.jaxb.pacs_002_001_010.ClearingSystemMemberIdentification21 clrSysMmbId2 = new com.bornfire.jaxb.pacs_002_001_010.ClearingSystemMemberIdentification21();
-		clrSysMmbId2.setMmbId(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt()
-				.getFinInstnId().getBICFI());
-		finInstnId.setClrSysMmbId(clrSysMmbId2);
+		//clrSysMmbId2.setMmbId(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt()
+				//.getFinInstnId().getBICFI());
+		//finInstnId.setClrSysMmbId(clrSysMfinInstnId.setClrSysMmbId(clrSysMmbId2);mbId2);
+		if(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt()!=null) {
+			if(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId()!=null) {
+				if(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId().getBICFI()!=null) {
+					clrSysMmbId2.setMmbId(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId().getBICFI());
+					finInstnId.setClrSysMmbId(clrSysMmbId2);
+				}
+				
+				if(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId().getClrSysMmbId()!=null) {
+					if(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId().getClrSysMmbId().getMmbId()!=null) {
+						com.bornfire.jaxb.pacs_002_001_010.ClearingSystemMemberIdentification21 cls=new com.bornfire.jaxb.pacs_002_001_010.ClearingSystemMemberIdentification21();
+						cls.setMmbId(docPacs008_001_01.getFIToFICstmrCdtTrf().getCdtTrfTxInf().get(0).getInstgAgt().getFinInstnId().getClrSysMmbId().getMmbId());
+						finInstnId.setClrSysMmbId(cls);
+					}
+					
+				}
+			}
+		}
+		
+		
 		instgAgt.setFinInstnId(finInstnId);
 		paymentTransaction1101.setInstgAgt(instgAgt);
+
+		
 
 		/*
 		 * com.bornfire.jaxb.pacs_002_001_010.
