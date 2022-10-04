@@ -1469,7 +1469,7 @@ public class IPSRestController {
 			return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.BAD_REQUEST);
 		}else if(response.equals("EXPIRED")) {
 			//	String responseStatus = errorCode.ErrorCodeRegistration("32");
-			errRes.setErrorCode("400");
+			errRes.setErrorCode("PE");
 			errRes.setDescription("Payment validity expired");
 			//	throw new IPSXException(responseStatus);
 			return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.BAD_REQUEST);
