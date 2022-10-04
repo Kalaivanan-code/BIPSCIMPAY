@@ -1462,20 +1462,23 @@ public class IPSRestController {
 		if(response.equals("SUCCESS")) {
 			
 		}else if(response.equals("FAILURE")) {
-			String responseStatus = errorCode.ErrorCodeRegistration("31");
-		//	errRes.setErrorCode("400");
-		//	errRes.setDescription("QR CODE VALIDATION FAILED");
-			throw new IPSXException(responseStatus);
+			//	String responseStatus = errorCode.ErrorCodeRegistration("31");
+			errRes.setErrorCode("400");
+			errRes.setDescription("QR CODE VALIDATION FAILED");
+			//	throw new IPSXException(responseStatus);
+			return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.BAD_REQUEST);
 		}else if(response.equals("EXPIRED")) {
-			String responseStatus = errorCode.ErrorCodeRegistration("32");
-		//	errRes.setErrorCode("400");
-		//	errRes.setDescription("Payment validity expired");
-			throw new IPSXException(responseStatus);
+			//	String responseStatus = errorCode.ErrorCodeRegistration("32");
+			errRes.setErrorCode("400");
+			errRes.setDescription("Payment validity expired");
+			//	throw new IPSXException(responseStatus);
+			return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.BAD_REQUEST);
 		}
 
 		//return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.OK);
-		return new ResponseEntity<>(resp, HttpStatus.OK);
+		return new ResponseEntity<>(errRes, HttpStatus.OK);
 	}
+
 
 	
 }
