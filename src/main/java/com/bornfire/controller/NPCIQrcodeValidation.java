@@ -54,10 +54,29 @@ public class NPCIQrcodeValidation {
 		response.setQrPayLoad(npcireq.getQrPayLoad());
 		RespEntity resp = new RespEntity();
 		Optional<QRUrlGlobalEntity> qr = upiqrRep.findById(qrdet.getMid());
-		if (qr.isPresent()) {
-			resp.setResult("SUCCESS");
+if (qr.isPresent()) {
+			
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
+			Date dat;
+			
+			dat = dateFormat.parse(qrdet.getQrexpire());
+			
+			if(dat.compareTo(new Date()) >0) {
+				if(qrdet.getMtid().equals(qr.get().getMtid())) {
+					resp.setResult("SUCCESS");
+				}else {
+					resp.setResult("FAILURE");
+					resp.setErr("XW");
+				}
+				
+				
+			}else {
+				resp.setResult("FAILURE");
+				resp.setErr("PE");
+			}
 		} else {
 			resp.setResult("FAILURE");
+			
 		}
 
 		resp.setReqMsgId(npcireq.getTxn().getID());
@@ -148,7 +167,7 @@ public String ValidateQrcode(NpciupiReqcls npcireq,String pid) throws ParseExcep
 		String response = "";
 		Optional<QRUrlGlobalEntity> qr= upiqrRep.findById(qrdet.getMid());
 		
-if (qr.isPresent()) {
+		if (qr.isPresent()) {
 			
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
 			Date dat;
@@ -156,14 +175,23 @@ if (qr.isPresent()) {
 			dat = dateFormat.parse(qrdet.getQrexpire());
 			
 			if(dat.compareTo(new Date()) >0) {
-				response = "SUCCESS";
-				consentIPSXservice.respvalQr(npcireq, pid);
+				if(qrdet.getMtid().equals(qr.get().getMtid())) {
+					response = "SUCCESS";
+					consentIPSXservice.respvalQr(npcireq, pid);
+				}else {
+					response = "TERMINAL_MISSMATCH";
+					consentIPSXservice.respvalQr(npcireq, pid);
+				}
+				
 			}else {
 				response = "EXPIRED";
+				consentIPSXservice.respvalQr(npcireq, pid);
 			}
 		} else {
 			response = "FAILURE";
+			consentIPSXservice.respvalQr(npcireq, pid);
 		}
+
 UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
 		
 		qrreq.setCustRef(npcireq.getTxn().getCustRef());

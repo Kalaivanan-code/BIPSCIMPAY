@@ -1459,7 +1459,7 @@ public class IPSRestController {
 		ErrorResponseforUPI resp=null;
 		String response = npciqrcode.ValidateQrcode(npcireq,p_id);
 		ErrorResponseforUPI errRes = new ErrorResponseforUPI();
-		if(response.equals("SUCCESS")) {
+if(response.equals("SUCCESS")) {
 			
 		}else if(response.equals("FAILURE")) {
 			//	String responseStatus = errorCode.ErrorCodeRegistration("31");
@@ -1473,6 +1473,12 @@ public class IPSRestController {
 			errRes.setDescription("Payment validity expired");
 			//	throw new IPSXException(responseStatus);
 			return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.BAD_REQUEST);
+		}else if(response.equals("TERMINAL_MISSMATCH")) {
+//			String responseStatus = errorCode.ErrorCodeRegistration("32");
+					errRes.setErrorCode("XW");
+					errRes.setDescription("Terminal ID mismatch");
+					//	throw new IPSXException(responseStatus);
+					return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.BAD_REQUEST);
 		}
 
 		//return new ResponseEntity<ErrorResponseforUPI>(errRes, HttpStatus.OK);
