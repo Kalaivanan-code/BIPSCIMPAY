@@ -271,7 +271,7 @@ if (strs[i].substring(0, 4).equals("tid=")) {
 			}
 			if (strs[i].substring(0, 4).equals("mtid")) {
 				String mode = strs[i].substring(5);
-				qrdet.setTid(mode);
+				qrdet.setMtid(mode);
 			}
 			if (strs[i].substring(0, 3).equals("cc=")) {
 				String mode = strs[i].substring(3);
