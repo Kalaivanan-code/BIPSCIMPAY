@@ -46,25 +46,36 @@ public class NPCIQrcodeValidation {
 	UPI_REQ_REP uPI_REQ_REP;
 	
 
+	
 	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) throws ParseException {
 
 		UPIRespEntity response = new UPIRespEntity();
 		String qrcode = npcireq.getQrPayLoad().substring(16);
 		QRUrlGlobalEntity qrdet = getQrentityValue(qrcode);
 		response.setQrPayLoad(npcireq.getQrPayLoad());
+		String valQr = validateQr(qrcode);
 		RespEntity resp = new RespEntity();
 		Optional<QRUrlGlobalEntity> qr = upiqrRep.findById(qrdet.getMid());
+		logger.info("DEL Value"+qr.get().getDel_flg()+valQr);
 if (qr.isPresent()) {
 			
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
 			Date dat;
 			
 			dat = dateFormat.parse(qrdet.getQrexpire());
-			
+			Character del='Y';
 			if(dat.compareTo(new Date()) >0) {
-				if(qrdet.getMtid().equals(qr.get().getMtid())) {
+				if(qrdet.getMtid().equals(qr.get().getMtid())  && !qr.get().getDel_flg().equals('Y') && valQr.equals("Success")) {
 					resp.setResult("SUCCESS");
-				}else {
+				}else if(qr.get().getDel_flg().equals(del)){
+					logger.info("DEL FAILURE");
+					resp.setResult("FAILURE");
+					resp.setErr("SD");
+				}else if(valQr.equals("Failure")) {
+					resp.setResult("FAILURE");
+					resp.setErr("RD");
+				}
+					else {
 					resp.setResult("FAILURE");
 					resp.setErr("XW");
 				}
@@ -79,7 +90,8 @@ if (qr.isPresent()) {
 			
 		}
 
-		resp.setReqMsgId(npcireq.getTxn().getID());
+//		resp.setReqMsgId(npcireq.getTxn().getID());
+		resp.setReqMsgId(pid);
 		response.setResp(resp);
 		NpciupiReqtransaction TRAN = new NpciupiReqtransaction();
 		TRAN.setCustRef(npcireq.getTxn().getCustRef());
@@ -164,6 +176,8 @@ public String ValidateQrcode(NpciupiReqcls npcireq,String pid) throws ParseExcep
 		logger.info("reqvalqr Request->"+jsonString);
 		String qrcode = npcireq.getQrPayLoad().substring(16);
 		QRUrlGlobalEntity qrdet= getQrentityValue(qrcode);
+		
+		String valQr = validateQr(qrcode);
 		String response = "";
 		Optional<QRUrlGlobalEntity> qr= upiqrRep.findById(qrdet.getMid());
 		
@@ -174,11 +188,20 @@ public String ValidateQrcode(NpciupiReqcls npcireq,String pid) throws ParseExcep
 			
 			dat = dateFormat.parse(qrdet.getQrexpire());
 			
+				
+				
 			if(dat.compareTo(new Date()) >0) {
-				if(qrdet.getMtid().equals(qr.get().getMtid())) {
+				if(qrdet.getMtid().equals(qr.get().getMtid()) && !qr.get().getDel_flg().equals('Y') && valQr.equals("Success")) {
 					response = "SUCCESS";
 					consentIPSXservice.respvalQr(npcireq, pid);
-				}else {
+				}else if(qr.get().getDel_flg().equals('Y')) {
+					response = "CUSTOMER_NOT_ACTIVE";
+					consentIPSXservice.respvalQr(npcireq, pid);
+				}else if(valQr.equals("Failure")) {
+					response = "INVALID_QRCODE";
+					consentIPSXservice.respvalQr(npcireq, pid);
+				}
+				else {
 					response = "TERMINAL_MISSMATCH";
 					consentIPSXservice.respvalQr(npcireq, pid);
 				}
@@ -207,6 +230,30 @@ UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
 				
 		return response;
 	}
+
+public String  validateQr(String qrcode) {
+
+String resp="";
+		
+if(qrcode.indexOf("mOnboarding")!=-1) {
+	resp="Success";
+}else {
+	resp="Failure";
+}
+		
+//		if(qrdet.getVers().equals("")||qrdet.getModes().equals("")||qrdet.getPurpose().equals("")||qrdet.getOrgid().equals("")||qrdet.getTr().equals("")||
+//				qrdet.getPa().equals("")||qrdet.getPn().equals("")||qrdet.getMc().equals("")||qrdet.getMid().equals("")||qrdet.getMsid().equals("")||qrdet.getMtid().equals("")||
+//				qrdet.getMtype().equals("")||qrdet.getMgr().equals("")||qrdet.getMerchant_onboarding().equals("")||qrdet.getMerchant_location().equals("")||
+//				qrdet.getBrand().equals("")||qrdet.getCcs().equals("")||qrdet.getCu().equals("")||qrdet.getQrmedium().equals("")||qrdet.getQrexpire().equals("")) {
+//			resp="Failure";
+//		}else {
+//			resp="Success";
+//		}
+
+
+	
+	return resp;
+}
 
 	public QRUrlGlobalEntity getQrentityValue(String qrcode) throws ParseException {
 

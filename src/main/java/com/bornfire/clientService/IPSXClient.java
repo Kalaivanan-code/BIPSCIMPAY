@@ -419,6 +419,13 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String rmt_info_pacs008 ="";
 			String rmt_info_issuer_pacs008="";
 			String rmt_info_nb_pacs008 ="";
+			 rmt_info_pacs008 = Optional.ofNullable(doc008).map(Document::getFIToFICstmrCdtTrf)
+					.map(FIToFICustomerCreditTransferV08::getCdtTrfTxInf)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.map(CreditTransferTransaction391::getRmtInf)
+					.map(RemittanceInformation161::getUstrd)
+					.filter(indAliasList -> !indAliasList.isEmpty()).map(indAliasList -> indAliasList.get(0))
+					.orElse("");
 			
 			/*String reg_rep_pacs008 = Optional.ofNullable(creditTran391)
 					.map(CreditTransferTransaction391::getRgltryRptg)
@@ -521,7 +528,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							logger.info("lastindex "+lastindex);
 							logger.info("rmt_info_pacs008"+rmt_info_pacs008.substring(firstindex+4, lastindex));
 							
-							if(rmt_info_pacs008.substring(firstindex+4, lastindex).equals("66322746283")) {
+							if(rmt_info_pacs008.substring(firstindex+4, lastindex).equals("123123")) {
 								responseTestMsg="Success";
 
 							}else {
@@ -646,12 +653,14 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							///// Send Pacs.002 Pacs to IPSX
 							com.bornfire.jaxb.wsdl.ObjectFactory obj008 = new com.bornfire.jaxb.wsdl.ObjectFactory();
 							
-							JAXBElement<SendT> jaxbElement008 = obj008.createSend(sendRequest008);
+						JAXBElement<SendT> jaxbElement008 = obj008.createSend(sendRequest008);
+							
 
 							JAXBElement<SendResponse> response008 = null;
 							
 							
 								response008 = (JAXBElement<SendResponse>) getWebServiceTemplate().marshalSendAndReceive(jaxbElement008);
+								
 
 								logger.info(
 										seqUniqueID008 + " :Getting ACK/NAK" + response008.getValue().getData().getType().toString());
