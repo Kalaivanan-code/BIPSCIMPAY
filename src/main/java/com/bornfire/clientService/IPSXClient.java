@@ -508,6 +508,29 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					String CreditStatusDesc = null;
 
 					String responseIncomeMsg = "";
+					String responseTestMsg = "";
+					
+					
+					if(seqUniqueID008.substring(0, 3).equals("UPI")||seqUniqueID008.substring(0, 3).equals("XYD")) {
+						//	responseIncomeMsg=errorCode.ErrorCode("IV");
+
+							int firstindex = rmt_info_pacs008.indexOf("/07/");
+							int lastindex = rmt_info_pacs008.indexOf("/08/");
+							
+							logger.info("firstindex"+firstindex);
+							logger.info("lastindex "+lastindex);
+							logger.info("rmt_info_pacs008"+rmt_info_pacs008.substring(firstindex+4, lastindex));
+							
+							if(rmt_info_pacs008.substring(firstindex+4, lastindex).equals("66322746283")) {
+								responseTestMsg="Success";
+
+							}else {
+							//	responseIncomeMsg=errorCode.ErrorCode("IV");
+								
+								responseTestMsg="Failure";
+							}
+						}
+					
 					
 					
 					if(ctgy_purp_pacs008.equals("102") || ctgy_purp_pacs008.equals("300")||
@@ -519,7 +542,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							trAmount008S.equals("")||
 							!ipsDao.checkBankAgentExistIncomingMsg(debtorAgent008)||
 							!ipsDao.checkBankAgentExistIncomingMsg(instgAgtPacs008)||
-							!ipsDao.checkBankAgentExistIncomingMsg(instdAgtPacs008)) {
+							!ipsDao.checkBankAgentExistIncomingMsg(instdAgtPacs008)|| responseTestMsg.equals("Failure")) {
 						
 						logger.info("Validation Problem");
 						
@@ -529,6 +552,8 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						}else if(trAmount008S.equals("0") || trAmount008S.equals("0.00")||
 								trAmount008S.equals("")) {
 							responseIncomeMsg=errorCode.ErrorCode("AM01");
+						}else if(responseTestMsg.equals("Failure")){
+							responseIncomeMsg=errorCode.ErrorCode("IV");
 						}else {
 							responseIncomeMsg=errorCode.ErrorCode("AG01");
 						}

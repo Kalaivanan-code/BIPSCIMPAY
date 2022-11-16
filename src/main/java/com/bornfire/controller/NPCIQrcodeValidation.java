@@ -99,7 +99,7 @@ if (qr.isPresent()) {
 MerchantName mn = new MerchantName();
 		
 		mn.setBrand(qr.get().getBrand());
-		mn.setFranchise("INDIAN");
+		mn.setFranchise(qr.get().getBrand());
 		mn.setLegal("01");
 		
 		mr.setName(mn);

@@ -82,7 +82,9 @@ public class ErrorResponseCode {
 			responseDesc = "TECH:Technical Problem";
 		}else if (code.equals("AC13")) {
 			responseDesc = "AC13:Invalid Account Type";
-		} else {
+		}else if (code.equals("IV")) {
+			responseDesc = "IV:Invalid Terminal ID";
+		}  else {
 			responseDesc = "TECH:Technical Problem";
 		}
 		return responseDesc;
