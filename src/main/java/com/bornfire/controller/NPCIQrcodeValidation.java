@@ -234,8 +234,15 @@ UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
 public String  validateQr(String qrcode) {
 
 String resp="";
-		
-if(qrcode.indexOf("mOnboarding")!=-1) {
+//upiGlobal://pay?ver=01&mode=01&purpose=11&orgid=1800450001&tr=TR261020220008&
+//pa=CIM0400704.CFSLMUM0@bombob&pn=CIM_FIN_MERCHANT_CLOSE&mc=9399&mid=CIM0400704&msid=46578765432676541212&mtid=123123&mType=SMALL&mGr=OFFLINE&mOnboarding=BANK&mLoc=PORT%20LOUIS&brand=TEST&cc=MU&cu=MUR&
+//qrMedium=04&QRexpire=2022-12-12T00:00:00+04:00
+
+if(qrcode.indexOf("ver")!=-1 ||qrcode.indexOf("mode")!=-1 ||qrcode.indexOf("orgid")!=-1 ||
+qrcode.indexOf("tr")!=-1 ||qrcode.indexOf("pa=")!=-1 ||qrcode.indexOf("pn=")!=-1 ||qrcode.indexOf("mc=")!=-1 ||
+qrcode.indexOf("mid")!=-1 ||qrcode.indexOf("msid")!=-1 ||qrcode.indexOf("mtid")!=-1 ||qrcode.indexOf("mType")!=-1 ||
+qrcode.indexOf("mGr")!=-1 ||qrcode.indexOf("mOnboarding")!=-1 ||qrcode.indexOf("mLoc")!=-1 ||qrcode.indexOf("brand")!=-1
+||qrcode.indexOf("cc=")!=-1 ||qrcode.indexOf("cu=")!=-1 ||qrcode.indexOf("QRexpire")!=-1) {
 	resp="Success";
 }else {
 	resp="Failure";
