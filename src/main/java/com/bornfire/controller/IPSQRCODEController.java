@@ -27,6 +27,7 @@ import java.util.Base64;
 import java.util.Hashtable;
 
 import javax.imageio.ImageIO;
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -39,15 +40,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bornfire.config.ErrorResponseCode;
+import com.bornfire.entity.CIMCreditTransferRequest;
 import com.bornfire.entity.CIMMerchantQRAddlInfo;
 import com.bornfire.entity.CIMMerchantQRcodeAcctInfo;
 import com.bornfire.entity.CIMMerchantQRcodeRequest;
 import com.bornfire.entity.CimMerchantResponse;
+import com.bornfire.entity.Dynamic_Request;
 import com.bornfire.entity.MerchantMaster;
 import com.bornfire.entity.MerchantMasterRep;
 import com.bornfire.entity.MerchantQRRegistration;
@@ -237,16 +241,7 @@ public class IPSQRCODEController {
 			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
 			@RequestHeader(value = "Merchant_ID", required = true) String acct_num,
 			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
-			@RequestHeader(value = "Transaction_Amt", required = false) String tran_amt,
-			@RequestHeader(value = "Mobile_Number", required = false) String mob_num,
-			@RequestHeader(value = "Loyality_Number", required = false) String loy_num,
-			@RequestHeader(value = "Store_Label", required = false) String sto_label,
-			@RequestHeader(value = "Customer_Label", required = false) String cust_label,
-			@RequestHeader(value = "Reference_Label", required = false) String ref_label,
-			@RequestHeader(value = "Terminal_Label", required = false) String ter_label,
-			@RequestHeader(value = "Purpose_Of_Tran", required = false) String pur_tran,
-			@RequestHeader(value = "Additonal_Detail", required = false) String add_det,
-			@RequestHeader(value = "Bill_Number", required = false) String bill_num			
+			@Valid @RequestBody Dynamic_Request mcCreditTransferRequest		
 			)
 	
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
@@ -255,7 +250,7 @@ public class IPSQRCODEController {
 		logger.info("Service Starts generate QR Code");
 		//MerchantMaster ms = merchantmasterRep.findByIdCustom(acct_num);
 		CimMerchantResponse response = null;
-		MerchantMaster ms = merchantmasterRep.findByIdCustom(acct_num);
+		MerchantMaster ms = merchantmasterRep.findByIdCustom(mcCreditTransferRequest.getMerchant_ID());
 		MerchantQRRegistration merchantQRgenerator = new MerchantQRRegistration();
 		String paycode = env.getProperty("ipsx.qr.payeecode");
 		String globalUnique = env.getProperty("ipsx.qr.globalUnique");
@@ -276,18 +271,37 @@ public class IPSQRCODEController {
 		merchantQRgenerator.setCity(ms.getMerchant_city());
 		merchantQRgenerator.setCountry("MU");
 		merchantQRgenerator.setZip_code(ms.getPincode());
-		merchantQRgenerator.setBill_number(bill_num);
-		merchantQRgenerator.setMobile(mob_num);
-		merchantQRgenerator.setLoyalty_number(loy_num);
-		merchantQRgenerator.setCustomer_label(cust_label);
-		merchantQRgenerator.setStore_label(sto_label);
-		merchantQRgenerator.setTerminal_label(ter_label);
-		merchantQRgenerator.setReference_label(ref_label);
-		merchantQRgenerator.setPurpose_of_tran(pur_tran);
-		merchantQRgenerator.setAdditional_details(add_det);
-		merchantQRgenerator.setCustomer_label(cust_label);
-		
-		
+		merchantQRgenerator.setBill_number(ms.getTr());
+		merchantQRgenerator.setMobile(ms.getMerchant_mob_no());
+		merchantQRgenerator.setLoyalty_number(ms.getLoyalty_number());
+		merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
+		merchantQRgenerator.setStore_label(ms.getStore_label());
+		merchantQRgenerator.setTerminal_label(ms.getTerminal_label());
+		merchantQRgenerator.setReference_label(ms.getReference_label());
+		merchantQRgenerator.setPurpose_of_tran(ms.getPurpose_of_tran());
+		merchantQRgenerator.setAdditional_details(ms.getAdd_details_req());
+		if(mcCreditTransferRequest.getBill_num()!="") {
+			merchantQRgenerator.setBill_number(mcCreditTransferRequest.getBill_num());
+		}
+		if(mcCreditTransferRequest.getMob_num()!="") {
+			merchantQRgenerator.setMobile(mcCreditTransferRequest.getMob_num());
+		}if(mcCreditTransferRequest.getLoy_num()!="") {
+			merchantQRgenerator.setLoyalty_number(mcCreditTransferRequest.getLoy_num());
+		}if(mcCreditTransferRequest.getCust_label()!="") {
+			merchantQRgenerator.setCustomer_label(mcCreditTransferRequest.getCust_label());
+		}if(mcCreditTransferRequest.getSto_label()!="") {
+			merchantQRgenerator.setStore_label(mcCreditTransferRequest.getSto_label());
+		}if(mcCreditTransferRequest.getTer_label()!="") {
+			merchantQRgenerator.setTerminal_label(mcCreditTransferRequest.getTer_label());
+		}if(mcCreditTransferRequest.getRef_label()!="") {
+			merchantQRgenerator.setReference_label(mcCreditTransferRequest.getRef_label());
+		}if(mcCreditTransferRequest.getPur_tran()!="") {
+			merchantQRgenerator.setPurpose_of_tran(mcCreditTransferRequest.getPur_tran());
+		}if(mcCreditTransferRequest.getAdd_det()!="") {
+			merchantQRgenerator.setAdditional_details(mcCreditTransferRequest.getAdd_det());
+		}
+
+
 		CIMMerchantQRcodeRequest  cimMerchantQRcodeRequest=new CIMMerchantQRcodeRequest();
 		System.out.println(merchantQRgenerator.getPayload_format_indicator().toString());
 		cimMerchantQRcodeRequest.setPayloadFormatIndiator(merchantQRgenerator.getPayload_format_indicator().toString());
