@@ -52,6 +52,7 @@ import com.bornfire.entity.CIMMerchantQRcodeAcctInfo;
 import com.bornfire.entity.CIMMerchantQRcodeRequest;
 import com.bornfire.entity.CimMerchantResponse;
 import com.bornfire.entity.Dynamic_Request;
+import com.bornfire.entity.Dynamic_UPI_request;
 import com.bornfire.entity.MerchantMaster;
 import com.bornfire.entity.MerchantMasterRep;
 import com.bornfire.entity.MerchantQRRegistration;
@@ -518,7 +519,139 @@ public class IPSQRCODEController {
 		return new  ResponseEntity<>(str, HttpStatus.OK);
 	}
 
-	
+	@PostMapping(path = "/api/ws/DynamicUpi", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<CimMerchantResponse> genMerchantDynamicUPIQRcode(
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "Merchant_ID", required = true) String acct_num,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
+			@Valid @RequestBody Dynamic_UPI_request mcCreditTransferRequest		
+			
+			)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, WriterException {
+
+		logger.info("Service Starts generate QR Code");
+		//MerchantMaster ms = merchantmasterRep.findByIdCustom(acct_num);s
+		CimMerchantResponse response = null;
+		MerchantMaster ms = merchantmasterRep.findByIdCustom(acct_num);
+		
+		QRUrlGobalEntity merchantQRgenerator = new QRUrlGobalEntity();
+		merchantQRgenerator.setVers(ms.getVersion());
+		if(mcCreditTransferRequest.getMode()!=null) {
+			merchantQRgenerator.setModes(mcCreditTransferRequest.getMode());
+		}else {
+			merchantQRgenerator.setModes("15");
+		}
+		merchantQRgenerator.setPurpose(ms.getPurpose());
+		merchantQRgenerator.setOrgid(ms.getOrgid());
+		merchantQRgenerator.setTid(ms.getTid());
+		if(mcCreditTransferRequest.getTransaction_reference()!=null) {
+			merchantQRgenerator.setTr(mcCreditTransferRequest.getTransaction_reference());
+		}else {
+			merchantQRgenerator.setTr(ms.getTr());
+		}
+		if(mcCreditTransferRequest.getTransaction_note()!=null) {
+			merchantQRgenerator.setTn(mcCreditTransferRequest.getTransaction_note());
+		}else {
+			merchantQRgenerator.setTn(ms.getTn());
+		}
+		
+		merchantQRgenerator.setPa(ms.getPa());
+		merchantQRgenerator.setPn(ms.getMerchant_name());
+		merchantQRgenerator.setMc(new BigDecimal(ms.getMerchant_cat_code()));
+		merchantQRgenerator.setMid(ms.getMerchant_id());
+		merchantQRgenerator.setMsid(ms.getMsid());
+		merchantQRgenerator.setMtid(ms.getMtid());
+		merchantQRgenerator.setTid(ms.getTid());
+		merchantQRgenerator.setCcs("MU");
+		merchantQRgenerator.setMtype(ms.getMerchant_type());
+		merchantQRgenerator.setMgr("OFFLINE");
+		merchantQRgenerator.setMerchant_onboarding("BANK");
+		merchantQRgenerator.setMerchant_location(ms.getMerchant_city());
+		merchantQRgenerator.setBrand("TEST");
+		merchantQRgenerator.setTipsorconv(ms.getTip_or_conv_indicator());
+		merchantQRgenerator.setTips_value(ms.getTip_or_conv_indicator());
+		merchantQRgenerator.setCov_fee_type(ms.getConv_fees_type());
+		merchantQRgenerator.setVal_con_fee(ms.getValue_conv_fees());
+		if(mcCreditTransferRequest.getTransaction_amt() !=null) {
+		merchantQRgenerator.setBam(new BigDecimal(mcCreditTransferRequest.getTransaction_amt()));
+		merchantQRgenerator.setAm(new BigDecimal(mcCreditTransferRequest.getTransaction_amt()));}
+		merchantQRgenerator.setCu(ms.getCurr());
+		merchantQRgenerator.setInvoiceno(ms.getInvoiceno());
+		merchantQRgenerator.setInvoicedate(ms.getInvoicedate());
+		merchantQRgenerator.setQrexpire(ms.getQrexpire());
+		merchantQRgenerator.setQrmedium(ms.getQrmedium());
+//		merchantQRgenerator.setCategorys(categorys);
+//		merchantQRgenerator.setUrls(urls);
+
+		
+		
+		String qrcode = createQrcode(merchantQRgenerator, "");
+		
+		Hashtable<EncodeHintType, ErrorCorrectionLevel> hintMap = new Hashtable<>();
+		hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
+		QRCodeWriter qrCodeWriter = new QRCodeWriter();
+		BitMatrix byteMatrix = qrCodeWriter.encode(qrcode, BarcodeFormat.QR_CODE, 1500, 2000, hintMap);
+		// Make the BufferedImage that are to hold the QRCode
+		int matrixWidth = byteMatrix.getWidth();
+		int matrixHeight = byteMatrix.getHeight();
+		BufferedImage image = new BufferedImage(matrixWidth, matrixHeight, BufferedImage.TYPE_INT_RGB);
+		image.createGraphics();
+
+		Graphics2D graphics = (Graphics2D) image.getGraphics();
+		graphics.setColor(Color.WHITE);
+		graphics.fillRect(0, 0, matrixWidth, matrixHeight);
+		graphics.setColor(Color.BLACK);
+
+		BufferedImage logoimage = ImageIO.read(this.getClass().getResourceAsStream("/static/Image/NPCI_UPI_QR.png"));
+
+		logoimage.createGraphics();
+		Graphics2D graphi = (Graphics2D) logoimage.getGraphics();
+		graphi.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1f));
+
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		for (int i = 0; i < matrixWidth; i++) {
+			for (int j = 0; j < matrixHeight; j++) {
+				if (byteMatrix.get(i, j)) {
+					graphics.fillRect(i, j, 1, 1);
+				}
+			}
+		}
+		graphi.drawImage(image, 650, 1100, matrixWidth + 300, matrixHeight + 200, null);
+		graphi.setFont(new Font("Lucida Calligraphy", Font.BOLD, 250));
+		graphi.setColor(Color.BLACK);
+		FontMetrics fm = graphi.getFontMetrics();
+		String[] displayTextQR= {merchantQRgenerator.getPn(),""};
+		Integer width = 350;
+		Integer height = 6500;
+		int startingYposition = height + 5;
+		for (String displayText : displayTextQR) {
+			graphi.drawString(displayText, (image.getWidth()) - (fm.stringWidth(displayText)/2),startingYposition);
+			//graphi.drawString(displayText, 500,6500);
+			startingYposition += 20;
+		}
+		
+		BufferedImage BOB_LOGO = ImageIO.read(this.getClass().getResourceAsStream("/static/Image/CIM_logo.png"));
+		graphi.drawImage(BOB_LOGO, 1250, 1905,  500, 500, null);
+		
+		ImageIO.write(logoimage, "png", output);
+		String QrImg = Base64.getEncoder().encodeToString(output.toByteArray());
+
+		String imageAsBase64 = null;
+		imageAsBase64 = "data:image/png;base64," + QrImg;
+
+		logger.info("imageAsBase64 :"+imageAsBase64);
+		CimMerchantResponse str = new CimMerchantResponse();
+		str.setBase64QR(imageAsBase64);
+
+
+		return new  ResponseEntity<>(str, HttpStatus.OK);
+	}
 	public String createQrcode(QRUrlGobalEntity qrcodeen, String userid) {
 
 		String msg = "";
