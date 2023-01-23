@@ -29,6 +29,7 @@ import java.util.Hashtable;
 import javax.imageio.ImageIO;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 
@@ -42,7 +43,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bornfire.config.ErrorResponseCode;
@@ -50,6 +50,7 @@ import com.bornfire.entity.CIMCreditTransferRequest;
 import com.bornfire.entity.CIMMerchantQRAddlInfo;
 import com.bornfire.entity.CIMMerchantQRcodeAcctInfo;
 import com.bornfire.entity.CIMMerchantQRcodeRequest;
+import com.bornfire.entity.CimDynamicMaucasRequest;
 import com.bornfire.entity.CimMerchantResponse;
 import com.bornfire.entity.Dynamic_Request;
 import com.bornfire.entity.Dynamic_UPI_request;
@@ -88,11 +89,11 @@ public class IPSQRCODEController {
 	
 	@PostMapping(path = "/api/ws/StaticMaucas", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<CimMerchantResponse> genMerchantQRcode(
-			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
-			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
-			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "P-ID", required = false) String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = false) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = false) String psuIpAddress,
 			@RequestHeader(value = "PSU-ID", required = false) String psuID,
-			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Channel", required = false) String channelID,
 			@RequestHeader(value = "Merchant_ID", required = true) String acct_num,
 			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2
 			)
@@ -235,14 +236,25 @@ public class IPSQRCODEController {
 	
 	@PostMapping(path = "/api/ws/DynamicMaucas", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<CimMerchantResponse> genDynamicMerchantQRcode(
-			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
-			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
-			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "P-ID", required = false) String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = false) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = false) String psuIpAddress,
 			@RequestHeader(value = "PSU-ID", required = false) String psuID,
 			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
 			@RequestHeader(value = "Merchant_ID", required = true) String acct_num,
 			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
-			@Valid @RequestBody Dynamic_Request mcCreditTransferRequest		
+			@RequestHeader(value = "Transaction_Amt", required = false) String tran_amt,
+			@RequestHeader(value = "Mobile_Number", required = false) String mob_num,
+			@RequestHeader(value = "Loyality_Number", required = false) String loy_num,
+			@RequestHeader(value = "Store_Label", required = false) String sto_label,
+			@RequestHeader(value = "Customer_Label", required = false) String cust_label,
+			@RequestHeader(value = "Reference_Label", required = false) String ref_label,
+			@RequestHeader(value = "Terminal_Label", required = false) String ter_label,
+			@RequestHeader(value = "Purpose_Of_Tran", required = false) String pur_tran,
+			@RequestHeader(value = "Additonal_Detail", required = false) String add_det,
+			@RequestHeader(value = "Bill_Number", required = false) String bill_num	,
+			@RequestBody CimDynamicMaucasRequest cimmaudynamic 
+
 			)
 	
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
@@ -271,37 +283,62 @@ public class IPSQRCODEController {
 		merchantQRgenerator.setValue_conv_fees(ms.getValue_conv_fees());
 		merchantQRgenerator.setCity(ms.getMerchant_city());
 		merchantQRgenerator.setCountry("MU");
+		
+		merchantQRgenerator.setTransaction_amt(cimmaudynamic.getTran_amt());
 		merchantQRgenerator.setZip_code(ms.getPincode());
-		merchantQRgenerator.setBill_number(ms.getTr());
-		merchantQRgenerator.setMobile(ms.getMerchant_mob_no());
-		merchantQRgenerator.setLoyalty_number(ms.getLoyalty_number());
-		merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
-		merchantQRgenerator.setStore_label(ms.getStore_label());
-		merchantQRgenerator.setTerminal_label(ms.getTerminal_label());
-		merchantQRgenerator.setReference_label(ms.getReference_label());
-		merchantQRgenerator.setPurpose_of_tran(ms.getPurpose_of_tran());
-		merchantQRgenerator.setAdditional_details(ms.getAdd_details_req());
-		if(mcCreditTransferRequest.getBill_num()!="") {
-			merchantQRgenerator.setBill_number(mcCreditTransferRequest.getBill_num());
-		}
-		if(mcCreditTransferRequest.getMob_num()!="") {
-			merchantQRgenerator.setMobile(mcCreditTransferRequest.getMob_num());
-		}if(mcCreditTransferRequest.getLoy_num()!="") {
-			merchantQRgenerator.setLoyalty_number(mcCreditTransferRequest.getLoy_num());
-		}if(mcCreditTransferRequest.getCust_label()!="") {
-			merchantQRgenerator.setCustomer_label(mcCreditTransferRequest.getCust_label());
-		}if(mcCreditTransferRequest.getSto_label()!="") {
-			merchantQRgenerator.setStore_label(mcCreditTransferRequest.getSto_label());
-		}if(mcCreditTransferRequest.getTer_label()!="") {
-			merchantQRgenerator.setTerminal_label(mcCreditTransferRequest.getTer_label());
-		}if(mcCreditTransferRequest.getRef_label()!="") {
-			merchantQRgenerator.setReference_label(mcCreditTransferRequest.getRef_label());
-		}if(mcCreditTransferRequest.getPur_tran()!="") {
-			merchantQRgenerator.setPurpose_of_tran(mcCreditTransferRequest.getPur_tran());
-		}if(mcCreditTransferRequest.getAdd_det()!="") {
-			merchantQRgenerator.setAdditional_details(mcCreditTransferRequest.getAdd_det());
-		}
 
+		if(cimmaudynamic.getBill_num().equals("null")) {
+			merchantQRgenerator.setBill_number(ms.getBill_number());
+		}else {
+		merchantQRgenerator.setBill_number(cimmaudynamic.getBill_num());
+		}
+		if(cimmaudynamic.getLoy_num().equals("null")) {
+			merchantQRgenerator.setLoyalty_number(ms.getLoyalty_number());
+		}else {
+		merchantQRgenerator.setLoyalty_number(cimmaudynamic.getLoy_num());
+		}
+		if(cimmaudynamic.getMob_num().equals("null")) {
+			merchantQRgenerator.setMobile(ms.getMerchant_cont_details());
+		}else {
+		merchantQRgenerator.setMobile(cimmaudynamic.getMob_num());
+		}
+		if(cimmaudynamic.getCust_label().equals("null")) {
+			merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
+		}else {
+		merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
+		}
+		if(cimmaudynamic.getSto_label().equals("null")) {
+			merchantQRgenerator.setStore_label(ms.getStore_label());
+		}else {
+		merchantQRgenerator.setStore_label(cimmaudynamic.getSto_label());
+		}
+		if(cimmaudynamic.getTer_label().equals("null")) {
+			merchantQRgenerator.setTerminal_label(ms.getTerminal_label());
+		}else {
+		merchantQRgenerator.setTerminal_label(cimmaudynamic.getTer_label());
+		}
+		if(cimmaudynamic.getRef_label().equals("null")) {
+			merchantQRgenerator.setReference_label(ms.getReference_label());
+		}else {
+		merchantQRgenerator.setReference_label(cimmaudynamic.getRef_label());
+		}
+		if(cimmaudynamic.getPur_tran().equals("null")) {
+			merchantQRgenerator.setPurpose_of_tran(ms.getPurpose_of_tran());
+		}else {
+		merchantQRgenerator.setPurpose_of_tran(cimmaudynamic.getPur_tran());
+		}
+		if(cimmaudynamic.getAdd_det().equals("null")) {
+			merchantQRgenerator.setAdditional_details(ms.getAdd_details_req());
+		}else {
+		merchantQRgenerator.setAdditional_details(cimmaudynamic.getAdd_det());
+		}
+		if(cimmaudynamic.getCust_label().equals("null")) {
+			merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
+		}else {
+		merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
+		}
+		
+		
 
 		CIMMerchantQRcodeRequest  cimMerchantQRcodeRequest=new CIMMerchantQRcodeRequest();
 		System.out.println(merchantQRgenerator.getPayload_format_indicator().toString());
@@ -319,9 +356,9 @@ public class IPSQRCODEController {
 		cimMerchantQRcodeRequest.setCurrency(merchantQRgenerator.getTransaction_crncy().toString());
 		
 		
-		if(!String.valueOf(merchantQRgenerator.getTransaction_amt()).equals("null")&&
-				!String.valueOf(merchantQRgenerator.getTransaction_amt()).equals("")) {
-			cimMerchantQRcodeRequest.setTrAmt(merchantQRgenerator.getTransaction_amt().toString());
+		if(!merchantQRgenerator.getTransaction_amt().equals("null")&&
+				!merchantQRgenerator.getTransaction_amt().equals("")) {
+			cimMerchantQRcodeRequest.setTrAmt(merchantQRgenerator.getTransaction_amt());
 		}
 		
 		
@@ -376,6 +413,8 @@ public class IPSQRCODEController {
 		cimMercbantQRAddlInfo.setAddlDataRequest(merchantQRgenerator.getAdditional_details());
 		
 		cimMerchantQRcodeRequest.setAdditionalDataInformation(cimMercbantQRAddlInfo);
+		
+		logger.info("cimMerchantQRcodeRequest"+cimMerchantQRcodeRequest.toString());
 		CimMerchantResponse merchantQRResponse=ipsConnection.createMerchantQRConnection(psuDeviceID, psuIpAddress, psuID,
 				 cimMerchantQRcodeRequest, p_id,
 				 channelID, acct_num, resvfield2);
@@ -402,9 +441,9 @@ public class IPSQRCODEController {
 	
 	@PostMapping(path = "/api/ws/StaticUpi", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<CimMerchantResponse> genMerchantUPIQRcode(
-			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
-			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
-			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "P-ID", required = false) String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = false) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = false) String psuIpAddress,
 			@RequestHeader(value = "PSU-ID", required = false) String psuID,
 			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
 			@RequestHeader(value = "Merchant_ID", required = true) String acct_num,

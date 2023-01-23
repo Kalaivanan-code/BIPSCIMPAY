@@ -52,6 +52,12 @@ public class CIMMerchantQRcodeAcctInfo {
 	public void setMerchantID(String merchantID) {
 		MerchantID = merchantID;
 	}
+
+	@Override
+	public String toString() {
+		return "CIMMerchantQRcodeAcctInfo [GlobalID=" + GlobalID + ", PayeeParticipantCode=" + PayeeParticipantCode
+				+ ", MerchantAcctNumber=" + MerchantAcctNumber + ", MerchantID=" + MerchantID + "]";
+	}
 	
 	
 }

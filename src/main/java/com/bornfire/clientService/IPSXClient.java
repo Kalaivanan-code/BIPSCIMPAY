@@ -49,6 +49,8 @@ import com.bornfire.entity.CreditTransferTransaction;
 import com.bornfire.entity.DocType;
 import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.entity.MCCreditTransferResponse;
+import com.bornfire.entity.MerchantMaster;
+import com.bornfire.entity.MerchantMasterRep;
 import com.bornfire.entity.SettlementLimitReportRep;
 import com.bornfire.entity.SettlementLimitReportTable;
 import com.bornfire.entity.SettlementLimitResponse;
@@ -152,6 +154,10 @@ public class IPSXClient extends WebServiceGatewaySupport {
 	
 	@Autowired
 	UpdateCBSIncProceRep updateProcedure;
+	
+	@Autowired
+	MerchantMasterRep merchantmasterRep;
+	
 
 	@SuppressWarnings("unchecked")
 	public void sendftRequst(
@@ -505,7 +511,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					//int bankAgentExistSize=bankAgentTableRep.findByCustomBankName1
 					//(instgAgtPacs008,debtorAgent008,instdAgtPacs008).size();
 					
-				logger.info("trAmount"+trAmount008.toString());
+				logger.info(ctgy_purp_pacs008+"trAmount"+trAmount008.toString());
 					String trAmount008S=trAmount008.toString();
 					String trAmount008D= String.valueOf(Double.parseDouble(trAmount008S));
 					String totInttBkSettlAmtPacs008D=String.valueOf(Double.parseDouble(totInttBkSettlAmtPacs008.toString()));
@@ -530,17 +536,19 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							
 							if(rmt_info_pacs008.substring(firstindex+4, lastindex).equals("123123")) {
 								responseTestMsg="Success";
-
+								logger.info("responseTestMsg"+responseTestMsg);
 							}else {
 							//	responseIncomeMsg=errorCode.ErrorCode("IV");
 								
 								responseTestMsg="Failure";
+								logger.info("responseTestMsg"+responseTestMsg);
 							}
 						}
 					
 					
 					
-					if(ctgy_purp_pacs008.equals("102") || ctgy_purp_pacs008.equals("300")||
+					if(ctgy_purp_pacs008.equals("102") || 
+							//ctgy_purp_pacs008.equals("300")||
 							!trCurrency008.equals("MUR")||
 							!totInttBkSettlCcyPacs008.equals("MUR")||
 							!trAmount008D.equals(totInttBkSettlAmtPacs008D)||
@@ -550,7 +558,14 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							!ipsDao.checkBankAgentExistIncomingMsg(debtorAgent008)||
 							!ipsDao.checkBankAgentExistIncomingMsg(instgAgtPacs008)||
 							!ipsDao.checkBankAgentExistIncomingMsg(instdAgtPacs008)|| responseTestMsg.equals("Failure")) {
-						
+						logger.info("debtorAgent008"+debtorAgent008);
+						logger.info("instgAgtPacs008"+instgAgtPacs008);
+						logger.info("instdAgtPacs008"+instdAgtPacs008);
+						logger.info("trAmount008S"+trAmount008S);
+						logger.info("responseTestMsg"+responseTestMsg);
+						logger.info("creditorAccount008"+creditorAccount008);
+						logger.info("trCurrency008"+trCurrency008);
+						logger.info("ctgy_purp_pacs008"+ctgy_purp_pacs008);
 						logger.info("Validation Problem");
 						
 						
@@ -585,11 +600,22 @@ public class IPSXClient extends WebServiceGatewaySupport {
 						responseIncomeMsg=errorCode.ErrorCode("AG01");
 						errorType=TranMonitorStatus.VALIDATION_ERROR.toString();
 					}*/else {
-						logger.info("Calling ESB Connection");
+//						MerchantMaster ms = merchantmasterRep.findByIdCustom(creditorAccount008);
+//						
+						if(!ctgy_purp_pacs008.equals("300")) {
+							logger.info("Calling ESB Connection "+ ctgy_purp_pacs008);
+							responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,creditorAccountName008,
+									trAmount008S, trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
+									debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008);
+						
+						}else {
+							responseIncomeMsg="CIM0:SUCCESS";
+						}
+					/*	logger.info("Calling ESB Connection");
 						responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,creditorAccountName008,
 								trAmount008S, trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
 								debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008);
-					
+					*/
 //						responseIncomeMsg=ipsDao.initiateTranToCIM(creditorAccount008,creditorAccountName008,
 //								trAmount008S, trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
 //								debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008);

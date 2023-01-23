@@ -45,6 +45,9 @@ public class NPCIQrcodeValidation {
 	@Autowired
 	UPI_REQ_REP uPI_REQ_REP;
 	
+	@Autowired
+	NPCIQRIPSXservice npciIPSXservice;
+	
 
 	
 	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) throws ParseException {
@@ -193,26 +196,26 @@ public String ValidateQrcode(NpciupiReqcls npcireq,String pid) throws ParseExcep
 			if(dat.compareTo(new Date()) >0) {
 				if(qrdet.getMtid().equals(qr.get().getMtid()) && !qr.get().getDel_flg().equals('Y') && valQr.equals("Success")) {
 					response = "SUCCESS";
-					consentIPSXservice.respvalQr(npcireq, pid);
+					npciIPSXservice.respvalQr(npcireq, pid);
 				}else if(qr.get().getDel_flg().equals('Y')) {
 					response = "CUSTOMER_NOT_ACTIVE";
-					consentIPSXservice.respvalQr(npcireq, pid);
+					npciIPSXservice.respvalQr(npcireq, pid);
 				}else if(valQr.equals("Failure")) {
 					response = "INVALID_QRCODE";
-					consentIPSXservice.respvalQr(npcireq, pid);
+					npciIPSXservice.respvalQr(npcireq, pid);
 				}
 				else {
 					response = "TERMINAL_MISSMATCH";
-					consentIPSXservice.respvalQr(npcireq, pid);
+					npciIPSXservice.respvalQr(npcireq, pid);
 				}
 				
 			}else {
 				response = "EXPIRED";
-				consentIPSXservice.respvalQr(npcireq, pid);
+				npciIPSXservice.respvalQr(npcireq, pid);
 			}
 		} else {
 			response = "FAILURE";
-			consentIPSXservice.respvalQr(npcireq, pid);
+			npciIPSXservice.respvalQr(npcireq, pid);
 		}
 
 UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
