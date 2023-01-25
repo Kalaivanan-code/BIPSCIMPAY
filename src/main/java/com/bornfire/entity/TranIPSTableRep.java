@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @Transactional
-
 public interface TranIPSTableRep extends JpaRepository<TranIPSTable, String> {
 
 	@Query(value = "select * from BIPS_TRAN_IPS_TABLE where msg_id=?1", nativeQuery = true)

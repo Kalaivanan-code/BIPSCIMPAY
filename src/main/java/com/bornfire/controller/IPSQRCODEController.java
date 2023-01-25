@@ -263,7 +263,7 @@ public class IPSQRCODEController {
 		logger.info("Service Starts generate QR Code");
 		//MerchantMaster ms = merchantmasterRep.findByIdCustom(acct_num);
 		CimMerchantResponse response = null;
-		MerchantMaster ms = merchantmasterRep.findByIdCustom(mcCreditTransferRequest.getMerchant_ID());
+		MerchantMaster ms = merchantmasterRep.findByIdCustom(cimmaudynamic.getMerchant_ID());
 		MerchantQRRegistration merchantQRgenerator = new MerchantQRRegistration();
 		String paycode = env.getProperty("ipsx.qr.payeecode");
 		String globalUnique = env.getProperty("ipsx.qr.globalUnique");

@@ -136,6 +136,8 @@ import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.entity.MCCreditTransferResponse;
 import com.bornfire.entity.ManualFndTransferRequest;
 import com.bornfire.entity.McConsentOutwardAccessResponse;
+import com.bornfire.entity.MerchantMaster;
+import com.bornfire.entity.MerchantMasterRep;
 import com.bornfire.entity.MerchantQRRegistration;
 import com.bornfire.entity.MerchantQrCodeRegRep;
 import com.bornfire.entity.OtherBankDetResponse;
@@ -302,6 +304,10 @@ public class IPSConnection {
 	
 	@Autowired
 	InformixConnectionManager conne;
+	
+	@Autowired
+	MerchantMasterRep merchantmasterrep;
+	
 	/////Fund Transfer Connection
 	////Debit Customer Account Credit Settl Account(Connect 24)
 	////Send Packages to IPSX,Credit to IPSX Account
@@ -4751,6 +4757,77 @@ public class IPSConnection {
 			return tranResponse;
 		}
 
+	}	
+
+	public String incomingFundTransferConnectionMerchant(String acctNumber, String acctName, String trAmt, String currency,
+			String sysTraceAuditNumber, String SeqUniqueID, String trRmks, SendT request, String debrAcctNumber,
+			String debtAcctName, String instgAcct, String ctgyPurp, String rmtInfo, String instrId, String endToEndID) {
+
+		
+		logger.info("Calling Connect 24 for Account Status");
+
+		String tranResponse = "";
+		String response = ""; 
+		
+		//// Generate RequestUUID
+		String requestUUID = sequence.generateRequestUUId();
+
+		String settlReceivableAccount=settlAccountRep.findByAccountNuber(env.getProperty("settl.receivable"));
+		//String settlReceivableAccount = settlAccountRep.findById("03").get().getAccount_number();
+		
+		List<MerchantMaster> outTranList = ipsDao.checkMerchantAcct(acctNumber);
+		
+		int sizeOutTran = outTranList.size();
+
+			
+		if(sizeOutTran>0) {
+			
+			MerchantMaster dataParse=outTranList.get(0);
+		
+					
+			response = ipsDao.registerMerchantIncomingData(requestUUID, new Date(),
+					sysTraceAuditNumber,"",
+					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "RTP", "", rmtInfo, "",
+					"", new Date(),dataParse.getMerchant_name());
+			
+			
+			
+		}/*else {
+			response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+					sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID, "True", "CR", "N", "",
+					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "NRT", "", rmtInfo, "",
+					"", new Date(), "RECEIVABLE", "", "", "", "");
+			
+			
+		}*/
+		
+		
+		if (response.equals("1")) {
+
+			if (sizeOutTran>0) {
+
+							tranResponse = errorCode.ErrorCode("CIM0");
+							
+//							logger.info("Calling Connect 24 for Account Status5");
+//							
+//							ipsDao.updateCIMcbsData(requestUUID, "SUCCESS",
+//									connect24Response.getBody().getStatus().getStatusCode(),
+//									connect24Response.getBody().getStatus().getMessage(),
+//									connect24Response.getBody().getData().getTransactionNoFromCBS());
+//							tranResponse = errorCode.ErrorCode("CIM0");
+
+							return tranResponse;				
+		
+
+			} else {
+				
+				tranResponse = errorCode.ErrorCode("AC03");
+				return tranResponse;
+			}
+			
+		}
+		return tranResponse;
 	}	
 
 	

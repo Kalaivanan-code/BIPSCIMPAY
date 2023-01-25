@@ -94,6 +94,8 @@ import com.bornfire.entity.IPSFlowTableRep;
 import com.bornfire.entity.Links;
 import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.entity.ManualFndTransferRequest;
+import com.bornfire.entity.MerchantMaster;
+import com.bornfire.entity.MerchantMasterRep;
 import com.bornfire.entity.MerchantQrGenTable;
 import com.bornfire.entity.MerchantQrGenTablerep;
 import com.bornfire.entity.OTPGenTable;
@@ -103,6 +105,8 @@ import com.bornfire.entity.OutwardTransHistMonitorTable;
 import com.bornfire.entity.OutwardTransHistMonitoringTableRep;
 import com.bornfire.entity.OutwardTransactionMonitoringTable;
 import com.bornfire.entity.OutwardTransactionMonitoringTableRep;
+import com.bornfire.entity.PartitionTableRep;
+import com.bornfire.entity.Partition_table_entity;
 import com.bornfire.entity.RTPTransferRequestStatus;
 import com.bornfire.entity.RTPTransferStatusResponse;
 import com.bornfire.entity.RTPbulkTransferRequest;
@@ -295,6 +299,12 @@ public class IPSDao {
 	
 	@Autowired
 	InformixConnectionManager informixCon;
+	
+	@Autowired
+	MerchantMasterRep merchantmasterrep;
+	
+	@Autowired
+	PartitionTableRep partitiontablerep;
 
 	private static final Logger logger = LoggerFactory.getLogger(IPSXClient.class);
 
@@ -6073,6 +6083,45 @@ public class IPSDao {
 		return response;
 	}
 
+	public String registerMerchantIncomingData(String requestUUID,Date msgDate,String tranNumber,
+			String tran_type,String acctNumber, String trAmt, String currency,
+			String seqUniqueID,  String debrAcctNumber,
+			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
+			String resv_field1,String res_field2,Date valueDate,String Merchant_name) {
+		
+		String response="0";
+		try {
+			Partition_table_entity tranCimCBSTable=new Partition_table_entity();
+			
+			
+			tranCimCBSTable.setMerchant_id(acctNumber);
+			tranCimCBSTable.setMerchant_trading_name(Merchant_name);
+			tranCimCBSTable.setTran_type(tran_type);
+			tranCimCBSTable.setTran_date(valueDate);
+			tranCimCBSTable.setValue_date(valueDate);
+			tranCimCBSTable.setTran_id(seqUniqueID);
+
+			tranCimCBSTable.setPart_tran_type(tran_part_code);
+			tranCimCBSTable.setTran_ref_cur(currency);
+			tranCimCBSTable.setTran_ref_cur_amt(new BigDecimal(trAmt));
+			tranCimCBSTable.setTran_rate(new BigDecimal(1));
+			tranCimCBSTable.setTran_amt_loc(new BigDecimal(trAmt));
+			tranCimCBSTable.setTran_particular(credit_remarks);
+			tranCimCBSTable.setTran_remarks(credit_remarks);
+			tranCimCBSTable.setPart_tran_id(new BigDecimal(1));
+			tranCimCBSTable.setTran_date(new Date());
+			partitiontablerep.saveAndFlush(tranCimCBSTable);
+			response="1";
+
+		}catch(Exception e) {
+			logger.info(e.getLocalizedMessage());
+			response="0";
+		}
+		
+		return response;
+	}
+
+	
 	public void updateCIMcbsData(String requestUUID, String status, String statusCode, String message,String tranNoFromCBS) {
 		
 		tranCimCBSTableRep.updateCIMcbsData(requestUUID,status,statusCode,message,tranNoFromCBS,
@@ -6141,6 +6190,11 @@ public class IPSDao {
 		return data1;
 	}
 
+	public List<MerchantMaster> checkMerchantAcct(String Acctnum) {
+		List<MerchantMaster> data1=merchantmasterrep.checkexistingcurrency(Acctnum);
+		return data1;
+	}
+	
 	public boolean checkConvenienceFeeValidation(CIMMerchantDirectFndRequest mcCreditTransferRequest) {
 		
 		/*if (mcCreditTransferRequest.getMerchantAccount().isConvenienceIndicator()) {
