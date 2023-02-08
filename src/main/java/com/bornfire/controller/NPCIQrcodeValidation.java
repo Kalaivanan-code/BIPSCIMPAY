@@ -272,7 +272,7 @@ qrcode.indexOf("mGr")!=-1 ||qrcode.indexOf("mOnboarding")!=-1 ||qrcode.indexOf("
 		System.out.println("Substrings length:" + strs.length);
 		for (int i = 0; i < strs.length; i++) {
 			logger.info("Str[" + i + "]:" + strs[i] + " " + strs[i].substring(0, 3));
-
+			qrdet.setVers("01");
 			if (strs[i].substring(0, 3).equals("mod")) {
 				String mode = strs[i].substring(5);
 				qrdet.setModes(mode);
@@ -378,6 +378,9 @@ if (strs[i].substring(0, 4).equals("tid=")) {
 			}if (strs[i].substring(0, 4).equals("bran")) {
 				String mode = strs[i].substring(6);
 				qrdet.setBrand(mode);
+			}if (strs[i].substring(0, 4).equals("enTip")) {
+				String mode = strs[i].substring(7);
+				qrdet.setEntips(mode);
 			}
 		}
 

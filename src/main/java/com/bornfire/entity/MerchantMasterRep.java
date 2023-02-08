@@ -25,4 +25,7 @@ Optional<MerchantMaster> findById(String directorId);
 	
 	@Query(value = "select * from MERCHANT_MASTER_TABLE  where entity_flg ='Y' and del_flg ='N' UNION ALL select * from MERCHANT_MASTER_TABLE_MOD  where entity_flg ='N'", nativeQuery = true)
 	List<MerchantMaster> ALLDATA();
+	
+	@Query(value = "select fees from BIPS_MERCHANT_CHARGES_AND_FEES_TABLE where DESCRIPTION in (select MERCHANT_FEES from MERCHANT_MASTER_TABLE where MERCHANT_ID=?1)", nativeQuery = true)
+	String getMerchantfees(String Id);
 }

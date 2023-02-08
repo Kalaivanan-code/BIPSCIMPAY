@@ -10,7 +10,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="BIPS_TRAN_PARITION_TABLE")
-@IdClass(PartitionTableID.class)
+@IdClass(PartitionTableIDTest.class)
 public class Partition_table_entity {
 
 	@Id
@@ -35,6 +35,20 @@ public class Partition_table_entity {
 	private String	partition_detail;
 	private String	cust_ref;
 	private String	loan_ref;
+	private String ipsx_account_number;
+	private String ipsx_acct_name;
+	private String tran_type_code;
+	private String dbtr_agt;
+	private String cdtr_agt;
+	private String tran_rmks;
+	private String instr_id;
+	private String endtoendid;
+
+
+	
+	
+	
+	
 	public String getMerchant_id() {
 		return merchant_id;
 	}
@@ -149,11 +163,67 @@ public class Partition_table_entity {
 	public void setLoan_ref(String loan_ref) {
 		this.loan_ref = loan_ref;
 	}
+
+
+	public String getIpsx_account_number() {
+		return ipsx_account_number;
+	}
+	public void setIpsx_account_number(String ipsx_account_number) {
+		this.ipsx_account_number = ipsx_account_number;
+	}
+	public String getIpsx_acct_name() {
+		return ipsx_acct_name;
+	}
+	public void setIpsx_acct_name(String ipsx_acct_name) {
+		this.ipsx_acct_name = ipsx_acct_name;
+	}
+	public String getTran_type_code() {
+		return tran_type_code;
+	}
+	public void setTran_type_code(String tran_type_code) {
+		this.tran_type_code = tran_type_code;
+	}
+	public String getDbtr_agt() {
+		return dbtr_agt;
+	}
+	public void setDbtr_agt(String dbtr_agt) {
+		this.dbtr_agt = dbtr_agt;
+	}
+	public String getCdtr_agt() {
+		return cdtr_agt;
+	}
+	public void setCdtr_agt(String cdtr_agt) {
+		this.cdtr_agt = cdtr_agt;
+	}
+	public String getTran_rmks() {
+		return tran_rmks;
+	}
+	public void setTran_rmks(String tran_rmks) {
+		this.tran_rmks = tran_rmks;
+	}
+	public String getInstr_id() {
+		return instr_id;
+	}
+	public void setInstr_id(String instr_id) {
+		this.instr_id = instr_id;
+	}
+	public String getEndtoendid() {
+		return endtoendid;
+	}
+	public void setEndtoendid(String endtoendid) {
+		this.endtoendid = endtoendid;
+	}
+	public Partition_table_entity() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 	public Partition_table_entity(String merchant_id, String merchant_acct_no, String merchant_trading_name,
 			String tran_type, Date tran_date, Date value_date, String tran_id, BigDecimal part_tran_id,
 			String part_tran_type, String tran_ref_cur, BigDecimal tran_ref_cur_amt, BigDecimal tran_rate,
 			BigDecimal tran_amt_loc, String tran_particular, String tran_remarks, String partition_type,
-			String partition_detail, String cust_ref, String loan_ref) {
+			String partition_detail, String cust_ref, String loan_ref, String ipsx_account_number,
+			String ipsx_acct_name, String tran_type_code, String dbtr_agt, String cdtr_agt, String tran_rmks,
+			String instr_id, String endtoendid) {
 		super();
 		this.merchant_id = merchant_id;
 		this.merchant_acct_no = merchant_acct_no;
@@ -174,10 +244,14 @@ public class Partition_table_entity {
 		this.partition_detail = partition_detail;
 		this.cust_ref = cust_ref;
 		this.loan_ref = loan_ref;
-	}
-	public Partition_table_entity() {
-		super();
-		// TODO Auto-generated constructor stub
+		this.ipsx_account_number = ipsx_account_number;
+		this.ipsx_acct_name = ipsx_acct_name;
+		this.tran_type_code = tran_type_code;
+		this.dbtr_agt = dbtr_agt;
+		this.cdtr_agt = cdtr_agt;
+		this.tran_rmks = tran_rmks;
+		this.instr_id = instr_id;
+		this.endtoendid = endtoendid;
 	}
 
 	

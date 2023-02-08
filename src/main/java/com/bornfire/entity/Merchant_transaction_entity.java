@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 
@@ -14,6 +15,7 @@ public class Merchant_transaction_entity {
 	private String	tran_type;
 	private Date	tran_date;
 	private Date	value_date;
+	@Id
 	private String	tran_id;
 	private BigDecimal	part_tran_id;
 	private String	merchant_id;

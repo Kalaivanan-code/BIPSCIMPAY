@@ -4761,7 +4761,9 @@ public class IPSConnection {
 
 	public String incomingFundTransferConnectionMerchant(String acctNumber, String acctName, String trAmt, String currency,
 			String sysTraceAuditNumber, String SeqUniqueID, String trRmks, SendT request, String debrAcctNumber,
-			String debtAcctName, String instgAcct, String ctgyPurp, String rmtInfo, String instrId, String endToEndID) {
+			String debtAcctName, String instgAcct, String ctgyPurp, String rmtInfo, String instrId, String endToEndID,String instdAgtPacs008) {
+
+
 
 		
 		logger.info("Calling Connect 24 for Account Status");
@@ -4777,22 +4779,28 @@ public class IPSConnection {
 		
 		List<MerchantMaster> outTranList = ipsDao.checkMerchantAcct(acctNumber);
 		
+		
 		int sizeOutTran = outTranList.size();
 
 			
 		if(sizeOutTran>0) {
 			
 			MerchantMaster dataParse=outTranList.get(0);
-		
+			String merchantFees = ipsDao.GetMerchantFees(acctNumber);
 					
 			response = ipsDao.registerMerchantIncomingData(requestUUID, new Date(),
 					sysTraceAuditNumber,"",
 					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "RTP", "", rmtInfo, "",
-					"", new Date(),dataParse.getMerchant_name());
+					"", new Date(),dataParse.getMerchant_name(),merchantFees,debrAcctNumber,debtAcctName,instgAcct,ctgyPurp,trRmks,instrId,endToEndID,instdAgtPacs008);
 			
 			
 			
-		}/*else {
+		}else {
+			
+			tranResponse = errorCode.ErrorCode("AC03");
+			return tranResponse;
+		}
+		/*else {
 			response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 					sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID, "True", "CR", "N", "",

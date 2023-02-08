@@ -612,7 +612,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							responseIncomeMsg="CIM0:SUCCESS";
 							responseIncomeMsg = ipsConnection.incomingFundTransferConnectionMerchant(creditorAccount008,creditorAccountName008,
 									trAmount008S, trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
-									debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008);
+									debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008,instdAgtPacs008);
 							
 						}
 					/*	logger.info("Calling ESB Connection");

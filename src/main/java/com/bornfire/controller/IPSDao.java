@@ -6085,9 +6085,11 @@ public class IPSDao {
 
 	public String registerMerchantIncomingData(String requestUUID,Date msgDate,String tranNumber,
 			String tran_type,String acctNumber, String trAmt, String currency,
-			String seqUniqueID,  String debrAcctNumber,
-			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
-			String resv_field1,String res_field2,Date valueDate,String Merchant_name) {
+			String seqUniqueID,  String credAcctNumber,
+			String credAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
+			String resv_field1,String res_field2,Date valueDate,String Merchant_name,String Merchantfees,
+			String debrAcctNumber,String debtAcctName,String instgAcct,String ctgyPurp,String trRmks,String instrId,String endToEndID,
+			String instdAgtPacs008) {
 		
 		String response="0";
 		try {
@@ -6110,8 +6112,37 @@ public class IPSDao {
 			tranCimCBSTable.setTran_remarks(credit_remarks);
 			tranCimCBSTable.setPart_tran_id(new BigDecimal(1));
 			tranCimCBSTable.setTran_date(new Date());
+			tranCimCBSTable.setIpsx_account_number(debrAcctNumber);
+			tranCimCBSTable.setIpsx_acct_name(debtAcctName);
+			tranCimCBSTable.setDbtr_agt(instgAcct);
+			tranCimCBSTable.setCdtr_agt(instdAgtPacs008);
+			tranCimCBSTable.setTran_type_code(ctgyPurp);
+			tranCimCBSTable.setTran_rmks(trRmks);
+			tranCimCBSTable.setInstr_id(instrId);
+			tranCimCBSTable.setEndtoendid(endToEndID);
+			
 			partitiontablerep.saveAndFlush(tranCimCBSTable);
+			
 			response="1";
+			
+		/*	List<Partition_table_entity> partitiondata = partitiontablerep.getpartitiondata(seqUniqueID);
+			
+			int sizeOutPart = partitiondata.size();
+			
+			if(sizeOutPart>0) {
+				Partition_table_entity dataParse = new Partition_table_entity(); 
+				dataParse =partitiondata.get(0);
+				
+				dataParse.setTran_amt_loc(new BigDecimal(Merchantfees));
+				dataParse.setPart_tran_id(new BigDecimal(2));
+				dataParse.setPart_tran_type("Fees");
+				dataParse.setTran_ref_cur_amt(new BigDecimal(Merchantfees));
+				response = ADDMerchantFees(dataParse);
+				
+				
+				
+			}*/
+			
 
 		}catch(Exception e) {
 			logger.info(e.getLocalizedMessage());
@@ -6121,6 +6152,13 @@ public class IPSDao {
 		return response;
 	}
 
+	private String ADDMerchantFees(Partition_table_entity dataParse) {
+		
+		partitiontablerep.save(dataParse);
+		String response ="1";
+		return response;
+		
+	}
 	
 	public void updateCIMcbsData(String requestUUID, String status, String statusCode, String message,String tranNoFromCBS) {
 		
@@ -6192,6 +6230,12 @@ public class IPSDao {
 
 	public List<MerchantMaster> checkMerchantAcct(String Acctnum) {
 		List<MerchantMaster> data1=merchantmasterrep.checkexistingcurrency(Acctnum);
+		return data1;
+	}
+	
+	
+	public String GetMerchantFees(String Acctnum) {
+		String data1=merchantmasterrep.getMerchantfees(Acctnum);
 		return data1;
 	}
 	

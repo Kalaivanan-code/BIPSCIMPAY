@@ -22,6 +22,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.ECGenParameterSpec;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Hashtable;
@@ -47,9 +48,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bornfire.config.ErrorResponseCode;
 import com.bornfire.entity.CIMCreditTransferRequest;
+import com.bornfire.entity.CIMMerchantDecodeQRFormatResponse;
 import com.bornfire.entity.CIMMerchantQRAddlInfo;
+import com.bornfire.entity.CIMMerchantQRRequestFormat;
 import com.bornfire.entity.CIMMerchantQRcodeAcctInfo;
 import com.bornfire.entity.CIMMerchantQRcodeRequest;
+import com.bornfire.entity.CIMUPIMerchantResponse;
 import com.bornfire.entity.CimDynamicMaucasRequest;
 import com.bornfire.entity.CimMerchantResponse;
 import com.bornfire.entity.Dynamic_Request;
@@ -57,6 +61,7 @@ import com.bornfire.entity.Dynamic_UPI_request;
 import com.bornfire.entity.MerchantMaster;
 import com.bornfire.entity.MerchantMasterRep;
 import com.bornfire.entity.MerchantQRRegistration;
+import com.bornfire.entity.QRUrlGlobalEntity;
 import com.bornfire.entity.QRUrlGobalEntity;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -830,5 +835,68 @@ public class IPSQRCODEController {
 		return finalBHIMURL;
 	}
 	
+	@Autowired
+	NPCIQrcodeValidation npciQrcodeValidation;
+	
+	@PostMapping(path = "/api/ws/scanUPIMerchantQRcode", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<CIMUPIMerchantResponse> getMerchantQRdata(
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
+			@Valid @RequestBody CIMMerchantQRRequestFormat mcCreditTransferRequest)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, ParseException {
+
+		logger.info("Service Starts" + p_id);
+
+		QRUrlGlobalEntity mst = npciQrcodeValidation.getQrentityValue(mcCreditTransferRequest.getQrCode());
+	//	CIMMerchantDecodeQRFormatResponse response = ipsConnection.getMerchantQRdata(psuDeviceID, psuIpAddress, psuID,mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
+
+		CIMUPIMerchantResponse resp = new CIMUPIMerchantResponse();
+		resp.setAm(mst.getAm());
+		resp.setBam(mst.getBam());
+		resp.setBrand(mst.getBrand());
+		resp.setCategorys(mst.getCategorys());
+		resp.setCcs(mst.getCcs());
+		resp.setCu(mst.getCu());
+		resp.setCurr(mst.getCurr());
+		resp.setEntips(mst.getEntips());
+		resp.setInvoicedate(mst.getInvoicedate());
+		resp.setInvoiceno(mst.getInvoiceno());
+		resp.setMc(mst.getMc());
+		resp.setMerchant_location(mst.getMerchant_location());
+		resp.setMerchant_onboarding(mst.getMerchant_onboarding());
+		resp.setMgr(mst.getMgr());
+		resp.setMid(mst.getMid());
+		resp.setModes(mst.getModes());
+		resp.setMsid(mst.getMsid());
+		resp.setMtid(mst.getMtid());
+		resp.setMtype(mst.getMtype());
+		resp.setOrgid(mst.getOrgid());
+		resp.setPa(mst.getPa());
+		resp.setPincode(mst.getPincode());
+		resp.setPn(mst.getPn());
+		resp.setPurpose(mst.getPurpose());
+		resp.setQrexpire(mst.getQrexpire());
+		resp.setQrmedium(mst.getQrmedium());
+		resp.setQrts(mst.getQrts());
+		resp.setQuerys(mst.getQuerys());
+		resp.setSigns(mst.getSigns());
+		resp.setSplits(mst.getSplits());
+		resp.setTid(mst.getTid());
+		resp.setTiers(mst.getTiers());
+		resp.setTn(mst.getTn());
+		resp.setTr(mst.getTr());
+		resp.setTxntype(mst.getTxntype());
+		resp.setUrls(mst.getUrls());
+		resp.setVers(mst.getVers());
+		
+		return new ResponseEntity<>(resp, HttpStatus.OK);
+	}
+
 
 }
