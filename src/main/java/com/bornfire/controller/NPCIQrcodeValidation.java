@@ -349,14 +349,15 @@ if (strs[i].substring(0, 4).equals("tid=")) {
 				}
 				if (strs[i].substring(0, 11).equals("invoiceDate")) {
 					String mode = strs[i].substring(12);
-					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
+					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 					Date dat;
 					qrdet.setInvoicedate(dateFormat.parse(mode));
 				}
 			}
 			if (strs[i].substring(0, 4).equals("QRex")) {
 				String mode = strs[i].substring(9);
-				qrdet.setQrexpire(mode);
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+				qrdet.setQrexpire(dateFormat.parse(mode).toString());
 			}
 			if (strs[i].substring(0, 4).equals("tier")) {
 				String mode = strs[i].substring(5);

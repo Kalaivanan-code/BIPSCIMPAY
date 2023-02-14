@@ -4883,6 +4883,51 @@ public class IPSConnection {
 		
 	}
 
+	
+	public CimMerchantResponse createMerchantQRConnectionPOS(String psuDeviceID, String psuIpAddress, String psuID,
+			CIMMerchantQRcodeRequest qrrequest,String p_id,
+			String channelID,String resvField1,String resvField2)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		CimMerchantResponse response=new CimMerchantResponse();
+
+		
+		String status=ipsDao.regMerchantQR(p_id,psuDeviceID,psuIpAddress,channelID,qrrequest);
+		if(status.equals("1")) {
+			
+		   /* Optional<MerchantQRRegistration> data=merchantQrCodeRegRep.findById(qrrequest.getMerchantAcctInformation().getMerchantAcctNumber());
+		    
+		    if(data.isPresent()) {*/
+		    	EncodeQRFormatResponse encodeQRresponse=encodeQRCodeFormat(qrrequest);
+				
+				if(encodeQRresponse.isSuccess()) {
+					String[] displayText= {qrrequest.getMerchantName(),""};
+					String[] titletextDesc= {"Scan here to pay"};
+					String qrImageCode=generateQRCodePOS(encodeQRresponse.getQrMsg(),displayText,titletextDesc,350,350);
+					response.setBase64QR(qrImageCode);
+					
+					ipsDao.updateMerchantQRData(p_id,"SUCCESS",qrImageCode);
+					return response;
+				}else {
+					//String responseStatus = errorCode.validationError("BIPS17");
+					
+					System.out.println("QR Code Error:"+encodeQRresponse.getError_desc().get(0).toString());
+					ipsDao.updateMerchantQRData(p_id,"FAILURE",encodeQRresponse.getError_desc().get(0).toString());
+					throw new IPSXException("BIPS17:"+encodeQRresponse.getError_desc().get(0));
+				}
+		   /* }else {
+				throw new IPSXException("BIPS17:Merchant Details Not Found");
+		    }*/
+			
+		}else {
+			throw new IPSXException("BIPS500:Internel Error");
+		}
+		
+		
+	}
+
+	
 	private String generateQRCode(String qrMsg,String[] displayTextQR,String[] titleText,Integer width,Integer height) {
 		
 		String encodedQRImage="0";
@@ -5856,4 +5901,89 @@ public class IPSConnection {
 		    }
 		}
 
+	 
+	 
+	 private String generateQRCodePOS(String qrMsg,String[] displayTextQR,String[] titleText,Integer width,Integer height) {
+			
+			String encodedQRImage="0";
+			try {
+				QRCodeWriter qrCodeWriter = new QRCodeWriter();
+				BitMatrix bitMatrix = qrCodeWriter.encode(qrMsg, BarcodeFormat.QR_CODE, width, height);
+
+				ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+				MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+				byte[] pngData = pngOutputStream.toByteArray();
+				int totalTextLineToadd = displayTextQR.length;
+				InputStream in = new ByteArrayInputStream(pngData);
+				BufferedImage image = ImageIO.read(in);
+
+				BufferedImage outputImage = new BufferedImage(image.getWidth(), image.getHeight() + 15 * totalTextLineToadd,
+						BufferedImage.TYPE_INT_ARGB);
+
+				// If text is needed to display
+				if (displayTextQR.length > 0) {
+					Graphics g = outputImage.getGraphics();
+					g.setColor(Color.WHITE);
+					g.fillRect(0, 0, outputImage.getWidth(), outputImage.getHeight());
+					g.drawImage(image, 0, 0, null);
+					g.setFont(new Font("Arial Black", Font.ITALIC, 14));
+					Color textColor = Color.BLACK;
+					g.setColor(textColor);
+					FontMetrics fm = g.getFontMetrics();
+					int startingYposition = height + 5;
+					for (String displayText : displayTextQR) {
+						g.drawString(displayText, (outputImage.getWidth() / 2) - (fm.stringWidth(displayText) / 2),
+								startingYposition);
+						startingYposition += 20;
+					}
+
+					ByteArrayOutputStream outputbytestream1 = new ByteArrayOutputStream();
+					ImageIO.write(outputImage, "PNG", outputbytestream1);
+
+					int totalTextLineToadd2 = titleText.length;
+
+					BufferedImage outputImage2 = new BufferedImage(outputImage.getWidth(),
+							outputImage.getHeight() + 15 * totalTextLineToadd2, BufferedImage.TYPE_INT_ARGB);
+					Graphics gq = outputImage2.getGraphics();
+					gq.setColor(Color.WHITE);
+					gq.drawImage(outputImage, 0, 0, null);
+					gq.setFont(new Font("Arial Black", Font.ITALIC, 16));
+					Color textColor2 = Color.BLACK;
+					gq.setColor(textColor2);
+					FontMetrics fm2 = gq.getFontMetrics();
+					int startingYposition2 = height - 330;
+					for (String displayText : titleText) {
+						gq.drawString(displayText, (outputImage2.getWidth() / 2) - (fm2.stringWidth(displayText) / 2),
+								startingYposition2);
+						startingYposition2 += 20;
+					}
+
+					ByteArrayOutputStream outputbytestream2 = new ByteArrayOutputStream();
+
+					//File outputnew = new File("E:\\log3.png");
+					ImageIO.write(outputImage2, "PNG", outputbytestream2);
+
+					BufferedImage outputImage3 = new BufferedImage(800, 800, BufferedImage.TYPE_INT_ARGB);
+					Graphics g2 = outputImage3.getGraphics();
+					g2.setColor(Color.BLACK);
+					g2.drawRect(0, 0, 800, 800);
+
+					g2.dispose();
+
+					ByteArrayOutputStream outputByteStreamDataImage = new ByteArrayOutputStream();
+
+					//File output = new File("E:\\logofinal.png");
+					ImageIO.write(outputImage3, "PNG", outputByteStreamDataImage);
+					encodedQRImage = Base64.getEncoder().encodeToString(outputByteStreamDataImage.toByteArray());
+					
+					return encodedQRImage;
+
+				}
+			} catch (Exception ex) {
+				logger.info(ex.getMessage());
+				return encodedQRImage;
+			}
+			return encodedQRImage;
+
+		}
 }
