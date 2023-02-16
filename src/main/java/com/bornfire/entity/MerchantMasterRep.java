@@ -28,4 +28,5 @@ Optional<MerchantMaster> findById(String directorId);
 	
 	@Query(value = "select fees from BIPS_MERCHANT_CHARGES_AND_FEES_TABLE where DESCRIPTION in (select MERCHANT_FEES from MERCHANT_MASTER_TABLE where MERCHANT_ID=?1)", nativeQuery = true)
 	String getMerchantfees(String Id);
+
 }
