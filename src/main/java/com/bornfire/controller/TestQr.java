@@ -10,16 +10,16 @@ import com.google.zxing.common.BitMatrix;
 
 public class TestQr {
 
-	 public String getQrInfo() throws Exception {
+	 public static void main(String[] args) throws Exception {
 	 String url = "https://news.bbc.co.uk";
 
-     int imageSize = 200;
+     int imageSize = 350;
      BitMatrix matrix = new MultiFormatWriter().encode(url, BarcodeFormat.QR_CODE,
          imageSize, imageSize);
      ByteArrayOutputStream bos = new ByteArrayOutputStream();
      MatrixToImageWriter.writeToStream(matrix, "png", bos);
      String image = Base64.getEncoder().encodeToString(bos.toByteArray()); // base64 encode
 
-     return image;
+     System.out.println("IMAGE :"+image);
 }
 }

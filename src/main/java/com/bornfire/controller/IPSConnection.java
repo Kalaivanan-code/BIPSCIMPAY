@@ -5912,78 +5912,19 @@ public class IPSConnection {
 
 				ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
 				MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-				byte[] pngData = pngOutputStream.toByteArray();
-				int totalTextLineToadd = displayTextQR.length;
-				InputStream in = new ByteArrayInputStream(pngData);
-				BufferedImage image = ImageIO.read(in);
-
-				BufferedImage outputImage = new BufferedImage(image.getWidth(), image.getHeight() + 15 * totalTextLineToadd,
-						BufferedImage.TYPE_INT_ARGB);
-
-				// If text is needed to display
-				if (displayTextQR.length > 0) {
-					Graphics g = outputImage.getGraphics();
-					g.setColor(Color.WHITE);
-					g.fillRect(0, 0, outputImage.getWidth(), outputImage.getHeight());
-					g.drawImage(image, 0, 0, null);
-					g.setFont(new Font("Arial Black", Font.ITALIC, 14));
-					Color textColor = Color.BLACK;
-					g.setColor(textColor);
-					FontMetrics fm = g.getFontMetrics();
-					int startingYposition = height + 5;
-					for (String displayText : displayTextQR) {
-						g.drawString(displayText, (outputImage.getWidth() / 2) - (fm.stringWidth(displayText) / 2),
-								startingYposition);
-						startingYposition += 20;
-					}
-
-					ByteArrayOutputStream outputbytestream1 = new ByteArrayOutputStream();
-					ImageIO.write(outputImage, "PNG", outputbytestream1);
-
-					int totalTextLineToadd2 = titleText.length;
-
-					BufferedImage outputImage2 = new BufferedImage(outputImage.getWidth(),
-							outputImage.getHeight() + 15 * totalTextLineToadd2, BufferedImage.TYPE_INT_ARGB);
-					Graphics gq = outputImage2.getGraphics();
-					gq.setColor(Color.WHITE);
-					gq.drawImage(outputImage, 0, 0, null);
-					gq.setFont(new Font("Arial Black", Font.ITALIC, 16));
-					Color textColor2 = Color.BLACK;
-					gq.setColor(textColor2);
-					FontMetrics fm2 = gq.getFontMetrics();
-					int startingYposition2 = height - 330;
-					for (String displayText : titleText) {
-						gq.drawString(displayText, (outputImage2.getWidth() / 2) - (fm2.stringWidth(displayText) / 2),
-								startingYposition2);
-						startingYposition2 += 20;
-					}
-
-					ByteArrayOutputStream outputbytestream2 = new ByteArrayOutputStream();
-
-					//File outputnew = new File("E:\\log3.png");
-					ImageIO.write(outputImage2, "PNG", outputbytestream2);
-
-					BufferedImage outputImage3 = new BufferedImage(800, 800, BufferedImage.TYPE_INT_ARGB);
-					Graphics g2 = outputImage3.getGraphics();
-					g2.setColor(Color.BLACK);
-					g2.drawRect(0, 0, 800, 800);
-
-					g2.dispose();
-
-					ByteArrayOutputStream outputByteStreamDataImage = new ByteArrayOutputStream();
-
+				
 					//File output = new File("E:\\logofinal.png");
-					ImageIO.write(outputImage3, "PNG", outputByteStreamDataImage);
-					encodedQRImage = Base64.getEncoder().encodeToString(outputByteStreamDataImage.toByteArray());
+				//	ImageIO.write(outputImage3, "PNG", outputByteStreamDataImage);
+					encodedQRImage = Base64.getEncoder().encodeToString(pngOutputStream.toByteArray());
 					
 					return encodedQRImage;
 
-				}
+				
 			} catch (Exception ex) {
 				logger.info(ex.getMessage());
 				return encodedQRImage;
 			}
-			return encodedQRImage;
+
 
 		}
 }
