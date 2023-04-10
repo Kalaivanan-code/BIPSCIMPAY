@@ -5,6 +5,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class CIMMerchantDirectFndRequest {
 	@NotNull(message="Remitter Account Details Required")
 	@Valid
@@ -17,6 +19,13 @@ public class CIMMerchantDirectFndRequest {
 	
 	private CIMAddlDataFieldRequest AdditionalDataInformation;
 
+	@NotBlank(message="Request UID Required")
+	@JsonProperty("reqUniqueID")
+	private String ReqUniqueId;
+	
+	@JsonProperty("trRmks")
+	private String TrRmks;
+	
 	public CIMDirectMerchantRemitterAccount getRemitterAccount() {
 		return RemitterAccount;
 	}
@@ -39,6 +48,22 @@ public class CIMMerchantDirectFndRequest {
 
 	public void setAdditionalDataInformation(CIMAddlDataFieldRequest additionalDataInformation) {
 		AdditionalDataInformation = additionalDataInformation;
+	}
+
+	public String getReqUniqueId() {
+		return ReqUniqueId;
+	}
+
+	public void setReqUniqueId(String reqUniqueId) {
+		ReqUniqueId = reqUniqueId;
+	}
+
+	public String getTrRmks() {
+		return TrRmks;
+	}
+
+	public void setTrRmks(String trRmks) {
+		TrRmks = trRmks;
 	}
 
 	

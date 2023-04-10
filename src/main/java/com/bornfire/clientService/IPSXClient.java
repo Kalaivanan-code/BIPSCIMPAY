@@ -37,6 +37,7 @@ import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
 
 import com.bornfire.config.ErrorResponseCode;
 import com.bornfire.config.SequenceGenerator;
+import com.bornfire.controller.CimCBSservice;
 import com.bornfire.controller.Connect24Service;
 import com.bornfire.controller.IPSConnection;
 import com.bornfire.controller.IPSDao;
@@ -45,6 +46,7 @@ import com.bornfire.entity.BankAgentTableRep;
 import com.bornfire.entity.C24FTResponse;
 import com.bornfire.entity.CIMCreditTransferRequest;
 import com.bornfire.entity.CIMMerchantDirectFndRequest;
+import com.bornfire.entity.CimCBSresponse;
 import com.bornfire.entity.CreditTransferTransaction;
 import com.bornfire.entity.DocType;
 import com.bornfire.entity.MCCreditTransferRequest;
@@ -157,6 +159,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 	
 	@Autowired
 	MerchantMasterRep merchantmasterRep;
+	
+	@Autowired
+	CimCBSservice cimCBSservice;
 	
 
 	@SuppressWarnings("unchecked")
@@ -1536,7 +1541,8 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					ipsDao.updateIPSXStatusResponseACSPBulkRTP(orglMsgID, msgID,
 							TranMonitorStatus.SUCCESS.toString(), "pain.002.001.10",orglTxRefDate);
 				//}
-				
+					
+
 
 			} else {
 				

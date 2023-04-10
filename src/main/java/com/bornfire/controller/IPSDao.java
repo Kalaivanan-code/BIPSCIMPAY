@@ -1184,7 +1184,7 @@ public class IPSDao {
 							tm.setMconnectin("N");
 							
 							outwardTranRep.saveAndFlush(tm);
-							
+							ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(tm.getP_id(),tm.getMaster_ref_id(),tm.getTran_date(),tm.getReq_unique_id(),tm.getCim_account(),tm.getTran_amount(),"RJCT",ipsxErrorCode,ipsxerrorDesc,tm.getSequence_unique_id());
 							taskExecutor.execute(new Runnable() {
 								@Override
 								public void run() {
@@ -1225,7 +1225,7 @@ public class IPSDao {
 							tranMonitorItem.setIpsx_status_code(ipsxErrorCode);
 
 							outwardTranRep.saveAndFlush(tranMonitorItem);
-
+							ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(tranMonitorItem.getP_id(),tranMonitorItem.getMaster_ref_id(),tranMonitorItem.getTran_date(),tranMonitorItem.getReq_unique_id(),tranMonitorItem.getCim_account(),tranMonitorItem.getTran_amount(),"RJCT",ipsxErrorCode,ipsxerrorDesc,tranMonitorItem.getSequence_unique_id());
 							/*if (tranMonitorItem.getCbs_status().equals(TranMonitorStatus.CBS_DEBIT_OK.toString())) {
 
 								tranMonitorItem.setIpsx_message_id(ipsxMsgID);
@@ -1461,6 +1461,7 @@ public class IPSDao {
 							tm.setIpsx_response_time(new Date());
 							tm.setTran_status(tranStatus);
 							outwardTranRep.save(tm);
+							ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(tm.getP_id(),tm.getMaster_ref_id(),tm.getTran_date(),tm.getReq_unique_id(),tm.getCim_account(),tm.getTran_amount(),"ACSP","","",tm.getSequence_unique_id());
 						}else {
 							List<OutwardTransactionMonitoringTable> tranMonitorList = outwardTranRep.findBulkDebitID(tm.getMaster_ref_id());
 
@@ -3660,11 +3661,11 @@ public class IPSDao {
 
 			OutwardTransactionMonitoringTable tranManitorTable = new OutwardTransactionMonitoringTable();
 			tranManitorTable.setP_id(p_id);
-			tranManitorTable.setReq_unique_id(req_unique_id);
+			tranManitorTable.setReq_unique_id(cimMerchantRequest.getReqUniqueId());
 			tranManitorTable.setInit_channel_id(channelID);
 			tranManitorTable.setResv_field1(resvfield1);
 			tranManitorTable.setResv_field2(resvfield2);
-			tranManitorTable.setTran_rmks(trRmks);
+			tranManitorTable.setTran_rmks(cimMerchantRequest.getTrRmks());
 			tranManitorTable.setMsg_type(TranMonitorStatus.OUTGOING.toString());
 			tranManitorTable.setTran_audit_number(sysTraceNumber);
 			tranManitorTable.setSequence_unique_id(seqUniqueID);
@@ -4544,7 +4545,11 @@ public class IPSDao {
 			tranManitorTable.setInit_channel_id(channel);
 			tranManitorTable.setResv_field1(resvfield11);
 			tranManitorTable.setResv_field2(resvfield2);
+			if(remarks.equals("null")) {
+				tranManitorTable.setTran_rmks(requniqueId);
+			}else {
 			tranManitorTable.setTran_rmks(remarks);
+			}
 			//// Check CutOff time after BOB settlement time
 			//// if yes the value date is +1
 			if (isTimeAfterCutOff()) {

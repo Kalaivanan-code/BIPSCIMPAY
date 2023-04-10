@@ -4231,7 +4231,7 @@ public class IPSConnection {
 						othBankAgent.getBank_agent_account(), seqUniqueID, "0100", lclInstrm, ctgyPurp, ctgyPurp,
 						mcCreditTransferRequest.getRemitterAccount().getAcctName(),
 						mcCreditTransferRequest.getRemitterAccount().getAcctNumber(),
-						mcCreditTransferRequest.getMerchantAccount().getPayeeParticipantCode(),
+						othBankAgent.getBank_code(),
 						remitterBankCode,
 						mcCreditTransferRequest.getMerchantAccount().getCurrency(),
 						mcCreditTransferRequest.getMerchantAccount().getMerchantName(),
@@ -4551,7 +4551,7 @@ public class IPSConnection {
 								cimMerchantRequest.getMerchantAccount().getCurrency(),cimMerchantRequest.getMerchantAccount().getMerchantName(),
 								cimMerchantRequest.getMerchantAccount().getMerchantAcctNumber(),p_id,
 								tot_tran_amount,remarks,
-								p_id,p_id,channelID,resvfield1,resvfield2,
+								p_id,cimMerchantRequest.getReqUniqueId(),channelID,resvfield1,resvfield2,
 								bankAgentTable.getBank_code(),chargeBearer,
 								cimMerchantRequest,remInfo.toString());
 					
@@ -4779,9 +4779,10 @@ public class IPSConnection {
 		
 		List<MerchantMaster> outTranList = ipsDao.checkMerchantAcct(acctNumber);
 		
-		
-		int sizeOutTran = outTranList.size();
+		List<OutwardTransactionMonitoringTable> MasTranList = ipsDao.checkExistOutwardRTP(instrId, endToEndID);
 
+		int sizeOutTran = outTranList.size();
+		int merchantsize = MasTranList.size();
 			
 		if(sizeOutTran>0) {
 			
@@ -4790,13 +4791,38 @@ public class IPSConnection {
 					
 			response = ipsDao.registerMerchantIncomingData(requestUUID, new Date(),
 					sysTraceAuditNumber,"",
-					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "RTP", "", rmtInfo, "",
+					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "QR", "", rmtInfo, "",
 					"", new Date(),dataParse.getMerchant_name(),merchantFees,debrAcctNumber,debtAcctName,instgAcct,ctgyPurp,trRmks,instrId,endToEndID,instdAgtPacs008);
+			
+			
+			if(merchantsize>0) {
+				OutwardTransactionMonitoringTable dataParse1=MasTranList.get(0);
+				
+			//	String initTranNumber = dataParse1.getResv_field1() != null ? dataParse1.getResv_field1(): dataParse1.getP_id();
+				String initTranNumber = dataParse1.getResv_field1() ;
+						
+/*response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+						sysTraceAuditNumber, dataParse1.getInit_channel_id(), initTranNumber, "False", "CR", "N", "",
+						acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "QR", "", rmtInfo, "",
+						"", new Date(), "RECEIVABLE", dataParse1.getReq_unique_id(), "", "",
+						dataParse1.getMaster_ref_id());*/
+if(dataParse1.getInit_channel_id().equals("Customer")) {
+				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(initTranNumber,dataParse1.getMaster_ref_id(),new Date(),dataParse1.getReq_unique_id(),acctNumber,new BigDecimal(trAmt),"ACSP","","",dataParse1.getSequence_unique_id());
+}
+			}else {
+				/*response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+						sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID, "False", "CR", "N", "",
+						acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "QR", "", rmtInfo, "",
+						"", new Date(), "RECEIVABLE", "", "", "", "");*/
+			}
 			
 			
 			
 		}else {
 			
+
 			tranResponse = errorCode.ErrorCode("AC03");
 			return tranResponse;
 		}
@@ -4816,14 +4842,6 @@ public class IPSConnection {
 			if (sizeOutTran>0) {
 
 							tranResponse = errorCode.ErrorCode("CIM0");
-							
-//							logger.info("Calling Connect 24 for Account Status5");
-//							
-//							ipsDao.updateCIMcbsData(requestUUID, "SUCCESS",
-//									connect24Response.getBody().getStatus().getStatusCode(),
-//									connect24Response.getBody().getStatus().getMessage(),
-//									connect24Response.getBody().getData().getTransactionNoFromCBS());
-//							tranResponse = errorCode.ErrorCode("CIM0");
 
 							return tranResponse;				
 		
@@ -4833,11 +4851,102 @@ public class IPSConnection {
 				tranResponse = errorCode.ErrorCode("AC03");
 				return tranResponse;
 			}
-			
 		}
 		return tranResponse;
-	}	
 
+	}
+		
+		
+/*if (response.equals("1")) {
+
+			
+			ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
+			logger.info("Response->" + connect24Response.toString());
+			if (connect24Response.getStatusCode() == HttpStatus.OK) {
+
+				if (!connect24Response.toString().equals("<200 OK OK,[]>")) {
+					//logger.info(SeqUniqueID + ": success");
+
+					if (connect24Response.getBody().getStatus() != null) {
+						if (connect24Response.getBody().getStatus().getIsSuccess()) {
+							logger.info(
+									SeqUniqueID + ": success" + connect24Response.getBody().getStatus().getIsSuccess());
+
+							updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+									"CBS_CREDIT_OK", "", "SUCCESS", connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(), connect24Response.getBody().getData().getTransactionNoFromCBS());
+							tranResponse = errorCode.ErrorCode("CIM0");
+							
+//							logger.info("Calling Connect 24 for Account Status5");
+//							
+//							ipsDao.updateCIMcbsData(requestUUID, "SUCCESS",
+//									connect24Response.getBody().getStatus().getStatusCode(),
+//									connect24Response.getBody().getStatus().getMessage(),
+//									connect24Response.getBody().getData().getTransactionNoFromCBS());
+//							tranResponse = errorCode.ErrorCode("CIM0");
+
+							return tranResponse;
+
+						} else {
+							
+							logger.info(SeqUniqueID + ": Fail" + connect24Response.getBody().getStatus().getMessage());
+
+							updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+									"CBS_CREDIT_ERROR", connect24Response.getBody().getStatus().getMessage(), "FAILURE", connect24Response.getBody().getStatus().getStatusCode(),
+									connect24Response.getBody().getStatus().getMessage(), 
+									"");
+//							ipsDao.updateCIMcbsData(requestUUID, "FAILURE",
+//									connect24Response.getBody().getStatus().getStatusCode(),
+//									connect24Response.getBody().getStatus().getMessage(),
+//									connect24Response.getBody().getData().getTransactionNoFromCBS());
+							tranResponse = errorCode.ErrorCode(connect24Response.getBody().getStatus().getStatusCode());
+							return tranResponse;
+
+						}
+					} else {
+						//ipsDao.updateCIMcbsData(requestUUID, "FAILURE", "200", "No Response return from CBS", "");
+						
+						updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+								"CBS_CREDIT_ERROR", "No Response return from CBS", "FAILURE","200",
+								"No Response return from CBS", 
+								"");
+						
+						tranResponse = errorCode.ErrorCode("CIM500");
+						return tranResponse;
+					}
+				} else {
+					
+					updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+							"CBS_CREDIT_ERROR", "No Response return from CBS", "FAILURE","200",
+							"No Response return from CBS", 
+							"");
+					
+					//ipsDao.updateCIMcbsData(requestUUID, "FAILURE", "200", "No Response return from CBS", "");
+					tranResponse = errorCode.ErrorCode("CIM500");
+					return tranResponse;
+				}
+
+			} else {
+				//ipsDao.updateCIMcbsData(requestUUID, "FAILURE", "500", "Internal Server Error", "");
+				
+				updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+						"CBS_CREDIT_ERROR", "Internal Server Error", "FAILURE","500",
+						"Internal Server Error", 
+						"");
+				tranResponse = errorCode.ErrorCode("CIM500");
+				return tranResponse;
+			}
+		} else {
+			//ipsDao.updateCIMcbsData(requestUUID, "FAILURE", "500", "Internal Server Error", "");
+			updateProcedure.updateCbsRTP(SeqUniqueID, instrId, sysTraceAuditNumber, 
+					"CBS_CREDIT_ERROR", "Internal Server Error", "FAILURE","500",
+					"Internal Server Error", 
+					"");
+			tranResponse = errorCode.ErrorCode("CIM500");
+			return tranResponse;
+		}
+	}	
+*/
 	
 	
 	public CimMerchantResponse createMerchantQRConnection(String psuDeviceID, String psuIpAddress, String psuID,

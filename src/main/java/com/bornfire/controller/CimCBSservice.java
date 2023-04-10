@@ -49,6 +49,7 @@ import com.bornfire.entity.CimCBSrequestGLHeader;
 import com.bornfire.entity.CimCBSrequestHeader;
 import com.bornfire.entity.CimCBSresponse;
 import com.bornfire.entity.CimGLresponse;
+import com.bornfire.entity.CimUpdatePaymentStatusRequest;
 import com.bornfire.entity.SettlementAccount;
 import com.bornfire.entity.TranCimCBSTable;
 import com.bornfire.entity.TranCimCBSTableRep;
@@ -151,7 +152,7 @@ public class CimCBSservice {
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 	
-		logger.debug(cimCBSrequest.toString());
+		logger.debug("cimCBSrequest :"+cimCBSrequest.toString());
 		
 		HttpEntity<CimCBSrequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);
 				
@@ -574,5 +575,75 @@ public class CimCBSservice {
 
 	}
 
+	
+	public ResponseEntity<CimCBSresponse> updateStatusMobile(String transactionNo,String tranId,Date transactionDate,String referenceId,String toAccountNumber,BigDecimal transactionAmount,String isSuccess,String statusCode,String message,String receipt_number) {
+		
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		CimUpdatePaymentStatusRequest CimCBSrequestData = new CimUpdatePaymentStatusRequest();
+		CimCBSrequestData.setTransactionNo(transactionNo);
+		CimCBSrequestData.setTranId(tranId);
+		CimCBSrequestData.setTransactionDate(new SimpleDateFormat("yyyy-MM-dd").format(transactionDate));
+		CimCBSrequestData.setReferenceId(referenceId);
+		CimCBSrequestData.setToAccountNumber(toAccountNumber);
+		 NumberFormat formatter = new DecimalFormat("0.##");
+
+			CimCBSrequestData.setTransactionAmount(new BigDecimal(transactionAmount.toString()));
+		
+		if(isSuccess.equals("ACSP")) {
+			CimCBSrequestData.setIsSuccess(Boolean.TRUE);
+		}else {
+			CimCBSrequestData.setIsSuccess(Boolean.FALSE);
+		}
+		CimCBSrequestData.setStatusCode(statusCode);
+		CimCBSrequestData.setMessage(message);
+		CimCBSrequestData.setReceiptNumber(receipt_number);
+
+			
+		
+	
+		
+		
+		HttpEntity<CimUpdatePaymentStatusRequest> entity = new HttpEntity<>(CimCBSrequestData, httpHeaders);
+				
+		ResponseEntity<CimCBSresponse> response = null;
+		
+		try {
+			logger.info("Sending message to updateStatusMobile using restTemplate");
+			logger.info("updateStatusMobile Request:"+CimCBSrequestData.toString());
+			/*restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+			restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+*/
+
+			/*restTemplate.getMessageConverters()
+	        .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));*/
+			
+			response = restTemplate.postForEntity(env.getProperty("cimUpdatePayment.url"),
+					entity, CimCBSresponse.class);
+			logger.info("updateStatusMobile Response:"+response.toString());
+			/*response = restTemplate.postForEntity(env.getProperty("cimESB.url")+"appname="+env.getProperty("cimESB.appname")+"&prgname="+env.getProperty("cimESB.prgname")+"&arguments="+env.getProperty("cimESB.arguments"),
+					entity, CimCBSresponse.class);*/
+
+			
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+
+		} catch (HttpClientErrorException ex) {
+			logger.debug("HttpClient"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		} catch (HttpServerErrorException ex) {
+			logger.debug("HttpServert"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception ex) {
+			logger.debug("Ex Exception"+ex.getLocalizedMessage());
+			CimCBSresponse cbsResponse=new CimCBSresponse();
+			return new ResponseEntity<>(cbsResponse, HttpStatus.BAD_REQUEST);
+		}
+
+	}
 
 }
