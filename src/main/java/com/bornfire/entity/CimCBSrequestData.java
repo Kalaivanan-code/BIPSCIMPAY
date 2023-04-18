@@ -80,7 +80,25 @@ public class CimCBSrequestData {
 	
 	@JsonProperty("ipsMasterRefId")
 	private String ipsMasterRefId;
-
+	
+	@JsonProperty("remitterBank")
+	private String remitterBank;
+	
+	@JsonProperty("remitterBankCode")
+	private String remitterBankCode;
+	
+	@JsonProperty("remitterSwiftCode")
+	private String remitterSwiftCode;
+	
+	@JsonProperty("beneficiaryBank")
+	private String beneficiaryBank;
+	
+	@JsonProperty("beneficiaryBankCode")
+	private String beneficiaryBankCode;
+	
+	@JsonProperty("beneficiarySwiftCode")
+	private String beneficiarySwiftCode;
+	
 	public String getTransactionNo() {
 		return transactionNo;
 	}
@@ -270,10 +288,58 @@ public class CimCBSrequestData {
 		this.branchId = branchId;
 	}
 
+	public String getRemitterBank() {
+		return remitterBank;
+	}
+
+	public void setRemitterBank(String remitterBank) {
+		this.remitterBank = remitterBank;
+	}
+
+	public String getRemitterBankCode() {
+		return remitterBankCode;
+	}
+
+	public void setRemitterBankCode(String remitterBankCode) {
+		this.remitterBankCode = remitterBankCode;
+	}
+
+	public String getRemitterSwiftCode() {
+		return remitterSwiftCode;
+	}
+
+	public void setRemitterSwiftCode(String remitterSwiftCode) {
+		this.remitterSwiftCode = remitterSwiftCode;
+	}
+
+	public String getBeneficiaryBank() {
+		return beneficiaryBank;
+	}
+
+	public void setBeneficiaryBank(String beneficiaryBank) {
+		this.beneficiaryBank = beneficiaryBank;
+	}
+
+	public String getBeneficiaryBankCode() {
+		return beneficiaryBankCode;
+	}
+
+	public void setBeneficiaryBankCode(String beneficiaryBankCode) {
+		this.beneficiaryBankCode = beneficiaryBankCode;
+	}
+
+	public String getBeneficiarySwiftCode() {
+		return beneficiarySwiftCode;
+	}
+
+	public void setBeneficiarySwiftCode(String beneficiarySwiftCode) {
+		this.beneficiarySwiftCode = beneficiarySwiftCode;
+	}
+
 	@Override
 	public String toString() {
-		return "CimCBSrequestData [transactionNo=" + transactionNo + ", initiatingChannel=" + initiatingChannel
-				+ ", initatorTransactionNo=" + initatorTransactionNo + ", initatorSubTransactionNo="
+		return "CimCBSrequestData [branchId=" + branchId + ", transactionNo=" + transactionNo + ", initiatingChannel="
+				+ initiatingChannel + ", initatorTransactionNo=" + initatorTransactionNo + ", initatorSubTransactionNo="
 				+ initatorSubTransactionNo + ", PostToCBS=" + PostToCBS + ", transactionType=" + transactionType
 				+ ", isReversal=" + isReversal + ", transactionNoFromCBS=" + transactionNoFromCBS + ", customerName="
 				+ customerName + ", fromAccountNo=" + fromAccountNo + ", toAccountNo=" + toAccountNo
@@ -281,8 +347,13 @@ public class CimCBSrequestData {
 				+ ", transactionCurrency=" + transactionCurrency + ", transactionParticularCode="
 				+ transactionParticularCode + ", creditRemarks=" + creditRemarks + ", debitRemarks=" + debitRemarks
 				+ ", reservedField1=" + reservedField1 + ", reservedField2=" + reservedField2 + ", errorCode="
-				+ errorCode + ", errorMessage=" + errorMessage + ", ipsMasterRefId=" + ipsMasterRefId + "]";
+				+ errorCode + ", errorMessage=" + errorMessage + ", ipsMasterRefId=" + ipsMasterRefId
+				+ ", remitterBank=" + remitterBank + ", remitterBankCode=" + remitterBankCode + ", remitterSwiftCode="
+				+ remitterSwiftCode + ", beneficiaryBank=" + beneficiaryBank + ", beneficiaryBankCode="
+				+ beneficiaryBankCode + ", beneficiarySwiftCode=" + beneficiarySwiftCode + "]";
 	}
+
+
 
 	
 	

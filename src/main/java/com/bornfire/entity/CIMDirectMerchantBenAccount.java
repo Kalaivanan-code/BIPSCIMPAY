@@ -27,7 +27,7 @@ public class CIMDirectMerchantBenAccount {
 	private String MerchantID;
 	
 	@NotBlank(message="PayeeParticipantCode Required")
-	@Size(min=12,max = 12, message = "PayeeParticipantCode should not exceed 12 characters")
+	@Size(min=8,max = 12, message = "PayeeParticipantCode should not exceed 12 characters")
 	private String PayeeParticipantCode;
 	
 	@NotBlank(message="MerchantCategoryCode Required")

@@ -348,7 +348,11 @@ public class IPSConnection {
 		
 		////Get Remitter Bank Code
 		String remitterBankCode=ipsDao.getOtherBankCode(env.getProperty("ipsx.dbtragt"));
-		
+				
+		 ///// Get Bank Agent Name and Agent Account Number
+		BankAgentTable RemitterBankAgent = ipsDao
+				.getOtherBankAgent(remitterBankCode);
+
 		logger.info(othBankAgent.getBank_agent(),
 				"" + othBankAgent.getBank_agent_account());
 
@@ -399,7 +403,7 @@ public class IPSConnection {
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber,channelID,p_id, "True", "DR", "N", "", settlPayableAccount, mcCreditTransferRequest.getTrAmt(), mcCreditTransferRequest.getCurrencyCode(),
 						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT",mcCreditTransferRequest.getTrRmks(), "", "", "",new Date(),"PAYABLE",
-						"","","","");
+						"","","","",RemitterBankAgent.getBank_agent(),othBankAgent.getBank_agent());
 				
 			    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -540,10 +544,13 @@ public class IPSConnection {
 					///// Register Manual Record
 					logger.info("Register Initial outgoing Fund Transfer Record");
 					
-					////Get Remitter Bank Code
+				
+				////Get Remitter Bank Code
 					String remitterBankCode=ipsDao.getOtherBankCode(env.getProperty("ipsx.dbtragt"));
-					
-					
+							
+					 ///// Get Bank Agent Name and Agent Account Number
+					BankAgentTable RemitterBankAgent = ipsDao
+							.getOtherBankAgent(remitterBankCode);
 				    ////// Get Bank Agent Account and Agent Account
 					BankAgentTable othBankAgent = ipsDao
 												.getOtherBankAgent(manualFundTransferRequest.get(i).getBeneficiaryBankCode());
@@ -588,7 +595,7 @@ public class IPSConnection {
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), p_id, "True", "DR", "N", "",settlPayableAccount, manualFundTransferRequest.get(i).getTrAmt(), manualFundTransferRequest.get(i).getCurrencyCode(),
 						seqUniqueID, manualFundTransferRequest.get(i).getRemitterAcctNumber(), manualFundTransferRequest.get(i).getRemitterName(), "NRT",manualFundTransferRequest.get(i).getTrRmks(), "", "", "",new Date(),"PAYABLE",
-						"","","","");
+						"","","","",RemitterBankAgent.getBank_agent(),othBankAgent.getBank_agent());
 				
 			    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -713,7 +720,11 @@ public class IPSConnection {
 				List<String> msgNetMirList=new ArrayList<>();
 				
 			////Get Remitter Bank Code
-				String remitterBankCode=ipsDao.getOtherBankCode(env.getProperty("ipsx.dbtragt"));
+							String remitterBankCode=ipsDao.getOtherBankCode(env.getProperty("ipsx.dbtragt"));
+									
+							 ///// Get Bank Agent Name and Agent Account Number
+							BankAgentTable RemitterBankAgent = ipsDao
+									.getOtherBankAgent(remitterBankCode);
 				
 				
 				///// Register Bulk Credit Record
@@ -767,7 +778,7 @@ public class IPSConnection {
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), p_id, "True", "DR", "N", "", settlPayableAccount, mcCreditTransferRequest.getTotAmt(), mcCreditTransferRequest.getCurrencyCode(),
 						seqUniqueID, mcCreditTransferRequest.getFrAccount().getAcctNumber(), mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT",mcCreditTransferRequest.getToAccountList().get(0).getTrRmks(), "", "", "",new Date(),"PAYABLE",
-						"","","","");
+						"","","","",RemitterBankAgent.getBank_agent(),RemitterBankAgent.getBank_agent());
 				
 			    /////Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -921,6 +932,9 @@ public class IPSConnection {
 			    ////Get Remitter Bank Code
 				String remitterBankCode=ipsDao.getOtherBankCode(env.getProperty("ipsx.dbtragt"));
 						
+				 ///// Get Bank Agent Name and Agent Account Number
+				BankAgentTable RemitterBankAgent = ipsDao
+						.getOtherBankAgent(remitterBankCode);
 
 				for (int i = 0; i < bulkDebitFndTransferRequest.getRemitterAccount().size(); i++) {
 
@@ -957,7 +971,7 @@ public class IPSConnection {
 							env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 							sysTraceNumber1, env.getProperty("cimCBS.outDBChannel"), p_id, "True", "DR", "N", "", settlPayableAccount, bulkDebitFndTransferRequest.getRemitterAccount().get(i).getTrAmt(), bulkDebitFndTransferRequest.getRemitterAccount().get(i).getCurrencyCode(),
 							seqUniqueID+"/"+srlNo, bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterAcctNumber(), bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterName(), "NRT",bulkDebitFndTransferRequest.getRemitterAccount().get(i).getTrRmks(), "", "", "",new Date(),"PAYABLE",
-							"","","","");
+							"","","","",RemitterBankAgent.getBank_agent(),othBankAgent.getBank_agent());
 					
 				    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -2145,7 +2159,7 @@ public class IPSConnection {
 						cbsData.getSequence_unique_id(),settlPayableAccount,
 						cbsData.getCustomer_name(), "NRT",
 						"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE",
-						"","","","");
+						"","","","",cbsData.getRemitterswiftcode(),cbsData.getBeneficiaryswiftcode());
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2241,7 +2255,7 @@ public class IPSConnection {
 						cbsData.getSequence_unique_id(),cbsData.getFrom_account_no(),
 						cbsData.getCustomer_name(), cbsData.getTran_particular_code(),
 						tranCBSTable.getDebit_remarks(),"", "", "",cbsData.getTran_date(),"RECEIVABLE",
-						cbsData.getInit_sub_tran_no(),"","","");
+						cbsData.getInit_sub_tran_no(),"","","",cbsData.getRemitterswiftcode(),cbsData.getBeneficiaryswiftcode());
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2353,7 +2367,7 @@ public class IPSConnection {
 						tranCBSTable.getSequence_unique_id(),settlPayableAccount,
 						cbsData.getCustomer_name(), "NRT",
 						"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE",
-						"","","","");
+						"","","","",cbsData.getRemitterswiftcode(),cbsData.getBeneficiaryswiftcode());
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2465,7 +2479,7 @@ public class IPSConnection {
 								tranCBSTable.getSequence_unique_id(),settlPayableAccount,
 								cbsData.getCustomer_name(), "NRT",
 								"", tranCBSTable.getDebit_remarks(), "", "",cbsData.getTran_date(),"PAYABLE",
-								"","","","");
+								"","","","",cbsData.getRemitterswiftcode(),cbsData.getBeneficiaryswiftcode());
 
 						///// Call ESB Connection
 						ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -4261,7 +4275,7 @@ public class IPSConnection {
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceNumber, env.getProperty("cimCBS.outDBChannel"), "", "True", "DR", "N", "", mcCreditTransferRequest.getMerchantAccount().getMerchantAcctNumber(), tot_tran_amount, mcCreditTransferRequest.getMerchantAccount().getCurrency(),
 						seqUniqueID, mcCreditTransferRequest.getRemitterAccount().getAcctNumber(), mcCreditTransferRequest.getRemitterAccount().getAcctName(), "NRT",remarks, "", "", "",new Date(),"PAYABLE",
-			            "","","","");
+			            "","","","", env.getProperty("ipsx.dbtragt"), othBankAgent.getBank_agent());
 				
 			    /////Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -4623,7 +4637,7 @@ public class IPSConnection {
 	
 	public String incomingFundTransferConnection1(String acctNumber, String acctName, String trAmt, String currency,
 			String sysTraceAuditNumber, String SeqUniqueID, String trRmks, SendT request, String debrAcctNumber,
-			String debtAcctName, String instgAcct, String ctgyPurp, String rmtInfo, String instrId, String endToEndID) {
+			String debtAcctName, String instgAcct, String ctgyPurp, String rmtInfo, String instrId, String endToEndID,String debitoragent, String creditoragent) {
 
 		
 		logger.info("Calling Connect 24 for Account Status");
@@ -4654,7 +4668,7 @@ public class IPSConnection {
 					sysTraceAuditNumber, dataParse.getInit_channel_id(), initTranNumber, "True", "CR", "N", "",
 					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "RTP", "", rmtInfo, "",
 					"", new Date(), "RECEIVABLE", dataParse.getReq_unique_id(), "", "",
-					dataParse.getMaster_ref_id());
+					dataParse.getMaster_ref_id(),debitoragent,creditoragent);
 			
 			
 		}else {
@@ -4662,7 +4676,7 @@ public class IPSConnection {
 					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 					sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID, "True", "CR", "N", "",
 					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "NRT", "", rmtInfo, "",
-					"", new Date(), "RECEIVABLE", "", "", "", "");
+					"", new Date(), "RECEIVABLE", "", "", "", "",debitoragent,creditoragent);
 			
 			
 		}
@@ -4761,7 +4775,7 @@ public class IPSConnection {
 
 	public String incomingFundTransferConnectionMerchant(String acctNumber, String acctName, String trAmt, String currency,
 			String sysTraceAuditNumber, String SeqUniqueID, String trRmks, SendT request, String debrAcctNumber,
-			String debtAcctName, String instgAcct, String ctgyPurp, String rmtInfo, String instrId, String endToEndID,String instdAgtPacs008) {
+			String debtAcctName, String instgAcct, String ctgyPurp, String rmtInfo, String instrId, String endToEndID,String instdAgtPacs008,String debitoragent,String creditoragent) {
 
 
 
@@ -4792,7 +4806,8 @@ public class IPSConnection {
 			response = ipsDao.registerMerchantIncomingData(requestUUID, new Date(),
 					sysTraceAuditNumber,"",
 					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "QR", "", rmtInfo, "",
-					"", new Date(),dataParse.getMerchant_name(),merchantFees,debrAcctNumber,debtAcctName,instgAcct,ctgyPurp,trRmks,instrId,endToEndID,instdAgtPacs008);
+					"", new Date(),dataParse.getMerchant_name(),merchantFees,debrAcctNumber,debtAcctName,instgAcct,ctgyPurp,trRmks,instrId,endToEndID,instdAgtPacs008,
+					debitoragent,creditoragent);
 			
 			
 			if(merchantsize>0) {
@@ -4801,21 +4816,21 @@ public class IPSConnection {
 			//	String initTranNumber = dataParse1.getResv_field1() != null ? dataParse1.getResv_field1(): dataParse1.getP_id();
 				String initTranNumber = dataParse1.getResv_field1() ;
 						
-/*response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceAuditNumber, dataParse1.getInit_channel_id(), initTranNumber, "False", "CR", "N", "",
 						acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "QR", "", rmtInfo, "",
 						"", new Date(), "RECEIVABLE", dataParse1.getReq_unique_id(), "", "",
-						dataParse1.getMaster_ref_id());*/
+						dataParse1.getMaster_ref_id(),debitoragent,creditoragent);
 if(dataParse1.getInit_channel_id().equals("Customer")) {
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(initTranNumber,dataParse1.getMaster_ref_id(),new Date(),dataParse1.getReq_unique_id(),acctNumber,new BigDecimal(trAmt),"ACSP","","",dataParse1.getSequence_unique_id());
 }
 			}else {
-				/*response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+				response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID, "False", "CR", "N", "",
 						acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "QR", "", rmtInfo, "",
-						"", new Date(), "RECEIVABLE", "", "", "", "");*/
+						"", new Date(), "RECEIVABLE", "", "", "", "",debitoragent,creditoragent);
 			}
 			
 			
@@ -5473,8 +5488,16 @@ if(dataParse1.getInit_channel_id().equals("Customer")) {
 			String p_id, String channelID, String resvfield1, String resvfield2) {
 
 		  final ValidationResult validationResult = Crc16Validate.validate(cimQRFormatData.getQrCode());
+			String crccheck = env.getProperty("ipsx.crccheck");
+			Boolean  validationResultb = null;
+			if(crccheck.equals("true"))
+			{
+				  validationResultb=validationResult.isValid();
+			}else {
+				  validationResultb=true;
+			}
 
-		if (validationResult.isValid()) {
+		if (validationResultb.equals(true)) {
 			final MerchantPresentedMode merchantPresentedMode = DecoderMpm.decode(cimQRFormatData.getQrCode(), MerchantPresentedMode.class);
 
 			CIMMerchantDecodeQRFormatResponse response=new CIMMerchantDecodeQRFormatResponse();
@@ -5516,7 +5539,13 @@ if(dataParse1.getInit_channel_id().equals("Customer")) {
 
 				  if(!String.valueOf(ss.getMerchantID()).equals("null")&&
 							!String.valueOf(ss.getMerchantID()).equals("")){
-					  acctInfo.setMerchantID(ss.getMerchantID().getValue());
+					  
+						if(!String.valueOf(merchantPresentedMode.getMerchantCategoryCode()).equals("null")&&
+								!String.valueOf(merchantPresentedMode.getMerchantCategoryCode()).equals("")){
+							acctInfo.setMerchantID(ss.getMerchantID().getValue());
+								}
+						
+						acctInfo.setReserveField(ss.getMerchantID().getValue());
 				  }
 				  
 				  response.setMerchantAcctInformation(acctInfo);
@@ -5580,7 +5609,11 @@ if(dataParse1.getInit_channel_id().equals("Customer")) {
 			
 			response.setCountryCode(merchantPresentedMode.getCountryCode().getValue());
 			response.setMerchantName(merchantPresentedMode.getMerchantName().getValue());
-			response.setCity(merchantPresentedMode.getMerchantCity().getValue());
+			//response.setCity(merchantPresentedMode.getMerchantCity().getValue());
+			if(!String.valueOf(merchantPresentedMode.getMerchantCity()).equals("null")&&
+					!String.valueOf(merchantPresentedMode.getMerchantCity()).equals("")){
+						response.setCity(merchantPresentedMode.getMerchantCity().getValue());
+					}
 			if(!String.valueOf(merchantPresentedMode.getPostalCode()).equals("null")&&
 					!String.valueOf(merchantPresentedMode.getPostalCode()).equals("")){
 						response.setPostalCode(merchantPresentedMode.getPostalCode().getValue());
@@ -5904,8 +5937,7 @@ if(dataParse1.getInit_channel_id().equals("Customer")) {
 				RemitterAccount remAcct=rtpBulkTransferRequest.getRemitterAccount();
 				
 			    ////// Get Bank Agent Account and Agent Account
-				//BankAgentTable creditorAgent = ipsDao
-											//.getOtherBankAgent(benAcct.getBankCode());
+				BankAgentTable creditorAgent = ipsDao.getOtherBankAgent(benAcct.getBankCode());
 				
 				//logger.info("Register Initial RTP Fund Transfer Record"+creditorAgent.getBank_agent());
 
@@ -5919,10 +5951,10 @@ if(dataParse1.getInit_channel_id().equals("Customer")) {
 				String instdAgent=bankAgentTable.getBank_agent();
 				String debtorAgent=bankAgentTable.getBank_agent();
 				String debtorAgentAcct=bankAgentTable.getBank_agent_account();
-				String CreditorAgent=env.getProperty("ipsx.dbtragt");
-				String CreditorAgentAcct=env.getProperty("ipsx.dbtragtacct");
-				//String CreditorAgent=creditorAgent.getBank_agent();
-				//String CreditorAgentAcct=creditorAgent.getBank_agent_account();
+				//String CreditorAgent=env.getProperty("ipsx.dbtragt");
+				//String CreditorAgentAcct=env.getProperty("ipsx.dbtragtacct");
+				String CreditorAgent=creditorAgent.getBank_agent();
+				String CreditorAgentAcct=creditorAgent.getBank_agent_account();
 				
 				////Check Creditor Account Number already registerd in BIPS
 				//boolean isRegisteredPISP=ipsDao.checkExistConsent(rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());

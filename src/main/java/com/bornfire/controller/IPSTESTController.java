@@ -28,7 +28,7 @@ public class IPSTESTController {
 
 	
 ////NPCI Request UPI Validation
-	@PostMapping(path = "/mvc/0/public-service/reqvalqr", produces = "application/json", consumes = "application/json")
+	@PostMapping(path = "/mvc/0/public-service/reqvalqrtest", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<ErrorResponseforUPI> ReqValQr(
 			@RequestHeader(value = "X-Request-ID", required = true)   String p_id,
 			@RequestBody NpciupiReqcls npcireq) throws ParseException {

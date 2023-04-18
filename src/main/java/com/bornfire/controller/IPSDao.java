@@ -1012,7 +1012,7 @@ public class IPSDao {
 						sequence.generateSystemTraceAuditNumber(), tm.getInit_channel_id(), tm.getReq_unique_id(), "False", "", "",
 						"", tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 						tm.getSequence_unique_id(), tm.getIpsx_account(), tm.getIpsx_account_name(), "NRT", "", "",
-						"Failure", ipsxerrorDesc,new Date(),"","","","","");
+						"Failure", ipsxerrorDesc,new Date(),"","","","","",tm.getDbtr_agt(),tm.getCdtr_agt());
 
 				logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -1299,7 +1299,7 @@ public class IPSDao {
 					sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),init_tran_no,"False","","","",
 					tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 					tm.getSequence_unique_id(),settlReceivableAccount,tm.getCim_account_name(),"RTP","","","","",new Date(),"RECEIVABLE",tm.getReq_unique_id(),
-					ipsxErrorCode,ipsxerrorDesc,tm.getMaster_ref_id());
+					ipsxErrorCode,ipsxerrorDesc,tm.getMaster_ref_id(),tm.getDbtr_agt(),tm.getCdtr_agt());
 			
 			logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -6039,11 +6039,14 @@ public class IPSDao {
 			String seqUniqueID,  String debrAcctNumber,
 			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
 			String resv_field1,String res_field2,Date valueDate,String settlType,
-			String init_sub_tran_no,String error_code,String error_msg,String ipsMasterRefId) {
+			String init_sub_tran_no,String error_code,String error_msg,String ipsMasterRefId,String debitoragent,String creditoragent) {
 		
 		String response="0";
 		try {
 			TranCimCBSTable tranCimCBSTable=new TranCimCBSTable();
+			
+			BankAgentTable remitterBank= findByBank(debitoragent);
+			BankAgentTable benificiaryBank = findByBank(creditoragent);
 			
 			
 			tranCimCBSTable.setSequence_unique_id(seqUniqueID);
@@ -6077,6 +6080,12 @@ public class IPSDao {
 			tranCimCBSTable.setError_code(error_code);
 			tranCimCBSTable.setError_msg(error_msg);
 			tranCimCBSTable.setIps_master_ref_id(ipsMasterRefId);
+			tranCimCBSTable.setRemitterbank(remitterBank.getBank_name());
+			tranCimCBSTable.setRemitterbankcode(remitterBank.getBank_code());
+			tranCimCBSTable.setRemitterswiftcode(remitterBank.getBank_agent());
+			tranCimCBSTable.setBeneficiarybank(benificiaryBank.getBank_name());
+			tranCimCBSTable.setBeneficiarybankcode(benificiaryBank.getBank_code());
+			tranCimCBSTable.setBeneficiaryswiftcode(benificiaryBank.getBank_agent());
 			tranCimCBSTableRep.saveAndFlush(tranCimCBSTable);
 			response="1";
 
@@ -6094,7 +6103,7 @@ public class IPSDao {
 			String credAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
 			String resv_field1,String res_field2,Date valueDate,String Merchant_name,String Merchantfees,
 			String debrAcctNumber,String debtAcctName,String instgAcct,String ctgyPurp,String trRmks,String instrId,String endToEndID,
-			String instdAgtPacs008) {
+			String instdAgtPacs008,String debitoragent,String creditoragent) {
 		
 		String response="0";
 		try {
@@ -6119,8 +6128,8 @@ public class IPSDao {
 			tranCimCBSTable.setTran_date(new Date());
 			tranCimCBSTable.setIpsx_account_number(debrAcctNumber);
 			tranCimCBSTable.setIpsx_acct_name(debtAcctName);
-			tranCimCBSTable.setDbtr_agt(instgAcct);
-			tranCimCBSTable.setCdtr_agt(instdAgtPacs008);
+			tranCimCBSTable.setDbtr_agt(debitoragent);
+			tranCimCBSTable.setCdtr_agt(creditoragent);
 			tranCimCBSTable.setTran_type_code(ctgyPurp);
 			tranCimCBSTable.setTran_rmks(trRmks);
 			tranCimCBSTable.setInstr_id(instrId);

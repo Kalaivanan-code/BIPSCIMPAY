@@ -13,6 +13,8 @@ public class CIMMerchantDecodeQRMerchantAcctInfo {
 	private String MerchantAcctNumber;
 
 	private String MerchantID;
+	
+	private String ReserveField;
 
 	public String getGlobalID() {
 		return GlobalID;
@@ -44,6 +46,14 @@ public class CIMMerchantDecodeQRMerchantAcctInfo {
 
 	public void setMerchantID(String merchantID) {
 		MerchantID = merchantID;
+	}
+
+	public String getReserveField() {
+		return ReserveField;
+	}
+
+	public void setReserveField(String reserveField) {
+		ReserveField = reserveField;
 	}
 	
 	

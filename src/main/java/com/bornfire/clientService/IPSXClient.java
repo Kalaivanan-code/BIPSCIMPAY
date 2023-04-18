@@ -53,6 +53,7 @@ import com.bornfire.entity.MCCreditTransferRequest;
 import com.bornfire.entity.MCCreditTransferResponse;
 import com.bornfire.entity.MerchantMaster;
 import com.bornfire.entity.MerchantMasterRep;
+import com.bornfire.entity.OutwardTransactionMonitoringTable;
 import com.bornfire.entity.SettlementLimitReportRep;
 import com.bornfire.entity.SettlementLimitReportTable;
 import com.bornfire.entity.SettlementLimitResponse;
@@ -490,7 +491,10 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					clr_chnnl_pacs008,reg_rep_pacs008,rmt_info_pacs008,rmt_info_issuer_pacs008,rmt_info_nb_pacs008);
 
 			logger.info("Table Update Status" + status);
-			
+			logger.info("debtorAgentAcc008" + debtorAgentAcc008);
+			logger.info("creditorAgent008" + creditorAgent008);
+			logger.info("instgAgtPacs008" + instgAgtPacs008);
+			logger.info("instdAgtPacs008" + instdAgtPacs008);
 			ipsDao.insertTranIPS(seqUniqueID008, seqUniqueID008, "pacs.008.001.08", "INCOMING", "", "", "", "I",
 					msgSender, msgReceiver, msgNetMIR, userReference,endToEndID008,docPacs.getPacs_008_001_01UnMarshalDocXML(request));
 			
@@ -611,13 +615,13 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							logger.info("Calling ESB Connection "+ ctgy_purp_pacs008);
 							responseIncomeMsg = ipsConnection.incomingFundTransferConnection1(creditorAccount008,creditorAccountName008,
 									trAmount008S, trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
-									debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008);
+									debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008,debtorAgent008,creditorAgent008);
 						
 						}else {
 							responseIncomeMsg="CIM0:SUCCESS";
 							responseIncomeMsg = ipsConnection.incomingFundTransferConnectionMerchant(creditorAccount008,creditorAccountName008,
 									trAmount008S, trCurrency008, sysTraceNumber008, seqUniqueID008,"CUSTIN/"+othBankCode+"/"+debtorAccount008+"/"+debtorAccountName008,request,
-									debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008,instdAgtPacs008);
+									debtorAccount008,debtorAccountName008,instgAgtPacs008,ctgy_purp_pacs008,rmt_info_pacs008,instr_id_pacs008,endToEndID008,instdAgtPacs008,debtorAgent008,creditorAgent008);
 							
 						}
 					/*	logger.info("Calling ESB Connection");
@@ -1503,8 +1507,34 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			String endToEndIDPain002 = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
 					.getOrgnlEndToEndId();
 			
+			//// INSTR ID
+			String instrIDPain002 = docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0)
+					.getOrgnlInstrId();
 			
+		//// Generate RequestUUID
+			String requestUUID = sequence.generateRequestUUId();
 			
+			 ///// Generate System Trace Audit Number
+			String sysTraceNumber002 = sequence.generateSystemTraceAuditNumber();
+			List<OutwardTransactionMonitoringTable> outTranList = ipsDao.checkExistOutwardRTP(instrIDPain002, endToEndIDPain002);
+
+			//int sizeOutTran = outTranList.size();
+			OutwardTransactionMonitoringTable dataParse=outTranList.get(0);
+			
+			if(String.valueOf(dataParse.getInstg_agt()).equals(env.getProperty("ipsx.bicfi")) && !String.valueOf(dataParse.getCdtr_agt()).equals(env.getProperty("ipsx.bicfi"))) {
+				
+				logger.info("Inside Pain002 processing ESB Request");
+	
+				String initTranNumber = dataParse.getResv_field1() != null ? dataParse.getResv_field1()
+						: dataParse.getP_id();
+			
+		String	response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+					sysTraceNumber002, dataParse.getInit_channel_id(), initTranNumber, "False", "CR", "N", "",
+					dataParse.getCim_account(), String.valueOf(dataParse.getTran_amount()), dataParse.getTran_currency(), orglMsgID, dataParse.getIpsx_account(), dataParse.getIpsx_account_name(), "RTP", "", dataParse.getTran_rmks(), "",
+					"", new Date(), "TRANSFER", dataParse.getReq_unique_id(), "", "",
+					dataParse.getMaster_ref_id(),dataParse.getDbtr_agt(),dataParse.getCdtr_agt());
+			}
 			/*String instgId=Optional.ofNullable(docPain002)
 			.map(com.bornfire.jaxb.pain_002_001_10.Document::getCstmrPmtStsRpt)
 			.map(com.bornfire.jaxb.pain_002_001_10.CustomerPaymentStatusReportV10::getGrpHdr)

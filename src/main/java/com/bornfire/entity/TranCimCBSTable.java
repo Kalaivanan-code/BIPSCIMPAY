@@ -59,7 +59,15 @@ public class TranCimCBSTable implements Serializable{
 	private String error_msg;
 	private String ips_master_ref_id;
 	private Date message_res_time;
-	
+	private String remitterbank;
+	private String remitterbankcode;
+	private String remitterswiftcode;
+	private String beneficiarybank;
+	private String beneficiarybankcode;
+	private String beneficiaryswiftcode;
+
+
+
 	public TranCimCBSTable(String sequence_unique_id, String request_uuid, String channel_id,
 			String service_request_version, String service_request_id, Date message_date_time, String tran_no,
 			String init_channel, String init_tran_no, String post_to_cbs, String tran_type, String isreversal,
@@ -67,7 +75,10 @@ public class TranCimCBSTable implements Serializable{
 			BigDecimal tran_amt, Date tran_date, String tran_currency, String tran_particular_code,
 			String debit_remarks, String credit_remarks, String resv_field_1, String resv_field_2, String status,
 			String status_code, String message, String entry_user, Date entry_time, String entity_cre_flg,
-			Date value_date, String tran_charge_type) {
+			Date value_date, String settl_acct_type, String tran_charge_type, String init_sub_tran_no,
+			String error_code, String error_msg, String ips_master_ref_id, Date message_res_time, String remitterbank,
+			String remitterbankcode, String remitterswiftcode, String beneficiarybank, String beneficiarybankcode,
+			String beneficiaryswiftcode) {
 		super();
 		this.sequence_unique_id = sequence_unique_id;
 		this.request_uuid = request_uuid;
@@ -100,7 +111,19 @@ public class TranCimCBSTable implements Serializable{
 		this.entry_time = entry_time;
 		this.entity_cre_flg = entity_cre_flg;
 		this.value_date = value_date;
+		this.settl_acct_type = settl_acct_type;
 		this.tran_charge_type = tran_charge_type;
+		this.init_sub_tran_no = init_sub_tran_no;
+		this.error_code = error_code;
+		this.error_msg = error_msg;
+		this.ips_master_ref_id = ips_master_ref_id;
+		this.message_res_time = message_res_time;
+		this.remitterbank = remitterbank;
+		this.remitterbankcode = remitterbankcode;
+		this.remitterswiftcode = remitterswiftcode;
+		this.beneficiarybank = beneficiarybank;
+		this.beneficiarybankcode = beneficiarybankcode;
+		this.beneficiaryswiftcode = beneficiaryswiftcode;
 	}
 	public TranCimCBSTable() {
 		super();
@@ -335,6 +358,44 @@ public class TranCimCBSTable implements Serializable{
 	public void setMessage_res_time(Date message_res_time) {
 		this.message_res_time = message_res_time;
 	}
+	public String getRemitterbank() {
+		return remitterbank;
+	}
+	public void setRemitterbank(String remitterbank) {
+		this.remitterbank = remitterbank;
+	}
+	public String getRemitterbankcode() {
+		return remitterbankcode;
+	}
+	public void setRemitterbankcode(String remitterbankcode) {
+		this.remitterbankcode = remitterbankcode;
+	}
+	public String getRemitterswiftcode() {
+		return remitterswiftcode;
+	}
+	public void setRemitterswiftcode(String remitterswiftcode) {
+		this.remitterswiftcode = remitterswiftcode;
+	}
+	public String getBeneficiarybank() {
+		return beneficiarybank;
+	}
+	public void setBeneficiarybank(String beneficiarybank) {
+		this.beneficiarybank = beneficiarybank;
+	}
+	public String getBeneficiarybankcode() {
+		return beneficiarybankcode;
+	}
+	public void setBeneficiarybankcode(String beneficiarybankcode) {
+		this.beneficiarybankcode = beneficiarybankcode;
+	}
+	public String getBeneficiaryswiftcode() {
+		return beneficiaryswiftcode;
+	}
+	public void setBeneficiaryswiftcode(String beneficiaryswiftcode) {
+		this.beneficiaryswiftcode = beneficiaryswiftcode;
+
+	}
+	
 	
 	
 	
