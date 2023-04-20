@@ -154,6 +154,13 @@ public class CimCBSservice {
 		cimCBSrequestData.setBeneficiaryBank(data.getBeneficiarybank());
 		cimCBSrequestData.setBeneficiaryBankCode(data.getBeneficiarybankcode());
 		cimCBSrequestData.setBeneficiarySwiftCode(data.getBeneficiaryswiftcode());
+		
+		if(data.getStatus().equals("ACSP")) {
+			cimCBSrequestData.setIpsxTranStatus(Boolean.TRUE);
+		}else {
+			cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
+		}
+		
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 	
@@ -251,6 +258,12 @@ public class CimCBSservice {
 		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
 		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
 		cimCBSrequestData.setIpsMasterRefId((data.getIps_master_ref_id()==null)?"":data.getIps_master_ref_id());
+		cimCBSrequestData.setRemitterBank(data.getRemitterbank());
+		cimCBSrequestData.setRemitterBankCode(data.getRemitterbankcode());
+		cimCBSrequestData.setRemitterSwiftCode(data.getRemitterswiftcode());
+		cimCBSrequestData.setBeneficiaryBank(data.getBeneficiarybank());
+		cimCBSrequestData.setBeneficiaryBankCode(data.getBeneficiarybankcode());
+		cimCBSrequestData.setBeneficiarySwiftCode(data.getBeneficiaryswiftcode());
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 		logger.debug(cimCBSrequest.toString());
@@ -325,6 +338,12 @@ public class CimCBSservice {
 		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
 		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
 		cimCBSrequestData.setIpsMasterRefId((data.getIps_master_ref_id()==null)?"":data.getIps_master_ref_id());
+		cimCBSrequestData.setRemitterBank(data.getRemitterbank());
+		cimCBSrequestData.setRemitterBankCode(data.getRemitterbankcode());
+		cimCBSrequestData.setRemitterSwiftCode(data.getRemitterswiftcode());
+		cimCBSrequestData.setBeneficiaryBank(data.getBeneficiarybank());
+		cimCBSrequestData.setBeneficiaryBankCode(data.getBeneficiarybankcode());
+		cimCBSrequestData.setBeneficiarySwiftCode(data.getBeneficiaryswiftcode());
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 
@@ -411,6 +430,18 @@ public class CimCBSservice {
 		cimCBSrequestData.setErrorCode((data.getError_code()==null)?"":data.getError_code());
 		cimCBSrequestData.setErrorMessage((data.getError_msg()==null)?"":data.getError_msg());
 		cimCBSrequestData.setIpsMasterRefId((data.getIps_master_ref_id()==null)?"":data.getIps_master_ref_id());
+		cimCBSrequestData.setRemitterBank(data.getRemitterbank());
+		cimCBSrequestData.setRemitterBankCode(data.getRemitterbankcode());
+		cimCBSrequestData.setRemitterSwiftCode(data.getRemitterswiftcode());
+		cimCBSrequestData.setBeneficiaryBank(data.getBeneficiarybank());
+		cimCBSrequestData.setBeneficiaryBankCode(data.getBeneficiarybankcode());
+		cimCBSrequestData.setBeneficiarySwiftCode(data.getBeneficiaryswiftcode());
+		
+		if(data.getStatus().equals("RJCT")) {
+			cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
+		}else {
+			cimCBSrequestData.setIpsxTranStatus(Boolean.TRUE);
+		}
 		
 		cimCBSrequest.setData(cimCBSrequestData);
 		

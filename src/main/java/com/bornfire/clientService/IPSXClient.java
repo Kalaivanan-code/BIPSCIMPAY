@@ -1521,20 +1521,7 @@ public class IPSXClient extends WebServiceGatewaySupport {
 			//int sizeOutTran = outTranList.size();
 			OutwardTransactionMonitoringTable dataParse=outTranList.get(0);
 			
-			if(String.valueOf(dataParse.getInstg_agt()).equals(env.getProperty("ipsx.bicfi")) && !String.valueOf(dataParse.getCdtr_agt()).equals(env.getProperty("ipsx.bicfi"))) {
-				
-				logger.info("Inside Pain002 processing ESB Request");
-	
-				String initTranNumber = dataParse.getResv_field1() != null ? dataParse.getResv_field1()
-						: dataParse.getP_id();
 			
-		String	response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
-					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
-					sysTraceNumber002, dataParse.getInit_channel_id(), initTranNumber, "False", "CR", "N", "",
-					dataParse.getCim_account(), String.valueOf(dataParse.getTran_amount()), dataParse.getTran_currency(), orglMsgID, dataParse.getIpsx_account(), dataParse.getIpsx_account_name(), "RTP", "", dataParse.getTran_rmks(), "",
-					"", new Date(), "TRANSFER", dataParse.getReq_unique_id(), "", "",
-					dataParse.getMaster_ref_id(),dataParse.getDbtr_agt(),dataParse.getCdtr_agt());
-			}
 			/*String instgId=Optional.ofNullable(docPain002)
 			.map(com.bornfire.jaxb.pain_002_001_10.Document::getCstmrPmtStsRpt)
 			.map(com.bornfire.jaxb.pain_002_001_10.CustomerPaymentStatusReportV10::getGrpHdr)
@@ -1572,7 +1559,25 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							TranMonitorStatus.SUCCESS.toString(), "pain.002.001.10",orglTxRefDate);
 				//}
 					
+					if(String.valueOf(dataParse.getInstg_agt()).equals(env.getProperty("ipsx.bicfi")) && !String.valueOf(dataParse.getCdtr_agt()).equals(env.getProperty("ipsx.bicfi"))) {
+						
+						logger.info("Inside Pain002 processing ESB Request");
+			
+						String initTranNumber = dataParse.getResv_field1() != null ? dataParse.getResv_field1()
+								: dataParse.getP_id();
+					
+				String	response = ipsDao.registerCIMcbsIncomingDataPain(requestUUID, env.getProperty("cimCBS.channelID"),
+							env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+							sysTraceNumber002, dataParse.getInit_channel_id(), initTranNumber, "False", "CR", "N", "",
+							dataParse.getCim_account(), String.valueOf(dataParse.getTran_amount()), dataParse.getTran_currency(), orglMsgID, dataParse.getIpsx_account(), dataParse.getIpsx_account_name(), "RTP", "", dataParse.getTran_rmks(), "",
+							"", new Date(), "TRANSFER", dataParse.getReq_unique_id(), "", "",
+							dataParse.getMaster_ref_id(),dataParse.getDbtr_agt(),dataParse.getCdtr_agt(),"ACSP");
+				if (response.equals("1")) {
 
+					logger.info("calling ESB API for status from pain.002");
+					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
+				}
+					}
 
 			} else {
 				
@@ -1622,7 +1627,25 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							TranMonitorStatus.RJCT.toString(), tranErrorCode);
 				//}
 
+					if(String.valueOf(dataParse.getInstg_agt()).equals(env.getProperty("ipsx.bicfi")) && !String.valueOf(dataParse.getCdtr_agt()).equals(env.getProperty("ipsx.bicfi"))) {
+						
+						logger.info("Inside Pain002 processing ESB Request");
+			
+						String initTranNumber = dataParse.getResv_field1() != null ? dataParse.getResv_field1()
+								: dataParse.getP_id();
+					
+				String	response = ipsDao.registerCIMcbsIncomingDataPain(requestUUID, env.getProperty("cimCBS.channelID"),
+							env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+							sysTraceNumber002, dataParse.getInit_channel_id(), initTranNumber, "False", "CR", "N", "",
+							dataParse.getCim_account(), String.valueOf(dataParse.getTran_amount()), dataParse.getTran_currency(), orglMsgID, dataParse.getIpsx_account(), dataParse.getIpsx_account_name(), "RTP", "", dataParse.getTran_rmks(), "",
+							"", new Date(), "TRANSFER", dataParse.getReq_unique_id(), TranMonitorStatus.FAILURE.toString(), tranErrorDesc,
+							dataParse.getMaster_ref_id(),dataParse.getDbtr_agt(),dataParse.getCdtr_agt(),"RJCT");
+				if (response.equals("1")) {
 
+					logger.info("calling ESB API for status from pain.002");
+					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
+				}
+					}
 			}
 			break;
 

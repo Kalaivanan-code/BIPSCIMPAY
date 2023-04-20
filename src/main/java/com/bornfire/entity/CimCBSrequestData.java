@@ -99,6 +99,9 @@ public class CimCBSrequestData {
 	@JsonProperty("beneficiarySwiftCode")
 	private String beneficiarySwiftCode;
 	
+	@JsonProperty("ipsxTranStatus")
+	private Boolean ipsxTranStatus;
+	
 	public String getTransactionNo() {
 		return transactionNo;
 	}
@@ -336,6 +339,14 @@ public class CimCBSrequestData {
 		this.beneficiarySwiftCode = beneficiarySwiftCode;
 	}
 
+	public Boolean getIpsxTranStatus() {
+		return ipsxTranStatus;
+	}
+
+	public void setIpsxTranStatus(Boolean ipsxTranStatus) {
+		this.ipsxTranStatus = ipsxTranStatus;
+	}
+
 	@Override
 	public String toString() {
 		return "CimCBSrequestData [branchId=" + branchId + ", transactionNo=" + transactionNo + ", initiatingChannel="
@@ -350,8 +361,12 @@ public class CimCBSrequestData {
 				+ errorCode + ", errorMessage=" + errorMessage + ", ipsMasterRefId=" + ipsMasterRefId
 				+ ", remitterBank=" + remitterBank + ", remitterBankCode=" + remitterBankCode + ", remitterSwiftCode="
 				+ remitterSwiftCode + ", beneficiaryBank=" + beneficiaryBank + ", beneficiaryBankCode="
-				+ beneficiaryBankCode + ", beneficiarySwiftCode=" + beneficiarySwiftCode + "]";
+				+ beneficiaryBankCode + ", beneficiarySwiftCode=" + beneficiarySwiftCode + ", ipsxTranStatus="
+				+ ipsxTranStatus + "]";
 	}
+
+
+
 
 
 

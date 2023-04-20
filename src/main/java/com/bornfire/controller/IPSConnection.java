@@ -4538,12 +4538,12 @@ public class IPSConnection {
 									remInfo.append("07/"+cimMerchantRequest.getAdditionalDataInformation().getTerminalLabel()+"/");
 								}
 								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")&&
-										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("null")) {
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction()).equals("")) {
 									remInfo.append("08/"+cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction()+"/");
 									remarks=cimMerchantRequest.getAdditionalDataInformation().getPurposeOfTransaction();
 								}
 								if(!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")&&
-										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getAddlDataRequest()).equals("null")) {
+										!String.valueOf(cimMerchantRequest.getAdditionalDataInformation().getAddlDataRequest()).equals("")) {
 									remInfo.append("09/"+cimMerchantRequest.getAdditionalDataInformation().getAddlDataRequest()+"/");
 								}
 							}
@@ -4561,7 +4561,7 @@ public class IPSConnection {
 								instgAgent,instdAgent,debtorAgent,
 								debtorAgentAcct,CreditorAgent,CreditorAgentAcct,
 								seqUniqueID,"0100",lclInstr,ctgyPurp,ctgyPurp,cimMerchantRequest.getRemitterAccount().getAcctName(),
-								cimMerchantRequest.getRemitterAccount().getAcctNumber(),cimMerchantRequest.getMerchantAccount().getPayeeParticipantCode(),
+								cimMerchantRequest.getRemitterAccount().getAcctNumber(),creditorAgent.getBank_code(),
 								cimMerchantRequest.getMerchantAccount().getCurrency(),cimMerchantRequest.getMerchantAccount().getMerchantName(),
 								cimMerchantRequest.getMerchantAccount().getMerchantAcctNumber(),p_id,
 								tot_tran_amount,remarks,

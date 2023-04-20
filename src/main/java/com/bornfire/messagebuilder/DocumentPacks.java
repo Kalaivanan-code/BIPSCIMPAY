@@ -2446,7 +2446,8 @@ public class DocumentPacks implements Serializable{
 		other1.setId(debtorAgentAcct);
 		finInstnId3.setOthr(other1);
 		dbtrAgtAcct.setId(finInstnId3);
-		pmtInf.setDbtrAgtAcct(dbtrAgtAcct);
+		//for commenting success test on 18.04.2023
+		//pmtInf.setDbtrAgtAcct(dbtrAgtAcct);
 		
 		pmtInf.setChrgBr(com.bornfire.jaxb.pain_001_001_09.ChargeBearerType1Code1.SLEV);
 
@@ -2491,7 +2492,8 @@ public class DocumentPacks implements Serializable{
 		other2.setId(CreditorAgentAcct);
 		finInstnId4.setOthr(other2);
 		cdtrAgtAcct.setId(finInstnId4);
-		cdtTrfTxInf.setCdtrAgtAcct(cdtrAgtAcct);
+		//for commenting success test on 18.04.2023
+		//cdtTrfTxInf.setCdtrAgtAcct(cdtrAgtAcct);
 		
 		com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351 cdtr=new com.bornfire.jaxb.pain_001_001_09.PartyIdentification1351();
 		cdtr.setNm(benName);

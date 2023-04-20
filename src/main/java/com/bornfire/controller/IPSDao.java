@@ -6097,6 +6097,73 @@ public class IPSDao {
 		return response;
 	}
 
+	
+	public String registerCIMcbsIncomingDataPain(String requestUUID,String channelId,
+			String serviveReqVersion,String serviceReqId,Date msgDate,String tranNumber,
+			String initChannel,String initTranNumber,String postToCbs,
+			String tran_type,String isReversal,String tran_numberFromCbs, String acctNumber, String trAmt, String currency,
+			String seqUniqueID,  String debrAcctNumber,
+			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
+			String resv_field1,String res_field2,Date valueDate,String settlType,
+			String init_sub_tran_no,String error_code,String error_msg,String ipsMasterRefId,String debitoragent,String creditoragent,String Status) {
+		
+		String response="0";
+		try {
+			TranCimCBSTable tranCimCBSTable=new TranCimCBSTable();
+			
+			BankAgentTable remitterBank= findByBank(debitoragent);
+			BankAgentTable benificiaryBank = findByBank(creditoragent);
+			
+			
+			tranCimCBSTable.setSequence_unique_id(seqUniqueID);
+			tranCimCBSTable.setRequest_uuid(requestUUID);
+			tranCimCBSTable.setChannel_id(channelId);
+			tranCimCBSTable.setService_request_version(serviveReqVersion);
+			tranCimCBSTable.setService_request_id(serviceReqId);
+			tranCimCBSTable.setMessage_date_time(msgDate);
+			
+			tranCimCBSTable.setTran_no(tranNumber);
+			tranCimCBSTable.setInit_channel(initChannel);
+			tranCimCBSTable.setInit_tran_no(initTranNumber);
+			tranCimCBSTable.setPost_to_cbs(postToCbs);
+			tranCimCBSTable.setTran_type(tran_type);
+			tranCimCBSTable.setIsreversal(isReversal);
+			tranCimCBSTable.setTran_no_from_cbs(tran_numberFromCbs);
+			tranCimCBSTable.setCustomer_name(debtAcctName);
+			tranCimCBSTable.setFrom_account_no(debrAcctNumber);
+			tranCimCBSTable.setTo_account_no(acctNumber);
+			tranCimCBSTable.setTran_amt(new BigDecimal(trAmt));
+			tranCimCBSTable.setTran_date(new Date());
+			tranCimCBSTable.setTran_currency(currency);
+			tranCimCBSTable.setTran_particular_code(tran_part_code);
+			tranCimCBSTable.setDebit_remarks(debit_remarks);
+			tranCimCBSTable.setCredit_remarks(credit_remarks);
+			tranCimCBSTable.setResv_field_1(resv_field1);
+			tranCimCBSTable.setResv_field_2(res_field2);
+			tranCimCBSTable.setValue_date(valueDate);
+			tranCimCBSTable.setSettl_acct_type(settlType);
+			tranCimCBSTable.setInit_sub_tran_no(init_sub_tran_no);
+			tranCimCBSTable.setError_code(error_code);
+			tranCimCBSTable.setError_msg(error_msg);
+			tranCimCBSTable.setIps_master_ref_id(ipsMasterRefId);
+			tranCimCBSTable.setRemitterbank(remitterBank.getBank_name());
+			tranCimCBSTable.setRemitterbankcode(remitterBank.getBank_code());
+			tranCimCBSTable.setRemitterswiftcode(remitterBank.getBank_agent());
+			tranCimCBSTable.setBeneficiarybank(benificiaryBank.getBank_name());
+			tranCimCBSTable.setBeneficiarybankcode(benificiaryBank.getBank_code());
+			tranCimCBSTable.setBeneficiaryswiftcode(benificiaryBank.getBank_agent());
+			tranCimCBSTable.setStatus(Status);
+			tranCimCBSTableRep.saveAndFlush(tranCimCBSTable);
+			response="1";
+
+		}catch(Exception e) {
+			logger.info(e.getLocalizedMessage());
+			response="0";
+		}
+		
+		return response;
+	}
+
 	public String registerMerchantIncomingData(String requestUUID,Date msgDate,String tranNumber,
 			String tran_type,String acctNumber, String trAmt, String currency,
 			String seqUniqueID,  String credAcctNumber,
