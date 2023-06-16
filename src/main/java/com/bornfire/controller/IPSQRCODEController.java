@@ -25,7 +25,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Hashtable;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.validation.Valid;
@@ -63,6 +65,7 @@ import com.bornfire.entity.MerchantMasterRep;
 import com.bornfire.entity.MerchantQRRegistration;
 import com.bornfire.entity.QRUrlGlobalEntity;
 import com.bornfire.entity.QRUrlGobalEntity;
+import com.bornfire.exception.IPSXException;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
@@ -265,7 +268,7 @@ public class IPSQRCODEController {
 			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 
-		logger.info("Service Starts generate QR Code");
+		logger.info("Service Starts generate QR Code CimDynamicMaucasRequest :"+ cimmaudynamic.toString());
 		//MerchantMaster ms = merchantmasterRep.findByIdCustom(acct_num);
 		CimMerchantResponse response = null;
 		MerchantMaster ms = merchantmasterRep.findByIdCustom(cimmaudynamic.getMerchant_ID());
@@ -292,52 +295,52 @@ public class IPSQRCODEController {
 		merchantQRgenerator.setTransaction_amt(cimmaudynamic.getTran_amt());
 		merchantQRgenerator.setZip_code(ms.getPincode());
 
-		if(cimmaudynamic.getBill_num().equals("null")) {
+		if(cimmaudynamic.getBill_num().equals("null") && cimmaudynamic.getBill_num().equals("") ) {
 			merchantQRgenerator.setBill_number(ms.getBill_number());
 		}else {
 		merchantQRgenerator.setBill_number(cimmaudynamic.getBill_num());
 		}
-		if(cimmaudynamic.getLoy_num().equals("null")) {
+		if(cimmaudynamic.getLoy_num().equals("null") && cimmaudynamic.getLoy_num().equals("")) {
 			merchantQRgenerator.setLoyalty_number(ms.getLoyalty_number());
 		}else {
 		merchantQRgenerator.setLoyalty_number(cimmaudynamic.getLoy_num());
 		}
-		if(cimmaudynamic.getMob_num().equals("null")) {
+		if(cimmaudynamic.getMob_num().equals("null") && cimmaudynamic.getMob_num().equals("")) {
 			merchantQRgenerator.setMobile(ms.getMerchant_cont_details());
 		}else {
 		merchantQRgenerator.setMobile(cimmaudynamic.getMob_num());
 		}
-		if(cimmaudynamic.getCust_label().equals("null")) {
+		if(cimmaudynamic.getCust_label().equals("null") && cimmaudynamic.getCust_label().equals("")) {
 			merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
 		}else {
 		merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
 		}
-		if(cimmaudynamic.getSto_label().equals("null")) {
+		if(cimmaudynamic.getSto_label().equals("null") && cimmaudynamic.getSto_label().equals("")) {
 			merchantQRgenerator.setStore_label(ms.getStore_label());
 		}else {
 		merchantQRgenerator.setStore_label(cimmaudynamic.getSto_label());
 		}
-		if(cimmaudynamic.getTer_label().equals("null")) {
+		if(cimmaudynamic.getTer_label().equals("null") && cimmaudynamic.getTer_label().equals("")) {
 			merchantQRgenerator.setTerminal_label(ms.getTerminal_label());
 		}else {
 		merchantQRgenerator.setTerminal_label(cimmaudynamic.getTer_label());
 		}
-		if(cimmaudynamic.getRef_label().equals("null")) {
+		if(cimmaudynamic.getRef_label().equals("null") && cimmaudynamic.getRef_label().equals("")) {
 			merchantQRgenerator.setReference_label(ms.getReference_label());
 		}else {
 		merchantQRgenerator.setReference_label(cimmaudynamic.getRef_label());
 		}
-		if(cimmaudynamic.getPur_tran().equals("null")) {
+		if(cimmaudynamic.getPur_tran().equals("null") && cimmaudynamic.getPur_tran().equals("")) {
 			merchantQRgenerator.setPurpose_of_tran(ms.getPurpose_of_tran());
 		}else {
 		merchantQRgenerator.setPurpose_of_tran(cimmaudynamic.getPur_tran());
 		}
-		if(cimmaudynamic.getAdd_det().equals("null")) {
+		if(cimmaudynamic.getAdd_det().equals("null") && cimmaudynamic.getAdd_det().equals("")) {
 			merchantQRgenerator.setAdditional_details(ms.getAdd_details_req());
 		}else {
 		merchantQRgenerator.setAdditional_details(cimmaudynamic.getAdd_det());
 		}
-		if(cimmaudynamic.getCust_label().equals("null")) {
+		if(cimmaudynamic.getCust_label().equals("null") && cimmaudynamic.getCust_label().equals("") ) {
 			merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
 		}else {
 		merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
@@ -898,5 +901,410 @@ public class IPSQRCODEController {
 		return new ResponseEntity<>(resp, HttpStatus.OK);
 	}
 
+	
+	
+	@PostMapping(path = "/api/ws/StaticMaucasStr", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<CimMerchantResponse> genMerchantQRcodeStr(
+			@RequestHeader(value = "P-ID", required = false) String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = false) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = false) String channelID,
+			@RequestHeader(value = "Merchant_ID", required = true) String acct_num,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2
+			)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 
+		logger.info("Service Starts generate QR Code");
+		//MerchantMaster ms = merchantmasterRep.findByIdCustom(acct_num);
+		CimMerchantResponse response = null;
+		MerchantMaster ms = merchantmasterRep.findByIdCustom(acct_num);
+				
+		if (ipsDao.invalidPIDQR(p_id)) {
+			if (ms != null) {
+				if (!ms.getFreeze_flg().equals("Y")) {
+					CIMMerchantQRcodeRequest cimMerchantQRcodeRequest = GetStaticQrcode(ms);
+
+					logger.info("cimMerchantQRcodeRequest" + cimMerchantQRcodeRequest.toString());
+					response=ipsConnection.createMerchantQRConnectionStr(psuDeviceID, psuIpAddress, psuID,
+							 cimMerchantQRcodeRequest, p_id,
+							 channelID, acct_num, resvfield2);
+
+
+					response.setBase64QR(response.getBase64QR());
+
+
+					response.setBase64QR(response.getBase64QR());
+				} else {
+					String responseStatus = errorCode.validationError("BIPSQ33");
+					throw new IPSXException(responseStatus);
+				}
+			} else {
+				String responseStatus = errorCode.validationError("BIPSQ32");
+				throw new IPSXException(responseStatus);
+			}
+		} else {
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+		
+
+		return new  ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	
+	@PostMapping(path = "/api/ws/DynamicMaucasStr", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<CimMerchantResponse> genDynamicMerchantQRcodeStr(
+			@RequestHeader(value = "P-ID", required = false) String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = false) String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = false) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "Merchant_ID", required = true) String acct_num,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
+			@RequestHeader(value = "Transaction_Amt", required = false) String tran_amt,
+			@RequestHeader(value = "Mobile_Number", required = false) String mob_num,
+			@RequestHeader(value = "Loyality_Number", required = false) String loy_num,
+			@RequestHeader(value = "Store_Label", required = false) String sto_label,
+			@RequestHeader(value = "Customer_Label", required = false) String cust_label,
+			@RequestHeader(value = "Reference_Label", required = false) String ref_label,
+			@RequestHeader(value = "Terminal_Label", required = false) String ter_label,
+			@RequestHeader(value = "Purpose_Of_Tran", required = false) String pur_tran,
+			@RequestHeader(value = "Additonal_Detail", required = false) String add_det,
+			@RequestHeader(value = "Bill_Number", required = false) String bill_num,
+			@RequestBody CimDynamicMaucasRequest cimmaudynamic
+
+	)
+
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		logger.info("Service Starts generate QR Code CimDynamicMaucasRequest :" + cimmaudynamic.toString());
+		// MerchantMaster ms = merchantmasterRep.findByIdCustom(acct_num);
+		CimMerchantResponse response = null;
+		MerchantMaster ms = merchantmasterRep.findByIdCustom(cimmaudynamic.getMerchant_ID());
+		if (ipsDao.invalidPIDQR(p_id)) {
+			if (ms != null) {
+				if (!ms.getFreeze_flg().equals("Y")) {
+					CIMMerchantQRcodeRequest cimMerchantQRcodeRequest = GetDynamicdata(ms, cimmaudynamic);
+
+					logger.info("cimMerchantQRcodeRequest" + cimMerchantQRcodeRequest.toString());
+					response = ipsConnection.createMerchantQRConnectionStr(psuDeviceID, psuIpAddress, psuID,
+							cimMerchantQRcodeRequest, p_id, channelID, acct_num, resvfield2);
+
+					response.setBase64QR(response.getBase64QR());
+				} else {
+					String responseStatus = errorCode.validationError("BIPSQ33");
+					throw new IPSXException(responseStatus);
+				}
+			} else {
+				String responseStatus = errorCode.validationError("BIPSQ32");
+				throw new IPSXException(responseStatus);
+			}
+		} else {
+			String responseStatus = errorCode.validationError("BIPS13");
+			throw new IPSXException(responseStatus);
+		}
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	private static final int SEQ_UNIQUE_ID = 6;
+	private static final String NUM_LIST = "0123456789";
+	
+	public String generateSeqUniqueID() {
+
+		StringBuffer randStr = new StringBuffer();
+		randStr.append(env.getProperty("ipsx.userS"));
+		randStr.append(new SimpleDateFormat("yyMMddHHmmss").format(new Date()));
+
+		for (int i = 0; i < SEQ_UNIQUE_ID; i++) {
+			int number = getRandomMsgNumber();
+			char ch = NUM_LIST.charAt(number);
+			randStr.append(ch);
+		}
+		return randStr.toString();
+	}
+	
+	private int getRandomMsgNumber() {
+		int randomInt = 0;
+		Random randomGenerator = new Random();
+		randomInt = randomGenerator.nextInt(NUM_LIST.length());
+
+		if (randomInt - 1 == -1) {
+			return randomInt;
+		} else {
+			return randomInt - 1;
+		}
+	}
+
+	private CIMMerchantQRcodeRequest GetDynamicdata(MerchantMaster ms,CimDynamicMaucasRequest cimmaudynamic) {
+
+		MerchantQRRegistration merchantQRgenerator = new MerchantQRRegistration();
+		String paycode = env.getProperty("ipsx.qr.payeecode");
+		String globalUnique = env.getProperty("ipsx.qr.globalUnique");
+		String payload = env.getProperty("ipsx.qr.payload");
+		String poiMethod_static = env.getProperty("ipsx.qr.poiMethod_dynamic");
+		merchantQRgenerator.setPoi_method(poiMethod_static);
+		merchantQRgenerator.setPayee_participant_code(paycode);
+		merchantQRgenerator.setGlobal_unique_id(globalUnique);
+		merchantQRgenerator.setPayload_format_indicator(payload);
+		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_acc_no());
+		merchantQRgenerator.setMerchant_id(ms.getMerchant_id());
+		merchantQRgenerator.setMerchant_name(ms.getMerchant_name());
+		merchantQRgenerator.setMerchant_category_code(ms.getMerchant_cat_code());
+		merchantQRgenerator.setTransaction_crncy(ms.getCurr());
+		merchantQRgenerator.setTip_or_conv_indicator(ms.getTip_or_conv_indicator());
+		merchantQRgenerator.setConv_fees_type(ms.getConv_fees_type());
+		merchantQRgenerator.setValue_conv_fees(ms.getValue_conv_fees());
+		merchantQRgenerator.setCity(ms.getMerchant_city());
+		merchantQRgenerator.setCountry("MU");
+		
+		merchantQRgenerator.setTransaction_amt(cimmaudynamic.getTran_amt());
+		merchantQRgenerator.setZip_code(ms.getPincode());
+
+		if(cimmaudynamic.getBill_num().equals("null") && cimmaudynamic.getBill_num().equals("") ) {
+			merchantQRgenerator.setBill_number(ms.getBill_number());
+		}else {
+		merchantQRgenerator.setBill_number(cimmaudynamic.getBill_num());
+		}
+		if(cimmaudynamic.getLoy_num().equals("null") && cimmaudynamic.getLoy_num().equals("")) {
+			merchantQRgenerator.setLoyalty_number(ms.getLoyalty_number());
+		}else {
+		merchantQRgenerator.setLoyalty_number(cimmaudynamic.getLoy_num());
+		}
+		if(cimmaudynamic.getMob_num().equals("null") && cimmaudynamic.getMob_num().equals("")) {
+			merchantQRgenerator.setMobile(ms.getMerchant_cont_details());
+		}else {
+		merchantQRgenerator.setMobile(cimmaudynamic.getMob_num());
+		}
+		if(cimmaudynamic.getCust_label().equals("null") && cimmaudynamic.getCust_label().equals("")) {
+			merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
+		}else {
+		merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
+		}
+		if(cimmaudynamic.getSto_label().equals("null") && cimmaudynamic.getSto_label().equals("")) {
+			merchantQRgenerator.setStore_label(ms.getStore_label());
+		}else {
+		merchantQRgenerator.setStore_label(cimmaudynamic.getSto_label());
+		}
+		if(cimmaudynamic.getTer_label().equals("null") && cimmaudynamic.getTer_label().equals("")) {
+			merchantQRgenerator.setTerminal_label(ms.getTerminal_label());
+		}else {
+		merchantQRgenerator.setTerminal_label(cimmaudynamic.getTer_label());
+		}
+		if(cimmaudynamic.getRef_label().equals("null") && cimmaudynamic.getRef_label().equals("")) {
+			merchantQRgenerator.setReference_label(ms.getReference_label());
+		}else {
+		merchantQRgenerator.setReference_label(cimmaudynamic.getRef_label());
+		}
+		if(cimmaudynamic.getPur_tran().equals("null") && cimmaudynamic.getPur_tran().equals("")) {
+			merchantQRgenerator.setPurpose_of_tran(ms.getPurpose_of_tran());
+		}else {
+		merchantQRgenerator.setPurpose_of_tran(cimmaudynamic.getPur_tran());
+		}
+		if(cimmaudynamic.getAdd_det().equals("null") && cimmaudynamic.getAdd_det().equals("")) {
+			merchantQRgenerator.setAdditional_details(ms.getAdd_details_req());
+		}else {
+		merchantQRgenerator.setAdditional_details(cimmaudynamic.getAdd_det());
+		}
+		if(cimmaudynamic.getCust_label().equals("null") && cimmaudynamic.getCust_label().equals("") ) {
+			merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
+		}else {
+		merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
+		}
+		
+		
+
+		CIMMerchantQRcodeRequest  cimMerchantQRcodeRequest=new CIMMerchantQRcodeRequest();
+		System.out.println(merchantQRgenerator.getPayload_format_indicator().toString());
+		cimMerchantQRcodeRequest.setPayloadFormatIndiator(merchantQRgenerator.getPayload_format_indicator().toString());
+		cimMerchantQRcodeRequest.setPointOfInitiationFormat(merchantQRgenerator.getPoi_method().toString());
+	
+		CIMMerchantQRcodeAcctInfo merchantQRAcctInfo=new CIMMerchantQRcodeAcctInfo();
+		merchantQRAcctInfo.setGlobalID(merchantQRgenerator.getGlobal_unique_id());
+		merchantQRAcctInfo.setPayeeParticipantCode(merchantQRgenerator.getPayee_participant_code());
+		merchantQRAcctInfo.setMerchantAcctNumber(merchantQRgenerator.getMerchant_acct_no());
+		merchantQRAcctInfo.setMerchantID(merchantQRgenerator.getMerchant_id());
+		cimMerchantQRcodeRequest.setMerchantAcctInformation(merchantQRAcctInfo);
+		
+		cimMerchantQRcodeRequest.setMCC(merchantQRgenerator.getMerchant_category_code().toString());
+		cimMerchantQRcodeRequest.setCurrency(merchantQRgenerator.getTransaction_crncy().toString());
+		
+		
+		if(!merchantQRgenerator.getTransaction_amt().equals("null")&&
+				!merchantQRgenerator.getTransaction_amt().equals("")) {
+			cimMerchantQRcodeRequest.setTrAmt(merchantQRgenerator.getTransaction_amt());
+		}
+		
+		
+		/*if(merchantQRgenerator.getTip_or_conv_indicator().toString().equals("0")){
+			cimMerchantQRcodeRequest.setConvenienceIndicator(false);
+		}else {
+			cimMerchantQRcodeRequest.setConvenienceIndicator(true);
+			cimMerchantQRcodeRequest.setConvenienceIndicatorFeeType(merchantQRgenerator.getConv_fees_type().toString());
+			cimMerchantQRcodeRequest.setConvenienceIndicatorFee(merchantQRgenerator.getValue_conv_fees());
+		}*/
+		
+		if(merchantQRgenerator.getTip_or_conv_indicator()!=null) {
+			if(!merchantQRgenerator.getTip_or_conv_indicator().toString().equals("")){
+
+				if(merchantQRgenerator.getTip_or_conv_indicator().toString().equals("01")) {
+					cimMerchantQRcodeRequest.setTipOrConvenienceIndicator("01");
+				}else if(merchantQRgenerator.getTip_or_conv_indicator().toString().equals("02")) {
+					if(merchantQRgenerator.getConv_fees_type().equals("Fixed")) {
+						cimMerchantQRcodeRequest.setTipOrConvenienceIndicator("02");
+						cimMerchantQRcodeRequest.setConvenienceIndicatorFee(merchantQRgenerator.getValue_conv_fees());
+					}else if(merchantQRgenerator.getConv_fees_type().equals("Percentage")) {
+						cimMerchantQRcodeRequest.setTipOrConvenienceIndicator("03");
+						cimMerchantQRcodeRequest.setConvenienceIndicatorFee(merchantQRgenerator.getValue_conv_fees());
+
+					}
+				}
+				
+			}
+		}
+		
+		
+		cimMerchantQRcodeRequest.setCountryCode(merchantQRgenerator.getCountry().toString());
+		cimMerchantQRcodeRequest.setMerchantName(merchantQRgenerator.getMerchant_name().toString());
+		cimMerchantQRcodeRequest.setCity(merchantQRgenerator.getCity().toString());
+		
+		if(!String.valueOf(merchantQRgenerator.getZip_code()).equals("null")&&
+				!String.valueOf(merchantQRgenerator.getZip_code()).equals("")) {
+			cimMerchantQRcodeRequest.setPostalCode(merchantQRgenerator.getZip_code().toString());
+		}
+		
+		
+		
+		CIMMerchantQRAddlInfo cimMercbantQRAddlInfo=new CIMMerchantQRAddlInfo();
+		cimMercbantQRAddlInfo.setBillNumber(merchantQRgenerator.getBill_number());
+		cimMercbantQRAddlInfo.setMobileNumber(merchantQRgenerator.getMobile());
+		cimMercbantQRAddlInfo.setStoreLabel(merchantQRgenerator.getStore_label());
+		cimMercbantQRAddlInfo.setLoyaltyNumber(merchantQRgenerator.getLoyalty_number());
+		cimMercbantQRAddlInfo.setCustomerLabel(merchantQRgenerator.getCustomer_label());
+		cimMercbantQRAddlInfo.setTerminalLabel(merchantQRgenerator.getTerminal_label());
+		cimMercbantQRAddlInfo.setReferenceLabel(merchantQRgenerator.getReference_label());
+		cimMercbantQRAddlInfo.setPurposeOfTransaction(merchantQRgenerator.getPurpose_of_tran());
+		cimMercbantQRAddlInfo.setAddlDataRequest(merchantQRgenerator.getAdditional_details());
+		
+		cimMerchantQRcodeRequest.setAdditionalDataInformation(cimMercbantQRAddlInfo);
+		
+		
+		return cimMerchantQRcodeRequest;
+	}
+
+	
+	
+	private CIMMerchantQRcodeRequest GetStaticQrcode(MerchantMaster ms) {
+		MerchantQRRegistration merchantQRgenerator = new MerchantQRRegistration();
+		String paycode = env.getProperty("ipsx.qr.payeecode");
+		String globalUnique = env.getProperty("ipsx.qr.globalUnique");
+		String payload = env.getProperty("ipsx.qr.payload");
+		String poiMethod_static = env.getProperty("ipsx.qr.poiMethod_static");
+		merchantQRgenerator.setPoi_method(poiMethod_static);
+		merchantQRgenerator.setPayee_participant_code(paycode);
+		merchantQRgenerator.setGlobal_unique_id(globalUnique);
+		merchantQRgenerator.setPayload_format_indicator(payload);
+		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_acc_no());
+		merchantQRgenerator.setMerchant_id(ms.getMerchant_id());
+		merchantQRgenerator.setMerchant_name(ms.getMerchant_name());
+		merchantQRgenerator.setMerchant_category_code(ms.getMerchant_cat_code());
+		merchantQRgenerator.setTransaction_crncy(ms.getCurr());
+		merchantQRgenerator.setTip_or_conv_indicator(ms.getTip_or_conv_indicator());
+		merchantQRgenerator.setConv_fees_type(ms.getConv_fees_type());
+		merchantQRgenerator.setValue_conv_fees(ms.getValue_conv_fees());
+		merchantQRgenerator.setCity(ms.getMerchant_city());
+		merchantQRgenerator.setCountry("MU");
+		merchantQRgenerator.setZip_code(ms.getPincode());
+		merchantQRgenerator.setBill_number(ms.getTr());
+		merchantQRgenerator.setMobile(ms.getMerchant_mob_no());
+		merchantQRgenerator.setLoyalty_number(ms.getLoyalty_number());
+		merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
+		merchantQRgenerator.setStore_label(ms.getStore_label());
+		merchantQRgenerator.setTerminal_label(ms.getTerminal_label());
+		merchantQRgenerator.setReference_label(ms.getReference_label());
+		merchantQRgenerator.setPurpose_of_tran(ms.getPurpose_of_tran());
+		merchantQRgenerator.setAdditional_details(ms.getAdd_details_req());
+		
+		merchantQRgenerator.setBill_number(ms.getTr());
+		merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
+		
+		
+		CIMMerchantQRcodeRequest  cimMerchantQRcodeRequest=new CIMMerchantQRcodeRequest();
+		System.out.println(merchantQRgenerator.getPayload_format_indicator().toString());
+		cimMerchantQRcodeRequest.setPayloadFormatIndiator(merchantQRgenerator.getPayload_format_indicator().toString());
+		cimMerchantQRcodeRequest.setPointOfInitiationFormat(merchantQRgenerator.getPoi_method().toString());
+	
+		CIMMerchantQRcodeAcctInfo merchantQRAcctInfo=new CIMMerchantQRcodeAcctInfo();
+		merchantQRAcctInfo.setGlobalID(merchantQRgenerator.getGlobal_unique_id());
+		merchantQRAcctInfo.setPayeeParticipantCode(merchantQRgenerator.getPayee_participant_code());
+		merchantQRAcctInfo.setMerchantAcctNumber(merchantQRgenerator.getMerchant_acct_no());
+		merchantQRAcctInfo.setMerchantID(merchantQRgenerator.getMerchant_id());
+		cimMerchantQRcodeRequest.setMerchantAcctInformation(merchantQRAcctInfo);
+		
+		cimMerchantQRcodeRequest.setMCC(merchantQRgenerator.getMerchant_category_code().toString());
+		cimMerchantQRcodeRequest.setCurrency(merchantQRgenerator.getTransaction_crncy().toString());
+		
+		
+		if(!String.valueOf(merchantQRgenerator.getTransaction_amt()).equals("null")&&
+				!String.valueOf(merchantQRgenerator.getTransaction_amt()).equals("")) {
+			cimMerchantQRcodeRequest.setTrAmt(merchantQRgenerator.getTransaction_amt().toString());
+		}
+		
+		
+		/*if(merchantQRgenerator.getTip_or_conv_indicator().toString().equals("0")){
+			cimMerchantQRcodeRequest.setConvenienceIndicator(false);
+		}else {
+			cimMerchantQRcodeRequest.setConvenienceIndicator(true);
+			cimMerchantQRcodeRequest.setConvenienceIndicatorFeeType(merchantQRgenerator.getConv_fees_type().toString());
+			cimMerchantQRcodeRequest.setConvenienceIndicatorFee(merchantQRgenerator.getValue_conv_fees());
+		}*/
+		
+		if(merchantQRgenerator.getTip_or_conv_indicator()!=null) {
+			if(!merchantQRgenerator.getTip_or_conv_indicator().toString().equals("")){
+
+				if(merchantQRgenerator.getTip_or_conv_indicator().toString().equals("01")) {
+					cimMerchantQRcodeRequest.setTipOrConvenienceIndicator("01");
+				}else if(merchantQRgenerator.getTip_or_conv_indicator().toString().equals("02")) {
+					if(merchantQRgenerator.getConv_fees_type().equals("Fixed")) {
+						cimMerchantQRcodeRequest.setTipOrConvenienceIndicator("02");
+						cimMerchantQRcodeRequest.setConvenienceIndicatorFee(merchantQRgenerator.getValue_conv_fees());
+					}else if(merchantQRgenerator.getConv_fees_type().equals("Percentage")) {
+						cimMerchantQRcodeRequest.setTipOrConvenienceIndicator("03");
+						cimMerchantQRcodeRequest.setConvenienceIndicatorFee(merchantQRgenerator.getValue_conv_fees());
+
+					}
+				}
+				
+			}
+		}
+		
+		
+		cimMerchantQRcodeRequest.setCountryCode(merchantQRgenerator.getCountry().toString());
+		cimMerchantQRcodeRequest.setMerchantName(merchantQRgenerator.getMerchant_name().toString());
+		cimMerchantQRcodeRequest.setCity(merchantQRgenerator.getCity().toString());
+		
+		if(!String.valueOf(merchantQRgenerator.getZip_code()).equals("null")&&
+				!String.valueOf(merchantQRgenerator.getZip_code()).equals("")) {
+			cimMerchantQRcodeRequest.setPostalCode(merchantQRgenerator.getZip_code().toString());
+		}
+		
+		
+		
+		CIMMerchantQRAddlInfo cimMercbantQRAddlInfo=new CIMMerchantQRAddlInfo();
+		cimMercbantQRAddlInfo.setBillNumber(merchantQRgenerator.getBill_number());
+		cimMercbantQRAddlInfo.setMobileNumber(merchantQRgenerator.getMobile());
+		cimMercbantQRAddlInfo.setStoreLabel(merchantQRgenerator.getStore_label());
+		cimMercbantQRAddlInfo.setLoyaltyNumber(merchantQRgenerator.getLoyalty_number());
+		cimMercbantQRAddlInfo.setCustomerLabel(merchantQRgenerator.getCustomer_label());
+		cimMercbantQRAddlInfo.setTerminalLabel(merchantQRgenerator.getTerminal_label());
+		cimMercbantQRAddlInfo.setReferenceLabel(merchantQRgenerator.getReference_label());
+		cimMercbantQRAddlInfo.setPurposeOfTransaction(merchantQRgenerator.getPurpose_of_tran());
+		cimMercbantQRAddlInfo.setAddlDataRequest(merchantQRgenerator.getAdditional_details());
+		cimMerchantQRcodeRequest.setAdditionalDataInformation(cimMercbantQRAddlInfo);
+		return  cimMerchantQRcodeRequest;
+	}
+	
 }

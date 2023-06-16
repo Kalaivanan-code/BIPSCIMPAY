@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.bornfire.entity.QRUrlGlobalEntity;
@@ -38,59 +39,88 @@ public class NPCIQrcodeValidation {
 
 	@Autowired
 	UPIQREntityRep upiqrRep;
-	
+
 	@Autowired
 	ConsentIPSXservice consentIPSXservice;
-	
+
 	@Autowired
 	UPI_REQ_REP uPI_REQ_REP;
-	
+
 	@Autowired
 	NPCIQRIPSXservice npciIPSXservice;
-	
 
-	
+	@Autowired
+	Environment env;
+
 	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) throws ParseException {
 
 		UPIRespEntity response = new UPIRespEntity();
 		String qrcode = npcireq.getQrPayLoad().substring(16);
 		QRUrlGlobalEntity qrdet = getQrentityValue(qrcode);
 		response.setQrPayLoad(npcireq.getQrPayLoad());
-		String valQr = validateQr(qrcode);
+		String crccheck = env.getProperty("ipsx.upiQRcheck");
+		String valQr = null;
+		if (crccheck.equals("true")) {
+			valQr = validateQr(qrcode);
+		} else {
+			valQr = "Success";
+		}
+
+		// String valQr = validateQr(qrcode);
+
 		RespEntity resp = new RespEntity();
 		Optional<QRUrlGlobalEntity> qr = upiqrRep.findById(qrdet.getMid());
-		logger.info("DEL Value"+qr.get().getDel_flg()+valQr);
-if (qr.isPresent()) {
-			
+		logger.info("DEL Value" + qr.get().getDel_flg() + valQr);
+		if (qr.isPresent()) {
+
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
 			Date dat;
-			
+
 			dat = dateFormat.parse(qrdet.getQrexpire());
-			Character del='Y';
-			if(dat.compareTo(new Date()) >0) {
-				if(qrdet.getMtid().equals(qr.get().getMtid())  && !qr.get().getDel_flg().equals('Y') && valQr.equals("Success")) {
+			Character del = 'Y';
+			if (crccheck.equals("true")) {
+				if (dat.compareTo(new Date()) > 0) {
+					if (qrdet.getMtid().equals(qr.get().getMtid()) && !qr.get().getDel_flg().equals('Y')
+							&& valQr.equals("Success")) {
+						resp.setResult("SUCCESS");
+					} else if (qr.get().getDel_flg().equals(del)) {
+						logger.info("DEL FAILURE");
+						resp.setResult("FAILURE");
+						resp.setErr("SD");
+					} else if (valQr.equals("Failure")) {
+						resp.setResult("FAILURE");
+						resp.setErr("RD");
+					} else {
+						resp.setResult("FAILURE");
+						resp.setErr("XW");
+					}
+
+				} else {
+					resp.setResult("FAILURE");
+					resp.setErr("PE");
+				}
+			} else {
+
+				if (qrdet.getMtid().equals(qr.get().getMtid()) && !qr.get().getDel_flg().equals('Y')
+						&& valQr.equals("Success")) {
 					resp.setResult("SUCCESS");
-				}else if(qr.get().getDel_flg().equals(del)){
+				} else if (qr.get().getDel_flg().equals(del)) {
 					logger.info("DEL FAILURE");
 					resp.setResult("FAILURE");
 					resp.setErr("SD");
-				}else if(valQr.equals("Failure")) {
+				} else if (valQr.equals("Failure")) {
 					resp.setResult("FAILURE");
 					resp.setErr("RD");
-				}
-					else {
+				} else {
 					resp.setResult("FAILURE");
 					resp.setErr("XW");
 				}
-				
-				
-			}else {
-				resp.setResult("FAILURE");
-				resp.setErr("PE");
+
 			}
+
 		} else {
 			resp.setResult("FAILURE");
-			
+
 		}
 
 //		resp.setReqMsgId(npcireq.getTxn().getID());
@@ -111,12 +141,12 @@ if (qr.isPresent()) {
 		pay.setName(qr.get().getPn());
 		pay.setSeqNum("1");
 		Merchant mr = new Merchant();
-MerchantName mn = new MerchantName();
-		
+		MerchantName mn = new MerchantName();
+
 		mn.setBrand(qr.get().getBrand());
 		mn.setFranchise(qr.get().getBrand());
 		mn.setLegal("01");
-		
+
 		mr.setName(mn);
 		MerchantIdentifier id = new MerchantIdentifier();
 		id.setSubCode("1111");
@@ -132,9 +162,9 @@ MerchantName mn = new MerchantName();
 		id.setPinCode(new BigDecimal(qr.get().getPincode()));
 		id.setRegId(qr.get().getMid());
 		mr.setIdentifier(id);
-		
+
 		mr.setOwnership("PRIVATE");
-		
+
 		pay.setMerchant(mr);
 		response.setPayee(pay);
 
@@ -145,29 +175,25 @@ MerchantName mn = new MerchantName();
 //		in.setDate(dat.toString());
 		in.setNum(qr.get().getInvoiceno());
 		in.setName(qr.get().getPn());
-		
+
 		/*
 		 * in.setCreditBIC("BARBMUM0"); in.setCreditAccount("90310190013109");
 		 */
-		 List<BaseCurr> bascurv =  new ArrayList<>();
-		 BaseCurr bs = new BaseCurr();
-		 bs.setBaseCurr("MUR");
-		 bascurv.add(0,bs);
-		 in.setFxList(bascurv);
+		List<BaseCurr> bascurv = new ArrayList<>();
+		BaseCurr bs = new BaseCurr();
+		bs.setBaseCurr("MUR");
+		bascurv.add(0, bs);
+		in.setFxList(bascurv);
 		response.setInvoice(in);
-		
+
 		npcireq.getQrPayLoad().substring(10);
 		logger.info(npcireq.getQrPayLoad().substring(16));
 
 		return response;
 	}
-	
-	
-	
-	
-	
-public String ValidateQrcode(NpciupiReqcls npcireq,String pid) throws ParseException {
-		
+
+	public String ValidateQrcode(NpciupiReqcls npcireq, String pid) throws ParseException {
+
 		ObjectMapper mapper = new ObjectMapper();
 		// Converting the Object to JSONString
 		String jsonString = "";
@@ -176,40 +202,45 @@ public String ValidateQrcode(NpciupiReqcls npcireq,String pid) throws ParseExcep
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
-		logger.info("reqvalqr Request->"+jsonString);
+		logger.info("reqvalqr Request->" + jsonString);
 		String qrcode = npcireq.getQrPayLoad().substring(16);
-		QRUrlGlobalEntity qrdet= getQrentityValue(qrcode);
-		
-		String valQr = validateQr(qrcode);
+		QRUrlGlobalEntity qrdet = getQrentityValue(qrcode);
+
+		String crccheck = env.getProperty("ipsx.upiQRcheck");
+		String valQr = null;
+		if (crccheck.equals("true")) {
+			valQr = validateQr(qrcode);
+		} else {
+			valQr = "Success";
+		}
+
 		String response = "";
-		Optional<QRUrlGlobalEntity> qr= upiqrRep.findById(qrdet.getMid());
-		
+		Optional<QRUrlGlobalEntity> qr = upiqrRep.findById(qrdet.getMid());
+
 		if (qr.isPresent()) {
-			
+
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
 			Date dat;
-			
+
 			dat = dateFormat.parse(qrdet.getQrexpire());
-			
-				
-				
-			if(dat.compareTo(new Date()) >0) {
-				if(qrdet.getMtid().equals(qr.get().getMtid()) && !qr.get().getDel_flg().equals('Y') && valQr.equals("Success")) {
+
+			if (dat.compareTo(new Date()) > 0) {
+				if (qrdet.getMtid().equals(qr.get().getMtid()) && !qr.get().getDel_flg().equals('Y')
+						&& valQr.equals("Success")) {
 					response = "SUCCESS";
 					npciIPSXservice.respvalQr(npcireq, pid);
-				}else if(qr.get().getDel_flg().equals('Y')) {
+				} else if (qr.get().getDel_flg().equals('Y')) {
 					response = "CUSTOMER_NOT_ACTIVE";
 					npciIPSXservice.respvalQr(npcireq, pid);
-				}else if(valQr.equals("Failure")) {
+				} else if (valQr.equals("Failure")) {
 					response = "INVALID_QRCODE";
 					npciIPSXservice.respvalQr(npcireq, pid);
-				}
-				else {
+				} else {
 					response = "TERMINAL_MISSMATCH";
 					npciIPSXservice.respvalQr(npcireq, pid);
 				}
-				
-			}else {
+
+			} else {
 				response = "EXPIRED";
 				npciIPSXservice.respvalQr(npcireq, pid);
 			}
@@ -218,8 +249,8 @@ public String ValidateQrcode(NpciupiReqcls npcireq,String pid) throws ParseExcep
 			npciIPSXservice.respvalQr(npcireq, pid);
 		}
 
-UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
-		
+		UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
+
 		qrreq.setCustRef(npcireq.getTxn().getCustRef());
 		qrreq.setIds(npcireq.getTxn().getID());
 		qrreq.setNote(npcireq.getTxn().getNote());
@@ -230,27 +261,28 @@ UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
 		qrreq.setTs(new Date());
 		qrreq.setResponse(response);
 		uPI_REQ_REP.save(qrreq);
-				
+
 		return response;
 	}
 
-public String  validateQr(String qrcode) {
+	public String validateQr(String qrcode) {
 
-String resp="";
+		String resp = "";
 //upiGlobal://pay?ver=01&mode=01&purpose=11&orgid=1800450001&tr=TR261020220008&
 //pa=CIM0400704.CFSLMUM0@bombob&pn=CIM_FIN_MERCHANT_CLOSE&mc=9399&mid=CIM0400704&msid=46578765432676541212&mtid=123123&mType=SMALL&mGr=OFFLINE&mOnboarding=BANK&mLoc=PORT%20LOUIS&brand=TEST&cc=MU&cu=MUR&
 //qrMedium=04&QRexpire=2022-12-12T00:00:00+04:00
 
-if(qrcode.indexOf("ver")!=-1 ||qrcode.indexOf("mode")!=-1 ||qrcode.indexOf("orgid")!=-1 ||
-qrcode.indexOf("tr")!=-1 ||qrcode.indexOf("pa=")!=-1 ||qrcode.indexOf("pn=")!=-1 ||qrcode.indexOf("mc=")!=-1 ||
-qrcode.indexOf("mid")!=-1 ||qrcode.indexOf("msid")!=-1 ||qrcode.indexOf("mtid")!=-1 ||qrcode.indexOf("mType")!=-1 ||
-qrcode.indexOf("mGr")!=-1 ||qrcode.indexOf("mOnboarding")!=-1 ||qrcode.indexOf("mLoc")!=-1 ||qrcode.indexOf("brand")!=-1
-||qrcode.indexOf("cc=")!=-1 ||qrcode.indexOf("cu=")!=-1 ||qrcode.indexOf("QRexpire")!=-1) {
-	resp="Success";
-}else {
-	resp="Failure";
-}
-		
+		if (qrcode.indexOf("ver") != -1 || qrcode.indexOf("mode") != -1 || qrcode.indexOf("orgid") != -1
+				|| qrcode.indexOf("tr") != -1 || qrcode.indexOf("pa=") != -1 || qrcode.indexOf("pn=") != -1
+				|| qrcode.indexOf("mc=") != -1 || qrcode.indexOf("mid") != -1 || qrcode.indexOf("msid") != -1
+				|| qrcode.indexOf("mtid") != -1 || qrcode.indexOf("mType") != -1 || qrcode.indexOf("mGr") != -1
+				|| qrcode.indexOf("mOnboarding") != -1 || qrcode.indexOf("mLoc") != -1 || qrcode.indexOf("brand") != -1
+				|| qrcode.indexOf("cc=") != -1 || qrcode.indexOf("cu=") != -1 || qrcode.indexOf("QRexpire") != -1) {
+			resp = "Success";
+		} else {
+			resp = "Failure";
+		}
+
 //		if(qrdet.getVers().equals("")||qrdet.getModes().equals("")||qrdet.getPurpose().equals("")||qrdet.getOrgid().equals("")||qrdet.getTr().equals("")||
 //				qrdet.getPa().equals("")||qrdet.getPn().equals("")||qrdet.getMc().equals("")||qrdet.getMid().equals("")||qrdet.getMsid().equals("")||qrdet.getMtid().equals("")||
 //				qrdet.getMtype().equals("")||qrdet.getMgr().equals("")||qrdet.getMerchant_onboarding().equals("")||qrdet.getMerchant_location().equals("")||
@@ -260,10 +292,8 @@ qrcode.indexOf("mGr")!=-1 ||qrcode.indexOf("mOnboarding")!=-1 ||qrcode.indexOf("
 //			resp="Success";
 //		}
 
-
-	
-	return resp;
-}
+		return resp;
+	}
 
 	public QRUrlGlobalEntity getQrentityValue(String qrcode) throws ParseException {
 
@@ -317,12 +347,13 @@ qrcode.indexOf("mGr")!=-1 ||qrcode.indexOf("mOnboarding")!=-1 ||qrcode.indexOf("
 			if (strs[i].substring(0, 4).equals("msid")) {
 				String mode = strs[i].substring(5);
 				qrdet.setMsid(mode);
-			}if (strs[i].substring(0, 4).equals("sid=")) {
+			}
+			if (strs[i].substring(0, 4).equals("sid=")) {
 				String mode = strs[i].substring(4);
 				qrdet.setMsid(mode);
 			}
-			
-if (strs[i].substring(0, 4).equals("tid=")) {
+
+			if (strs[i].substring(0, 4).equals("tid=")) {
 				String mode = strs[i].substring(4);
 				qrdet.setTid(mode);
 			}
@@ -349,15 +380,15 @@ if (strs[i].substring(0, 4).equals("tid=")) {
 				}
 				if (strs[i].substring(0, 11).equals("invoiceDate")) {
 					String mode = strs[i].substring(12);
-					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
 					Date dat;
 					qrdet.setInvoicedate(dateFormat.parse(mode));
 				}
 			}
 			if (strs[i].substring(0, 4).equals("QRex")) {
 				String mode = strs[i].substring(9);
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-				qrdet.setQrexpire(dateFormat.parse(mode).toString());
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
+				qrdet.setQrexpire(mode);
 			}
 			if (strs[i].substring(0, 4).equals("tier")) {
 				String mode = strs[i].substring(5);
@@ -370,16 +401,20 @@ if (strs[i].substring(0, 4).equals("tid=")) {
 			if (strs[i].substring(0, 3).equals("mGr")) {
 				String mode = strs[i].substring(4);
 				qrdet.setMgr(mode);
-			}if (strs[i].substring(0, 4).equals("mOnb")) {
+			}
+			if (strs[i].substring(0, 4).equals("mOnb")) {
 				String mode = strs[i].substring(12);
 				qrdet.setMerchant_onboarding(mode);
-			}if (strs[i].substring(0, 4).equals("mLoc")) {
+			}
+			if (strs[i].substring(0, 4).equals("mLoc")) {
 				String mode = strs[i].substring(5);
 				qrdet.setMerchant_location(mode);
-			}if (strs[i].substring(0, 4).equals("bran")) {
+			}
+			if (strs[i].substring(0, 4).equals("bran")) {
 				String mode = strs[i].substring(6);
 				qrdet.setBrand(mode);
-			}if (strs[i].substring(0, 4).equals("enTip")) {
+			}
+			if (strs[i].substring(0, 4).equals("enTip")) {
 				String mode = strs[i].substring(7);
 				qrdet.setEntips(mode);
 			}
@@ -389,22 +424,13 @@ if (strs[i].substring(0, 4).equals("tid=")) {
 	}
 }
 
-
-/*CREATE TABLE "IPS"."BIPS_UPI_REQUEST" 
-(	"QRPAYLOAD" VARCHAR2(4000 BYTE), 
-	"NOTE" VARCHAR2(100 BYTE), 
-	"REFID" VARCHAR2(100 BYTE), 
-	"REFURL" VARCHAR2(100 BYTE), 
-	"TS" DATE, 
-	"CUSTREF" VARCHAR2(100 BYTE), 
-	"IDS" VARCHAR2(100 BYTE), 
-	"REQ_ID" VARCHAR2(100 BYTE), 
-	"RESPONSE" VARCHAR2(20 BYTE)
-) SEGMENT CREATION IMMEDIATE 
-PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 
-NOCOMPRESS LOGGING
-STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
-PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1
-BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
-TABLESPACE "USERS" ;
-*/
+/*
+ * CREATE TABLE "IPS"."BIPS_UPI_REQUEST" ( "QRPAYLOAD" VARCHAR2(4000 BYTE),
+ * "NOTE" VARCHAR2(100 BYTE), "REFID" VARCHAR2(100 BYTE), "REFURL" VARCHAR2(100
+ * BYTE), "TS" DATE, "CUSTREF" VARCHAR2(100 BYTE), "IDS" VARCHAR2(100 BYTE),
+ * "REQ_ID" VARCHAR2(100 BYTE), "RESPONSE" VARCHAR2(20 BYTE) ) SEGMENT CREATION
+ * IMMEDIATE PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+ * STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+ * PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE
+ * DEFAULT CELL_FLASH_CACHE DEFAULT) TABLESPACE "USERS" ;
+ */

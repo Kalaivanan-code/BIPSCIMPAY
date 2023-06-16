@@ -84,7 +84,7 @@ public class CimCBSservice {
 	SequenceGenerator sequence;
 
 	public ResponseEntity<CimCBSresponse> cdtFundRequest(String requestUUID) {
-		
+		logger.info("Inside CBS REQUEST");
 		
 		HttpHeaders httpHeaders = new HttpHeaders();
 		
@@ -155,12 +155,21 @@ public class CimCBSservice {
 		cimCBSrequestData.setBeneficiaryBankCode(data.getBeneficiarybankcode());
 		cimCBSrequestData.setBeneficiarySwiftCode(data.getBeneficiaryswiftcode());
 		
-		if(data.getStatus().equals("ACSP")) {
+		/*if(data.getStatus().equals("ACSP")) {
 			cimCBSrequestData.setIpsxTranStatus(Boolean.TRUE);
 		}else {
 			cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
+		}*/
+		logger.debug("cimCBSrequest1 :"+cimCBSrequest.toString());
+		if(!String.valueOf(data.getStatus()).equals("null")&&
+				!String.valueOf(data.getStatus()).equals("") && String.valueOf(data.getStatus()).equals("ACSP")) {
+			cimCBSrequestData.setIpsxTranStatus(Boolean.TRUE);
+			logger.debug("cimCBSrequest Inside TRUE");
+		}else {
+			cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
+			logger.debug("cimCBSrequest Inside FALSE");
 		}
-		
+		//cimCBSrequestData.setIpsxTranStatus((data.getStatus()==null)?Boolean.FALSE:((data.getStatus()=="ACSP")?Boolean.TRUE:Boolean.FALSE));
 		cimCBSrequest.setData(cimCBSrequestData);
 		
 	

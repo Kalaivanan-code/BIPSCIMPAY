@@ -105,7 +105,179 @@ public class MerchantMaster {
 	private String merchant_location;
 	private String merchant_genre;
 	private String merchant_onboard;
+	private String type_maucas;
+	private String type_upi;
+	private String	tip_or_conv_indicator_upi;
+	private String conv_fees_type_upi;
+	private String	value_conv_fees_upi;
+
+	private String bank_name;
+	private String bank_account_no;
+	private String bank_branch;
+	private String bank_code;
+	private String iban;
+	private String currency;
+	private String merchant_card_acc_id;
+	private String merchant_mode;
+	private String merchant_bips_no;
+
+	private String mer_contact_per;
+	private String mer_email_addr;
+	private String send_notify;
+	private String mer_phone_num;
+
+	private String fee_desc;
+	private String fee_type;
+	private String amount_per;
+	private String fee_freq;
+	private String vat_collect;
+	private String del_flag;
+
 	
+	public String getType_maucas() {
+		return type_maucas;
+	}
+	public void setType_maucas(String type_maucas) {
+		this.type_maucas = type_maucas;
+	}
+	public String getType_upi() {
+		return type_upi;
+	}
+	public void setType_upi(String type_upi) {
+		this.type_upi = type_upi;
+	}
+	public String getTip_or_conv_indicator_upi() {
+		return tip_or_conv_indicator_upi;
+	}
+	public void setTip_or_conv_indicator_upi(String tip_or_conv_indicator_upi) {
+		this.tip_or_conv_indicator_upi = tip_or_conv_indicator_upi;
+	}
+	public String getConv_fees_type_upi() {
+		return conv_fees_type_upi;
+	}
+	public void setConv_fees_type_upi(String conv_fees_type_upi) {
+		this.conv_fees_type_upi = conv_fees_type_upi;
+	}
+	public String getValue_conv_fees_upi() {
+		return value_conv_fees_upi;
+	}
+	public void setValue_conv_fees_upi(String value_conv_fees_upi) {
+		this.value_conv_fees_upi = value_conv_fees_upi;
+	}
+	public String getBank_name() {
+		return bank_name;
+	}
+	public void setBank_name(String bank_name) {
+		this.bank_name = bank_name;
+	}
+	public String getBank_account_no() {
+		return bank_account_no;
+	}
+	public void setBank_account_no(String bank_account_no) {
+		this.bank_account_no = bank_account_no;
+	}
+	public String getBank_branch() {
+		return bank_branch;
+	}
+	public void setBank_branch(String bank_branch) {
+		this.bank_branch = bank_branch;
+	}
+	public String getBank_code() {
+		return bank_code;
+	}
+	public void setBank_code(String bank_code) {
+		this.bank_code = bank_code;
+	}
+	public String getIban() {
+		return iban;
+	}
+	public void setIban(String iban) {
+		this.iban = iban;
+	}
+	public String getCurrency() {
+		return currency;
+	}
+	public void setCurrency(String currency) {
+		this.currency = currency;
+	}
+	public String getMerchant_card_acc_id() {
+		return merchant_card_acc_id;
+	}
+	public void setMerchant_card_acc_id(String merchant_card_acc_id) {
+		this.merchant_card_acc_id = merchant_card_acc_id;
+	}
+	public String getMerchant_mode() {
+		return merchant_mode;
+	}
+	public void setMerchant_mode(String merchant_mode) {
+		this.merchant_mode = merchant_mode;
+	}
+	public String getMerchant_bips_no() {
+		return merchant_bips_no;
+	}
+	public void setMerchant_bips_no(String merchant_bips_no) {
+		this.merchant_bips_no = merchant_bips_no;
+	}
+	public String getMer_contact_per() {
+		return mer_contact_per;
+	}
+	public void setMer_contact_per(String mer_contact_per) {
+		this.mer_contact_per = mer_contact_per;
+	}
+	public String getMer_email_addr() {
+		return mer_email_addr;
+	}
+	public void setMer_email_addr(String mer_email_addr) {
+		this.mer_email_addr = mer_email_addr;
+	}
+	public String getSend_notify() {
+		return send_notify;
+	}
+	public void setSend_notify(String send_notify) {
+		this.send_notify = send_notify;
+	}
+	public String getMer_phone_num() {
+		return mer_phone_num;
+	}
+	public void setMer_phone_num(String mer_phone_num) {
+		this.mer_phone_num = mer_phone_num;
+	}
+	public String getFee_desc() {
+		return fee_desc;
+	}
+	public void setFee_desc(String fee_desc) {
+		this.fee_desc = fee_desc;
+	}
+	public String getFee_type() {
+		return fee_type;
+	}
+	public void setFee_type(String fee_type) {
+		this.fee_type = fee_type;
+	}
+	public String getAmount_per() {
+		return amount_per;
+	}
+	public void setAmount_per(String amount_per) {
+		this.amount_per = amount_per;
+	}
+	public String getFee_freq() {
+		return fee_freq;
+	}
+	public void setFee_freq(String fee_freq) {
+		this.fee_freq = fee_freq;
+	}
+	public String getVat_collect() {
+		return vat_collect;
+	}
+	public void setVat_collect(String vat_collect) {
+		this.vat_collect = vat_collect;
+	}
+	public String getDel_flag() {
+		return del_flag;
+	}
+	public void setDel_flag(String del_flag) {
+		this.del_flag = del_flag;
+	}
 	public String getMerchant_id() {
 		return merchant_id;
 	}
@@ -648,6 +820,7 @@ public class MerchantMaster {
 		this.merchant_onboard = merchant_onboard;
 	}
 	
+
 	public MerchantMaster(String merchant_id, String merchant_pow_ca_no, String merchant_acc_no, String merchant_addr,
 			String merchant_legal_id, String merchant_cont_per, String merchant_name, String merchant_cont_details,
 			String company_name, String trading_name, String bill_acc_no, String tran_curr, String tran_amount,
@@ -666,7 +839,12 @@ public class MerchantMaster {
 			String tip_or_conv_indicator, String conv_fees_type, String value_conv_fees, String zip_code,
 			String bill_number, String loyalty_number, String customer_label, String store_label, String terminal_label,
 			String reference_label, String purpose_of_tran, String status, String merchant_coun_cod,
-			String merchant_brand, String merchant_location, String merchant_genre, String merchant_onboard) {
+			String merchant_brand, String merchant_location, String merchant_genre, String merchant_onboard,
+			String type_maucas, String type_upi, String tip_or_conv_indicator_upi, String conv_fees_type_upi,
+			String value_conv_fees_upi, String bank_name, String bank_account_no, String bank_branch, String bank_code,
+			String iban, String currency, String merchant_card_acc_id, String merchant_mode, String merchant_bips_no,
+			String mer_contact_per, String mer_email_addr, String send_notify, String mer_phone_num, String fee_desc,
+			String fee_type, String amount_per, String fee_freq, String vat_collect, String del_flag) {
 		super();
 		this.merchant_id = merchant_id;
 		this.merchant_pow_ca_no = merchant_pow_ca_no;
@@ -758,6 +936,30 @@ public class MerchantMaster {
 		this.merchant_location = merchant_location;
 		this.merchant_genre = merchant_genre;
 		this.merchant_onboard = merchant_onboard;
+		this.type_maucas = type_maucas;
+		this.type_upi = type_upi;
+		this.tip_or_conv_indicator_upi = tip_or_conv_indicator_upi;
+		this.conv_fees_type_upi = conv_fees_type_upi;
+		this.value_conv_fees_upi = value_conv_fees_upi;
+		this.bank_name = bank_name;
+		this.bank_account_no = bank_account_no;
+		this.bank_branch = bank_branch;
+		this.bank_code = bank_code;
+		this.iban = iban;
+		this.currency = currency;
+		this.merchant_card_acc_id = merchant_card_acc_id;
+		this.merchant_mode = merchant_mode;
+		this.merchant_bips_no = merchant_bips_no;
+		this.mer_contact_per = mer_contact_per;
+		this.mer_email_addr = mer_email_addr;
+		this.send_notify = send_notify;
+		this.mer_phone_num = mer_phone_num;
+		this.fee_desc = fee_desc;
+		this.fee_type = fee_type;
+		this.amount_per = amount_per;
+		this.fee_freq = fee_freq;
+		this.vat_collect = vat_collect;
+		this.del_flag = del_flag;
 	}
 	public MerchantMaster() {
 		super();

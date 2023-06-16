@@ -4430,8 +4430,9 @@ public class IPSConnection {
 						String CreditorAgentAcct=creditorAgent.getBank_agent_account();
 						
 						////Category Purpose
-						//String ctgyPurp=listener.getCtgyPurp(instgAgent,debtorAgent,CreditorAgent);
-						String ctgyPurp="300";
+						String ctgyPurp=ipsDao.getQRCtgyPurp(instgAgent,debtorAgent,CreditorAgent);
+						//String ctgyPurp="300";
+						logger.info("QRctgyPurp"+ctgyPurp);
 						///Local Instrumentation
 						String lclInstr=TranMonitorStatus.CSDC.toString();
 						
@@ -4793,14 +4794,18 @@ public class IPSConnection {
 		
 		List<MerchantMaster> outTranList = ipsDao.checkMerchantAcct(acctNumber);
 		
-		List<OutwardTransactionMonitoringTable> MasTranList = ipsDao.checkExistOutwardRTP(instrId, endToEndID);
 
 		int sizeOutTran = outTranList.size();
-		int merchantsize = MasTranList.size();
-			
-		if(sizeOutTran>0) {
-			
+		
+		
+		logger.info("Calling 0");
+		if(sizeOutTran>0){
 			MerchantMaster dataParse=outTranList.get(0);
+			if(!dataParse.getDel_flg().equals('Y') && (!dataParse.getFreeze_flg().equals("Y"))) 
+			{
+			logger.info("Calling 1");
+			List<OutwardTransactionMonitoringTable> MasTranList = ipsDao.checkExistOutwardRTP(instrId, endToEndID);
+			int merchantsize = MasTranList.size();
 			String merchantFees = ipsDao.GetMerchantFees(acctNumber);
 					
 			response = ipsDao.registerMerchantIncomingData(requestUUID, new Date(),
@@ -4811,6 +4816,7 @@ public class IPSConnection {
 			
 			
 			if(merchantsize>0) {
+				logger.info("Calling 2");
 				OutwardTransactionMonitoringTable dataParse1=MasTranList.get(0);
 				
 			//	String initTranNumber = dataParse1.getResv_field1() != null ? dataParse1.getResv_field1(): dataParse1.getP_id();
@@ -4823,37 +4829,70 @@ response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCB
 						"", new Date(), "RECEIVABLE", dataParse1.getReq_unique_id(), "", "",
 						dataParse1.getMaster_ref_id(),debitoragent,creditoragent);
 if(dataParse1.getInit_channel_id().equals("Customer")) {
+	logger.info("Calling 3");
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(initTranNumber,dataParse1.getMaster_ref_id(),new Date(),dataParse1.getReq_unique_id(),acctNumber,new BigDecimal(trAmt),"ACSP","","",dataParse1.getSequence_unique_id());
+				if (response.equals("1")) {
+					logger.info("Calling 8");
+					if (sizeOutTran>0) {
+									tranResponse = errorCode.ErrorCode("CIM0");
+									return tranResponse;				
+		
+
+					} else {
+						
+						tranResponse = errorCode.ErrorCode("AC03");
+						return tranResponse;
+					}
+				}
 }
 			}else {
+				logger.info("Calling 4");
 				response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 						env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 						sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID, "False", "CR", "N", "",
 						acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "QR", "", rmtInfo, "",
 						"", new Date(), "RECEIVABLE", "", "", "", "",debitoragent,creditoragent);
-			}
-			
-			
-			
-		}else {
-			
+				
+				if (response.equals("1")) {
+					logger.info("Calling 8");
+					if (sizeOutTran>0) {
 
+									tranResponse = errorCode.ErrorCode("CIM0");
+
+									return tranResponse;				
+				
+
+					} else {
+						
+						tranResponse = errorCode.ErrorCode("AC03");
+						return tranResponse;
+					}
+				}
+			}
+		}else {
+			logger.info("Calling 5");
+			
+				logger.info("Calling 6");
+				if(dataParse.getDel_flg().equals('Y')) {
+					tranResponse = errorCode.ErrorCode("AC04");
+				}else if(dataParse.getFreeze_flg().equals("Y")) {
+					tranResponse = errorCode.ErrorCode("AC06");
+				}else {
+					logger.info("Calling 7");
 			tranResponse = errorCode.ErrorCode("AC03");
+				}
+			}
+		
 			return tranResponse;
+		}else{
+			tranResponse = errorCode.ErrorCode("AC03");
 		}
-		/*else {
-			response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
-					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
-					sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID, "True", "CR", "N", "",
-					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "NRT", "", rmtInfo, "",
-					"", new Date(), "RECEIVABLE", "", "", "", "");
-			
-			
-		}*/
+		
+	
 		
 		
 		if (response.equals("1")) {
-
+			logger.info("Calling 8");
 			if (sizeOutTran>0) {
 
 							tranResponse = errorCode.ErrorCode("CIM0");
@@ -5007,6 +5046,48 @@ if(dataParse1.getInit_channel_id().equals("Customer")) {
 		
 	}
 
+	public CimMerchantResponse createMerchantQRConnectionStr(String psuDeviceID, String psuIpAddress, String psuID,
+			CIMMerchantQRcodeRequest qrrequest,String p_id,
+			String channelID,String resvField1,String resvField2)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		CimMerchantResponse response=new CimMerchantResponse();
+
+		
+		String status=ipsDao.regMerchantQR(p_id,psuDeviceID,psuIpAddress,channelID,qrrequest);
+		if(status.equals("1")) {
+			
+		   /* Optional<MerchantQRRegistration> data=merchantQrCodeRegRep.findById(qrrequest.getMerchantAcctInformation().getMerchantAcctNumber());
+		    
+		    if(data.isPresent()) {*/
+		    	EncodeQRFormatResponse encodeQRresponse=encodeQRCodeFormat(qrrequest);
+				
+				if(encodeQRresponse.isSuccess()) {
+					String[] displayText= {qrrequest.getMerchantName(),""};
+					String[] titletextDesc= {"Scan here to pay"};
+					String qrImageCode=generateQRCode(encodeQRresponse.getQrMsg(),displayText,titletextDesc,350,350);
+					response.setBase64QR(encodeQRresponse.getQrMsg());
+					
+					ipsDao.updateMerchantQRData(p_id,"SUCCESS",qrImageCode);
+					return response;
+				}else {
+					//String responseStatus = errorCode.validationError("BIPS17");
+					
+					System.out.println("QR Code Error:"+encodeQRresponse.getError_desc().get(0).toString());
+					ipsDao.updateMerchantQRData(p_id,"FAILURE",encodeQRresponse.getError_desc().get(0).toString());
+					throw new IPSXException("BIPS17:"+encodeQRresponse.getError_desc().get(0));
+				}
+		   /* }else {
+				throw new IPSXException("BIPS17:Merchant Details Not Found");
+		    }*/
+			
+		}else {
+			throw new IPSXException("BIPS500:Internel Error");
+		}
+		
+		
+	}
 	
 	public CimMerchantResponse createMerchantQRConnectionPOS(String psuDeviceID, String psuIpAddress, String psuID,
 			CIMMerchantQRcodeRequest qrrequest,String p_id,
@@ -5957,13 +6038,19 @@ if(dataParse1.getInit_channel_id().equals("Customer")) {
 				String CreditorAgentAcct=creditorAgent.getBank_agent_account();
 				
 				////Check Creditor Account Number already registerd in BIPS
-				//boolean isRegisteredPISP=ipsDao.checkExistConsent(rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
+				boolean isRegisteredPISP=ipsDao.checkExistConsent(rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
 				//boolean isRegisteredPISP=true;
 				////Category Purpose
-				//String ctgyPurp=ipsDao.getCtgyPurp(instgAgent,debtorAgent,CreditorAgent,rtpBulkTransferRequest.getRemitterAccount().getAcctName(),rtpBulkTransferRequest.getBenAccount().get(i).getBenName(),isRegisteredPISP,
-						//regAccList.get(0).getPsu_id(),rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
 				
-				String ctgyPurp="101";
+				String ctgyPurp=ipsDao.getQRCtgyPurp(instgAgent,debtorAgent,CreditorAgent);
+				
+				if(ctgyPurp.equals("300")) {
+					logger.info("inside non goverment ctgyPurp"+ctgyPurp);
+				 ctgyPurp=ipsDao.getCtgyPurp(instgAgent,debtorAgent,CreditorAgent,rtpBulkTransferRequest.getRemitterAccount().getAcctName(),rtpBulkTransferRequest.getBenAccount().get(i).getBenName(),isRegisteredPISP,
+						regAccList.get(0).getPsu_id(),rtpBulkTransferRequest.getBenAccount().get(i).getBenAcctNumber());
+				}
+				logger.info("ctgyPurp"+ctgyPurp);
+				//String ctgyPurp="101";
 				///Local Instrumentation
 				String lclInstr=TranMonitorStatus.CSDC.toString();
 				

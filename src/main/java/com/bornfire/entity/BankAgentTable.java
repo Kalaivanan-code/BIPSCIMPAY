@@ -23,13 +23,15 @@ public class BankAgentTable {
 	private String del_flg;
 	private String entity_cre_flg;
 	private String disable_flg;
+	private String agent_type;
 	public BankAgentTable() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
+	
 	public BankAgentTable(String bank_code, String bank_name, String bank_agent, String bank_agent_account,
 			String entry_user, Date entry_time, String modify_user, Date modify_time, String del_user, Date del_time,
-			String del_flg, String entity_cre_flg) {
+			String del_flg, String entity_cre_flg, String disable_flg, String agent_type) {
 		super();
 		this.bank_code = bank_code;
 		this.bank_name = bank_name;
@@ -43,7 +45,10 @@ public class BankAgentTable {
 		this.del_time = del_time;
 		this.del_flg = del_flg;
 		this.entity_cre_flg = entity_cre_flg;
+		this.disable_flg = disable_flg;
+		this.agent_type = agent_type;
 	}
+
 	public String getBank_code() {
 		return bank_code;
 	}
@@ -121,6 +126,12 @@ public class BankAgentTable {
 	}
 	public void setDisable_flg(String disable_flg) {
 		this.disable_flg = disable_flg;
+	}
+	public String getAgent_type() {
+		return agent_type;
+	}
+	public void setAgent_type(String agent_type) {
+		this.agent_type = agent_type;
 	}
 	
 	

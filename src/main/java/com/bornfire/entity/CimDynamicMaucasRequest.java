@@ -20,6 +20,7 @@ public class CimDynamicMaucasRequest {
 	private String Ter_label;
 	private String Pur_tran;
 	private String Add_det;
+	@NotBlank(message="Bill Number Required")
 	private String Bill_num;
 	public String getMerchant_ID() {
 		return Merchant_ID;

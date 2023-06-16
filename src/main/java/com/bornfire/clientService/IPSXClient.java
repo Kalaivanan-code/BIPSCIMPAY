@@ -41,6 +41,7 @@ import com.bornfire.controller.CimCBSservice;
 import com.bornfire.controller.Connect24Service;
 import com.bornfire.controller.IPSConnection;
 import com.bornfire.controller.IPSDao;
+import com.bornfire.controller.IPSRevDao;
 import com.bornfire.entity.BankAgentTable;
 import com.bornfire.entity.BankAgentTableRep;
 import com.bornfire.entity.C24FTResponse;
@@ -163,6 +164,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 	
 	@Autowired
 	CimCBSservice cimCBSservice;
+	
+	@Autowired
+	IPSRevDao ipsRevDao;
 	
 
 	@SuppressWarnings("unchecked")
@@ -845,9 +849,14 @@ public class IPSXClient extends WebServiceGatewaySupport {
 								.map(StatusReasonInformation121::getAddtlInf).filter(indAliasList -> !indAliasList.isEmpty())
 								.map(indAliasList -> indAliasList.get(0)).orElse("");
 					}
+					
 				}
 				//List<StatusReasonInformation121> listerrorDesc=doc.getFIToFIPmtStsRpt().getTxInfAndSts().get(0).getStsRsnInf();
-
+if(errorCode002.equals("EL202")) {
+	ipsRevDao.updateIPSXStatusResponseRJCT(orglMsgID002, errorDesc002, msgID002,
+			TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+			TranMonitorStatus.RJCT.toString(), errorCode002,"pacs.002.001.10");
+}
 
 				if (!userReference.equals("")) {
 					ipsDao.updateIPSXStatusResponseRJCT(orglMsgID002, errorDesc002, msgID002,

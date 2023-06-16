@@ -19,7 +19,7 @@ Optional<MerchantMaster> findById(String directorId);
 	@Query(value = "select * from MERCHANT_MASTER_TABLE where merchant_id= ?1 and del_flg ='N'", nativeQuery = true)
 	MerchantMaster findByIdCustom(String Id);
 	
-	@Query(value = "select * from MERCHANT_MASTER_TABLE where merchant_id= ?1 and del_flg ='N'", nativeQuery = true)
+	@Query(value = "select * from MERCHANT_MASTER_TABLE where merchant_id= ?1 ", nativeQuery = true)
 	List<MerchantMaster> checkexistingcurrency(String Id);
 	
 	

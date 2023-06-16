@@ -565,6 +565,7 @@ public class IPSDao {
 					if (!tm.getMsg_type().equals("BULK_DEBIT")) {
 						tm.setIpsx_status(TranMonitorStatus.IPSX_RESPONSE_ACSP.toString());
 						tm.setResponse_status(TranMonitorStatus.ACSP.toString().trim());
+						tm.setCbs_status(TranMonitorStatus.CBS_CREDIT_OK.toString());
 						tm.setIpsx_message_id(ipsxMsgID);
 						tm.setIpsx_response_time(new Date());
 						tm.setTran_status(tranStatus);
@@ -6633,6 +6634,7 @@ public class IPSDao {
 			merchantQrGenTable.setStore_label(qrrequest.getAdditionalDataInformation().getStoreLabel());
 			merchantQrGenTable.setLoyalty_number(qrrequest.getAdditionalDataInformation().getLoyaltyNumber());
 			merchantQrGenTable.setAdditional_details(qrrequest.getAdditionalDataInformation().getAddlDataRequest());
+			merchantQrGenTable.setEntry_time(new Date());
 			
 			mercantQrGenTableRep.save(merchantQrGenTable);
 			status="1";
@@ -6985,7 +6987,18 @@ public class IPSDao {
 		
 	}
 	
-	
+	public String getQRCtgyPurp(String instgAgent, String debtorAgent, String creditorAgent) {
+		String ctgyPurp = "";
+		
+		Optional<BankAgentTable> otm = bankAgentTableRep.findByCustomGovernmentName(creditorAgent);
+		
+		if(otm.isPresent()) {
+			ctgyPurp="305";
+		}else {
+			ctgyPurp="300";
+		}
+		return ctgyPurp;
+	}
 	public String getCtgyPurp(String instgAgent, String debtorAgent, String creditorAgent,
 			String debtorName,String creditorName,boolean isRegiteredPISP,String remitterDocNumber,
 			String benAcctNumber) {
@@ -7195,6 +7208,25 @@ public class IPSDao {
 			throw new IPSXException(responseStatus);
 		}
 
+	}
+
+	public boolean invalidPIDQR(String pid) {
+		boolean valid = false;
+		try {
+			List<Object[]> otm = mercantQrGenTableRep.existsByPID(pid);
+
+			if (otm.size()>0) {
+				valid = false;
+				return valid;
+			} else {
+				valid = true;
+				return valid;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+
+		return valid;
 	}
 
 }

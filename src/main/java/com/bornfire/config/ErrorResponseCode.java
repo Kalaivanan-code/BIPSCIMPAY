@@ -188,6 +188,10 @@ public class ErrorResponseCode {
 		}
 		else if(code.equals("BIPS34")) {
 			responseDesc = "BIPS34:Tran ID doesn't Exist";
+		}else if(code.equals("BIPSQ32")) {
+			responseDesc = "BIPSQ32:Merchant doesn't Exist";
+		}else if(code.equals("BIPSQ33")) {
+			responseDesc = "BIPSQ33:Merchant Inactive";
 		}
 		
 		return responseDesc;

@@ -418,7 +418,7 @@ public class CronJobScheduler {
 		}
 	}
 
-	@Scheduled(cron = "0 3/5 00 * * *")
+	@Scheduled(cron = "0 3/5 03 * * *")
 	public void initIncGLPayment() {
 		
 		String getMinutes=new SimpleDateFormat("mm").format(new Date());
