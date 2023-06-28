@@ -12,4 +12,7 @@ public interface MerchantQrGenTablerep extends JpaRepository<MerchantQrGenTable,
 	@Query(value = "select * from BIPS_MERCHANT_QRCODE_GEN_TABLE where p_id=?1 Union all select * from BIPS_MERCHANT_QRCODE_GEN_HIST_TABLE where p_id=?1", nativeQuery = true)
 	List<Object[]> existsByPID(String p_id);
 
+	@Query(value = "select * from BIPS_MERCHANT_QRCODE_GEN_TABLE where p_id=?1 Union all select * from BIPS_MERCHANT_QRCODE_GEN_HIST_TABLE where p_id=?1", nativeQuery = true)
+	List<MerchantQrGenTable> findByPId(String p_id);
+	
 }

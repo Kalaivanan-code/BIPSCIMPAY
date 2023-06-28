@@ -386,7 +386,7 @@ public class CimCBSservice {
 	public ResponseEntity<CimCBSresponse> cbsResponseFailure(String requestUUID) {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-		
+		logger.info("inside to send reversal msg inside API");
 		////Get Data from Table
 		TranCimCBSTable data=tranCimCBSTableRep.findById(requestUUID).get();
 		
@@ -402,7 +402,7 @@ public class CimCBSservice {
 		cimCBSrequestHeader.setMessageDateTime(listener.convertDateToGreDate(data.getMessage_date_time(), "2").toString());
 		cimCBSrequestHeader.setCountryCode(env.getProperty("cimCBS.countryCode"));
 		cimCBSrequest.setHeader(cimCBSrequestHeader);
-		
+		logger.info("inside to send reversal msg inside API after Header");
 		CimCBSrequestData cimCBSrequestData=new CimCBSrequestData();
 		cimCBSrequestData.setTransactionNo(data.getTran_no());
 		cimCBSrequestData.setInitiatingChannel(data.getInit_channel());
@@ -445,17 +445,18 @@ public class CimCBSservice {
 		cimCBSrequestData.setBeneficiaryBank(data.getBeneficiarybank());
 		cimCBSrequestData.setBeneficiaryBankCode(data.getBeneficiarybankcode());
 		cimCBSrequestData.setBeneficiarySwiftCode(data.getBeneficiaryswiftcode());
-		
-		if(data.getStatus().equals("RJCT")) {
+		logger.info("inside to send reversal msg inside API before Status");
+		cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
+		/*if(data.getStatus().equals("RJCT")) {
 			cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
 		}else {
 			cimCBSrequestData.setIpsxTranStatus(Boolean.TRUE);
-		}
-		
+		}*/
+		logger.info("inside to send reversal msg inside API after status");
 		cimCBSrequest.setData(cimCBSrequestData);
 		
-		logger.debug(cimCBSrequest.toString());
-		logger.debug(listener.generateJsonFormat(cimCBSrequest.toString()));
+		logger.info(cimCBSrequest.toString());
+		logger.info(listener.generateJsonFormat(cimCBSrequest.toString()));
 	///////////////////////////////////////////////////
 	
 		HttpEntity<CimCBSrequest> entity = new HttpEntity<>(cimCBSrequest, httpHeaders);

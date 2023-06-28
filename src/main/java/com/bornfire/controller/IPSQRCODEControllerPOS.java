@@ -29,8 +29,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Optional;
 
 import javax.imageio.ImageIO;
 import javax.validation.Valid;
@@ -39,6 +41,9 @@ import javax.validation.constraints.NotEmpty;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 
+import org.hibernate.query.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,8 +72,16 @@ import com.bornfire.entity.EncodeQRFormatResponse;
 import com.bornfire.entity.MerchantMaster;
 import com.bornfire.entity.MerchantMasterRep;
 import com.bornfire.entity.MerchantQRRegistration;
+import com.bornfire.entity.MerchantQrGenTable;
+import com.bornfire.entity.MerchantQrGenTablerep;
 import com.bornfire.entity.QRUrlGlobalEntity;
 import com.bornfire.entity.QRUrlGobalEntity;
+import com.bornfire.entity.QrPaymentResponse;
+import com.bornfire.entity.QrPaymentStatus;
+import com.bornfire.entity.QrPaymentStatusData;
+import com.bornfire.entity.QrPaymentStatusRequest;
+import com.bornfire.entity.RTPTransferRequestStatus;
+import com.bornfire.entity.RTPTransferStatusResponse;
 import com.bornfire.exception.IPSXException;
 import com.bornfire.qrcode.core.isos.Currency;
 import com.bornfire.qrcode.model.mpm.AdditionalDataField;
@@ -109,7 +122,8 @@ public class IPSQRCODEControllerPOS {
 	@Autowired
 	Environment env;
 	
-	
+	@Autowired
+	MerchantQrGenTablerep mercantQrGenTableRep;
 	
 	@PostMapping(path = "/api/ws/StaticMaucasPOS", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<CimMerchantResponse> genMerchantQRcodeStr(
@@ -837,6 +851,65 @@ public class IPSQRCODEControllerPOS {
 		cimMercbantQRAddlInfo.setAddlDataRequest(merchantQRgenerator.getAdditional_details());
 		cimMerchantQRcodeRequest.setAdditionalDataInformation(cimMercbantQRAddlInfo);
 		return  cimMerchantQRcodeRequest;
+	}
+
+	@Autowired
+	SessionFactory sessionFactory;
+	
+	@PostMapping(path = "/api/ws/QrPaymentStatus", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<QrPaymentResponse> bulkRTPTransfer(
+			@RequestHeader(value = "X-Request-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@Valid @RequestBody QrPaymentStatusRequest Requeststatus)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+		logger.info("Service Status QrPayment Starts :" + p_id);
+		Query<Object[]> qr;
+		QrPaymentResponse response = new QrPaymentResponse();
+		logger.info("RTP Status Request->" + Requeststatus.toString());
+		Session hs = sessionFactory.getCurrentSession();
+		if (!Requeststatus.getpID().equals("") && (!Requeststatus.getpID().equals(null))) {
+			List<MerchantQrGenTable> data = mercantQrGenTableRep.findByPId(Requeststatus.getpID());
+			if (data.size() > 0) {
+				qr = hs.createNativeQuery("select * from table(GETMERCHANTTRANSTATUSBYPID(?1))");
+				qr.setParameter(1, Requeststatus.getpID());
+				List<Object[]> result = qr.getResultList();
+				// SEQUENCE_UNIQUE_ID,CIM_MESSAGE_ID,CIM_ACCOUNT,IPSX_ACCOUNT,TRAN_AMOUNT,CBS_STATUS,IPSX_STATUS_CODE,IPSX_STATUS,IPSX_STATUS_ERROR
+				if (result.size() > 0) {
+					for (Object[] a : result) {
+						logger.info("RTP Status Request->" + a[0].toString());
+						QrPaymentStatusData qrdata = new QrPaymentStatusData();
+						QrPaymentStatus qrstatus = new QrPaymentStatus();
+						qrdata.setSeqUniqueId(a[0].toString());
+						qrdata.setTransactionNo(a[1].toString());
+						if ((a[7].toString()).equals("IPSX_RESPONSE_ACSP")) {
+							qrstatus.setIssuccess(Boolean.TRUE);
+						} else {
+							qrstatus.setIssuccess(Boolean.FALSE);
+							qrstatus.setMessage(a[8].toString());
+							qrstatus.setStatusCode(a[6].toString());
+						}
+						response.setData(qrdata);
+						response.setStatus(qrstatus);
+						return new ResponseEntity<>(response, HttpStatus.OK);
+					};
+				} else {
+					String responseStatus = errorCode.validationError("BIPSQR1");
+					throw new IPSXException(responseStatus);
+				}
+			} else {
+				String responseStatus = errorCode.validationError("BIPSQR1");
+				throw new IPSXException(responseStatus);
+			}
+		} else {
+
+			if((!Requeststatus.getMerchantID().equals("") && (!Requeststatus.getMerchantID().equals(null))) || (!Requeststatus.getBillNum().equals("") && (!Requeststatus.getBillNum().equals(null)))){
+				
+			}
+
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 }

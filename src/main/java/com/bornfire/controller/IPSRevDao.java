@@ -190,14 +190,14 @@ public class IPSRevDao {
 	@Autowired
 	InformixConnectionManager informixCon;
 
-	private static final Logger logger = LoggerFactory.getLogger(IPSXClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(IPSRevDao.class);
 
 	public void updateIPSXStatusResponseRJCT(String seqUniqueID, String ipsxerrorDesc, String ipsxMsgID,
 			String tranStatus, String ipsXStatus, String ipsxResponseStatus, String ipsxErrorCode, String msgType) {
 		try {
 			// Optional<TranIPSTable> otmTranIPS = tranIPStableRep.findById(seqUniqueID);
 
-			logger.info(seqUniqueID + " :IPSX Rejected Sttatus");
+			logger.info(seqUniqueID + " :IPSREVX Rejected Sttatus");
 
 			List<TranIPSTable> otmTranIPS = tranIPStableRep.findByIdCustom(seqUniqueID);
 
@@ -285,6 +285,7 @@ public class IPSRevDao {
 			logger.info(tm.getSequence_unique_id() + " :CIM Register Reverse Data Output:" + response);
 
 			if (response.equals("1")) {
+				logger.info("inside to send reversal msg");
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cbsResponseFailure(requestUUID);
 
 				logger.debug(listener.generateJsonFormat(connect24Response.toString()));

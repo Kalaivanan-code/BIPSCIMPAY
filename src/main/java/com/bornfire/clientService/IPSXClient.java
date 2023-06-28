@@ -851,13 +851,14 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					}
 					
 				}
+			
 				//List<StatusReasonInformation121> listerrorDesc=doc.getFIToFIPmtStsRpt().getTxInfAndSts().get(0).getStsRsnInf();
-if(errorCode002.equals("EL202")) {
+if(errorDesc002.equals("NRT - Rejected by timeout")) {
 	ipsRevDao.updateIPSXStatusResponseRJCT(orglMsgID002, errorDesc002, msgID002,
 			TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 			TranMonitorStatus.RJCT.toString(), errorCode002,"pacs.002.001.10");
 }
-
+logger.debug("errorDesc002"+errorDesc002);
 				if (!userReference.equals("")) {
 					ipsDao.updateIPSXStatusResponseRJCT(orglMsgID002, errorDesc002, msgID002,
 							TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
