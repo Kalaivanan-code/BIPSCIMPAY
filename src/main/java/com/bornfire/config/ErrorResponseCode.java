@@ -192,12 +192,11 @@ public class ErrorResponseCode {
 			responseDesc = "BIPSQ32:Merchant doesn't Exist";
 		}else if(code.equals("BIPSQ33")) {
 			responseDesc = "BIPSQ33:Merchant Inactive";
-		}else if(code.equals("BIPSQ33")) {
-			responseDesc = "BIPSQ33:Merchant Inactive";
 		}else if(code.equals("BIPSQR1")) {
 			responseDesc = "BIPSQR1:Request doesn't Exist";
+		}else if(code.equals("BIPSQR2")){
+			responseDesc = "BIPSQR2:Required Fields Missing";
 		}
-		
 		return responseDesc;
 	}
 	

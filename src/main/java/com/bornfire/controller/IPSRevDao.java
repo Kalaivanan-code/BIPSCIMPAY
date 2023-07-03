@@ -21,6 +21,7 @@ import com.bornfire.config.ErrorResponseCode;
 import com.bornfire.config.InformixConnectionManager;
 import com.bornfire.config.Listener;
 import com.bornfire.config.SequenceGenerator;
+import com.bornfire.entity.BankAgentTable;
 import com.bornfire.entity.BankAgentTableRep;
 import com.bornfire.entity.CimCBSresponse;
 import com.bornfire.entity.ConsentAccessInquiryTableRep;
@@ -44,6 +45,7 @@ import com.bornfire.entity.SettlementAccountRep;
 import com.bornfire.entity.SettlementLimitReportRep;
 import com.bornfire.entity.SettlementReportRep;
 import com.bornfire.entity.TranAllDetailsTableRep;
+import com.bornfire.entity.TranCBSTable;
 import com.bornfire.entity.TranCBSTableRep;
 import com.bornfire.entity.TranCimCBSTable;
 import com.bornfire.entity.TranCimCBSTableRep;
@@ -273,12 +275,12 @@ public class IPSRevDao {
 			String settlReceivableAccount = settlAccountRep.findById("03").get().getAccount_number();
 
 			String response = registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
-					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+					env.getProperty("cimCBS.servicereqversionrev"), env.getProperty("cimCBS.servicereqID"), new Date(),
 					sequence.generateSystemTraceAuditNumber(), tm.getInit_channel_id(), init_tran_no, "TRUE", "DR", "Y",
 					"", tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 					tm.getSequence_unique_id(), settlReceivableAccount, tm.getCim_account_name(), "RTP", "", "", "", "",
 					new Date(), "RECEIVABLE", tm.getReq_unique_id(), ipsxErrorCode, ipsxerrorDesc,
-					tm.getMaster_ref_id());
+					tm.getMaster_ref_id(),tm.getDbtr_agt(),tm.getCdtr_agt());
 
 			logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -348,12 +350,12 @@ public class IPSRevDao {
 			String settlReceivableAccount = settlAccountRep.findById("03").get().getAccount_number();
 
 			String response = registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
-					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
+					env.getProperty("cimCBS.servicereqversionrev"), env.getProperty("cimCBS.servicereqID"), new Date(),
 					sequence.generateSystemTraceAuditNumber(), env.getProperty("cimCBS.incCRChannel"), tm.getEnd_end_id(), "TRUE", "DR", "Y",
 					"", tm.getBob_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 					tm.getSequence_unique_id(), settlReceivableAccount, tm.getBob_account_name(), "NRT", "", tm.getRmt_info(), "", "",
 					new Date(), "RECEIVABLE", tm.getRmt_info(), ipsxErrorCode, ipsxerrorDesc,
-					tm.getMaster_ref_id());
+					tm.getMaster_ref_id(),tm.getDbtr_agt(),tm.getCdtr_agt());
 
 			logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -413,12 +415,16 @@ public class IPSRevDao {
 			String seqUniqueID,  String debrAcctNumber,
 			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
 			String resv_field1,String res_field2,Date valueDate,String settlType,
-			String init_sub_tran_no,String error_code,String error_msg,String ipsMasterRefId) {
+			String init_sub_tran_no,String error_code,String error_msg,String ipsMasterRefId,String debitoragent,String creditoragent) {
 		
 		String response="0";
 		try {
 			TranCimCBSTable tranCimCBSTable=new TranCimCBSTable();
 			
+			TranCimCBSTable tr = tranCimCBSTableRep.findBySeqUniqueIDCustom(seqUniqueID);
+			
+			BankAgentTable remitterBank= findByBank(debitoragent);
+			BankAgentTable benificiaryBank = findByBank(creditoragent);
 			
 			tranCimCBSTable.setSequence_unique_id(seqUniqueID);
 			tranCimCBSTable.setRequest_uuid(requestUUID);
@@ -451,6 +457,13 @@ public class IPSRevDao {
 			tranCimCBSTable.setError_code(error_code);
 			tranCimCBSTable.setError_msg(error_msg);
 			tranCimCBSTable.setIps_master_ref_id(ipsMasterRefId);
+			tranCimCBSTable.setRemitterbank(remitterBank.getBank_name());
+			tranCimCBSTable.setRemitterbankcode(remitterBank.getBank_code());
+			tranCimCBSTable.setRemitterswiftcode(remitterBank.getBank_agent());
+			tranCimCBSTable.setBeneficiarybank(benificiaryBank.getBank_name());
+			tranCimCBSTable.setBeneficiarybankcode(benificiaryBank.getBank_code());
+			tranCimCBSTable.setBeneficiaryswiftcode(benificiaryBank.getBank_agent());
+			tranCimCBSTable.setTransactionnotocbs(tr.getTran_no());
 			tranCimCBSTableRep.saveAndFlush(tranCimCBSTable);
 			response="1";
 
@@ -460,5 +473,20 @@ public class IPSRevDao {
 		}
 		
 		return response;
+	}
+	
+public BankAgentTable findByBank(String bankAgent) {
+		
+		BankAgentTable tm = new BankAgentTable();
+		try {
+			Optional<BankAgentTable> otm = bankAgentTableRep.findByCustomBankName(bankAgent);
+
+			if (otm.isPresent()) {
+				tm = otm.get();
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+		return tm;
 	}
 }

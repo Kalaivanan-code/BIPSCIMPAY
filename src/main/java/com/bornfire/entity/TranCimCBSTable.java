@@ -65,66 +65,10 @@ public class TranCimCBSTable implements Serializable{
 	private String beneficiarybank;
 	private String beneficiarybankcode;
 	private String beneficiaryswiftcode;
+	private String transactionnotocbs;
 
 
 
-	public TranCimCBSTable(String sequence_unique_id, String request_uuid, String channel_id,
-			String service_request_version, String service_request_id, Date message_date_time, String tran_no,
-			String init_channel, String init_tran_no, String post_to_cbs, String tran_type, String isreversal,
-			String tran_no_from_cbs, String customer_name, String from_account_no, String to_account_no,
-			BigDecimal tran_amt, Date tran_date, String tran_currency, String tran_particular_code,
-			String debit_remarks, String credit_remarks, String resv_field_1, String resv_field_2, String status,
-			String status_code, String message, String entry_user, Date entry_time, String entity_cre_flg,
-			Date value_date, String settl_acct_type, String tran_charge_type, String init_sub_tran_no,
-			String error_code, String error_msg, String ips_master_ref_id, Date message_res_time, String remitterbank,
-			String remitterbankcode, String remitterswiftcode, String beneficiarybank, String beneficiarybankcode,
-			String beneficiaryswiftcode) {
-		super();
-		this.sequence_unique_id = sequence_unique_id;
-		this.request_uuid = request_uuid;
-		this.channel_id = channel_id;
-		this.service_request_version = service_request_version;
-		this.service_request_id = service_request_id;
-		this.message_date_time = message_date_time;
-		this.tran_no = tran_no;
-		this.init_channel = init_channel;
-		this.init_tran_no = init_tran_no;
-		this.post_to_cbs = post_to_cbs;
-		this.tran_type = tran_type;
-		this.isreversal = isreversal;
-		this.tran_no_from_cbs = tran_no_from_cbs;
-		this.customer_name = customer_name;
-		this.from_account_no = from_account_no;
-		this.to_account_no = to_account_no;
-		this.tran_amt = tran_amt;
-		this.tran_date = tran_date;
-		this.tran_currency = tran_currency;
-		this.tran_particular_code = tran_particular_code;
-		this.debit_remarks = debit_remarks;
-		this.credit_remarks = credit_remarks;
-		this.resv_field_1 = resv_field_1;
-		this.resv_field_2 = resv_field_2;
-		this.status = status;
-		this.status_code = status_code;
-		this.message = message;
-		this.entry_user = entry_user;
-		this.entry_time = entry_time;
-		this.entity_cre_flg = entity_cre_flg;
-		this.value_date = value_date;
-		this.settl_acct_type = settl_acct_type;
-		this.tran_charge_type = tran_charge_type;
-		this.init_sub_tran_no = init_sub_tran_no;
-		this.error_code = error_code;
-		this.error_msg = error_msg;
-		this.ips_master_ref_id = ips_master_ref_id;
-		this.message_res_time = message_res_time;
-		this.remitterbank = remitterbank;
-		this.remitterbankcode = remitterbankcode;
-		this.remitterswiftcode = remitterswiftcode;
-		this.beneficiarybank = beneficiarybank;
-		this.beneficiarybankcode = beneficiarybankcode;
-		this.beneficiaryswiftcode = beneficiaryswiftcode;
-	}
 	public TranCimCBSTable() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -394,6 +338,70 @@ public class TranCimCBSTable implements Serializable{
 	public void setBeneficiaryswiftcode(String beneficiaryswiftcode) {
 		this.beneficiaryswiftcode = beneficiaryswiftcode;
 
+	}
+	public String getTransactionnotocbs() {
+		return transactionnotocbs;
+	}
+	public void setTransactionnotocbs(String transactionnotocbs) {
+		this.transactionnotocbs = transactionnotocbs;
+	}
+	public TranCimCBSTable(String sequence_unique_id, String request_uuid, String channel_id,
+			String service_request_version, String service_request_id, Date message_date_time, String tran_no,
+			String init_channel, String init_tran_no, String post_to_cbs, String tran_type, String isreversal,
+			String tran_no_from_cbs, String customer_name, String from_account_no, String to_account_no,
+			BigDecimal tran_amt, Date tran_date, String tran_currency, String tran_particular_code,
+			String debit_remarks, String credit_remarks, String resv_field_1, String resv_field_2, String status,
+			String status_code, String message, String entry_user, Date entry_time, String entity_cre_flg,
+			Date value_date, String settl_acct_type, String tran_charge_type, String init_sub_tran_no,
+			String error_code, String error_msg, String ips_master_ref_id, Date message_res_time, String remitterbank,
+			String remitterbankcode, String remitterswiftcode, String beneficiarybank, String beneficiarybankcode,
+			String beneficiaryswiftcode, String transactionnotocbs) {
+		super();
+		this.sequence_unique_id = sequence_unique_id;
+		this.request_uuid = request_uuid;
+		this.channel_id = channel_id;
+		this.service_request_version = service_request_version;
+		this.service_request_id = service_request_id;
+		this.message_date_time = message_date_time;
+		this.tran_no = tran_no;
+		this.init_channel = init_channel;
+		this.init_tran_no = init_tran_no;
+		this.post_to_cbs = post_to_cbs;
+		this.tran_type = tran_type;
+		this.isreversal = isreversal;
+		this.tran_no_from_cbs = tran_no_from_cbs;
+		this.customer_name = customer_name;
+		this.from_account_no = from_account_no;
+		this.to_account_no = to_account_no;
+		this.tran_amt = tran_amt;
+		this.tran_date = tran_date;
+		this.tran_currency = tran_currency;
+		this.tran_particular_code = tran_particular_code;
+		this.debit_remarks = debit_remarks;
+		this.credit_remarks = credit_remarks;
+		this.resv_field_1 = resv_field_1;
+		this.resv_field_2 = resv_field_2;
+		this.status = status;
+		this.status_code = status_code;
+		this.message = message;
+		this.entry_user = entry_user;
+		this.entry_time = entry_time;
+		this.entity_cre_flg = entity_cre_flg;
+		this.value_date = value_date;
+		this.settl_acct_type = settl_acct_type;
+		this.tran_charge_type = tran_charge_type;
+		this.init_sub_tran_no = init_sub_tran_no;
+		this.error_code = error_code;
+		this.error_msg = error_msg;
+		this.ips_master_ref_id = ips_master_ref_id;
+		this.message_res_time = message_res_time;
+		this.remitterbank = remitterbank;
+		this.remitterbankcode = remitterbankcode;
+		this.remitterswiftcode = remitterswiftcode;
+		this.beneficiarybank = beneficiarybank;
+		this.beneficiarybankcode = beneficiarybankcode;
+		this.beneficiaryswiftcode = beneficiaryswiftcode;
+		this.transactionnotocbs = transactionnotocbs;
 	}
 	
 	

@@ -54,5 +54,7 @@ public interface TranCimCBSTableRep extends JpaRepository<TranCimCBSTable, Strin
 	@Modifying
 	@Query(value = "update BIPS_TRAN_CIM_CBS_TABLE set status=?2,status_code=?3,message=?4,tran_no_from_cbs=?5,message_res_time=?6 Where request_uuid=?1", nativeQuery = true)
 	void updateCIMcbsData(String requestUUID, String status, String statusCode, String message, String tranNoFromCBS,String dateOfRes);
-	
+
+	@Query(value = "select * from BIPS_TRAN_CIM_CBS_TABLE where sequence_unique_id=?1 and POST_TO_CBS='True'", nativeQuery = true)
+	TranCimCBSTable findBySeqUniqueIDCustom(String seqUniqueID);
 }

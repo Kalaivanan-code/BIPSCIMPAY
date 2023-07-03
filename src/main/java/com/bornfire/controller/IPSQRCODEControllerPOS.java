@@ -858,7 +858,7 @@ public class IPSQRCODEControllerPOS {
 	
 	@PostMapping(path = "/api/ws/QrPaymentStatus", produces = "application/json", consumes = "application/json")
 	public ResponseEntity<QrPaymentResponse> bulkRTPTransfer(
-			@RequestHeader(value = "X-Request-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
 			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
 			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
 			@Valid @RequestBody QrPaymentStatusRequest Requeststatus)
@@ -872,8 +872,12 @@ public class IPSQRCODEControllerPOS {
 		if (!Requeststatus.getpID().equals("") && (!Requeststatus.getpID().equals(null))) {
 			List<MerchantQrGenTable> data = mercantQrGenTableRep.findByPId(Requeststatus.getpID());
 			if (data.size() > 0) {
-				qr = hs.createNativeQuery("select * from table(GETMERCHANTTRANSTATUSBYPID(?1))");
+				qr = hs.createNativeQuery("select * from table(GETMERCHANTTRANSTATUSBYPID(?1,?2,?3,?4,?5))");
 				qr.setParameter(1, Requeststatus.getpID());
+				qr.setParameter(2, "P");
+				qr.setParameter(3, "");
+				qr.setParameter(4, "");
+				qr.setParameter(5, "");
 				List<Object[]> result = qr.getResultList();
 				// SEQUENCE_UNIQUE_ID,CIM_MESSAGE_ID,CIM_ACCOUNT,IPSX_ACCOUNT,TRAN_AMOUNT,CBS_STATUS,IPSX_STATUS_CODE,IPSX_STATUS,IPSX_STATUS_ERROR
 				if (result.size() > 0) {
@@ -904,8 +908,105 @@ public class IPSQRCODEControllerPOS {
 			}
 		} else {
 
-			if((!Requeststatus.getMerchantID().equals("") && (!Requeststatus.getMerchantID().equals(null))) || (!Requeststatus.getBillNum().equals("") && (!Requeststatus.getBillNum().equals(null)))){
+			if((!Requeststatus.getMerchantID().equals("") && (!Requeststatus.getMerchantID().equals(null))) && (!Requeststatus.getRefNum().equals("") && (!Requeststatus.getRefNum().equals(null))) && (!Requeststatus.getBillNum().equals("") && (!Requeststatus.getBillNum().equals(null)))){
+
+				qr = hs.createNativeQuery("select * from table(GETMERCHANTTRANSTATUSBYPID(?1,?2,?3,?4,?5))");
+				qr.setParameter(1, "");
+				qr.setParameter(2, "M");
+				qr.setParameter(3, Requeststatus.getMerchantID());
+				qr.setParameter(4, Requeststatus.getBillNum());
+				qr.setParameter(5, Requeststatus.getRefNum());
+				List<Object[]> result = qr.getResultList();
+				// SEQUENCE_UNIQUE_ID,CIM_MESSAGE_ID,CIM_ACCOUNT,IPSX_ACCOUNT,TRAN_AMOUNT,CBS_STATUS,IPSX_STATUS_CODE,IPSX_STATUS,IPSX_STATUS_ERROR
+				if (result.size() > 0) {
+					for (Object[] a : result) {
+						logger.info("RTP Status Request->" + a[0].toString());
+						QrPaymentStatusData qrdata = new QrPaymentStatusData();
+						QrPaymentStatus qrstatus = new QrPaymentStatus();
+						qrdata.setSeqUniqueId(a[0].toString());
+						qrdata.setTransactionNo(a[1].toString());
+						if ((a[7].toString()).equals("IPSX_RESPONSE_ACSP")) {
+							qrstatus.setIssuccess(Boolean.TRUE);
+						} else {
+							qrstatus.setIssuccess(Boolean.FALSE);
+							qrstatus.setMessage(a[8].toString());
+							qrstatus.setStatusCode(a[6].toString());
+						}
+						response.setData(qrdata);
+						response.setStatus(qrstatus);
+						return new ResponseEntity<>(response, HttpStatus.OK);
+					};
+				} else {
+					String responseStatus = errorCode.validationError("BIPSQR1");
+					throw new IPSXException(responseStatus);
+				}
+			}else if((!Requeststatus.getMerchantID().equals("") && (!Requeststatus.getMerchantID().equals(null))) && (!Requeststatus.getBillNum().equals("") && (!Requeststatus.getBillNum().equals(null)))){
 				
+				qr = hs.createNativeQuery("select * from table(GETMERCHANTTRANSTATUSBYPID(?1,?2,?3,?4,?5))");
+				qr.setParameter(1, "");
+				qr.setParameter(2, "B");
+				qr.setParameter(3, Requeststatus.getMerchantID());
+				qr.setParameter(4, Requeststatus.getBillNum());
+				qr.setParameter(5, "");
+				List<Object[]> result = qr.getResultList();
+				// SEQUENCE_UNIQUE_ID,CIM_MESSAGE_ID,CIM_ACCOUNT,IPSX_ACCOUNT,TRAN_AMOUNT,CBS_STATUS,IPSX_STATUS_CODE,IPSX_STATUS,IPSX_STATUS_ERROR
+				if (result.size() > 0) {
+					for (Object[] a : result) {
+						logger.info("RTP Status Request->" + a[0].toString());
+						QrPaymentStatusData qrdata = new QrPaymentStatusData();
+						QrPaymentStatus qrstatus = new QrPaymentStatus();
+						qrdata.setSeqUniqueId(a[0].toString());
+						qrdata.setTransactionNo(a[1].toString());
+						if ((a[7].toString()).equals("IPSX_RESPONSE_ACSP")) {
+							qrstatus.setIssuccess(Boolean.TRUE);
+						} else {
+							qrstatus.setIssuccess(Boolean.FALSE);
+							qrstatus.setMessage(a[8].toString());
+							qrstatus.setStatusCode(a[6].toString());
+						}
+						response.setData(qrdata);
+						response.setStatus(qrstatus);
+						return new ResponseEntity<>(response, HttpStatus.OK);
+					};
+				} else {
+					String responseStatus = errorCode.validationError("BIPSQR1");
+					throw new IPSXException(responseStatus);
+				}
+				
+			}else if((!Requeststatus.getMerchantID().equals("") && (!Requeststatus.getMerchantID().equals(null))) && (!Requeststatus.getRefNum().equals("") && (!Requeststatus.getRefNum().equals(null)))){
+				qr = hs.createNativeQuery("select * from table(GETMERCHANTTRANSTATUSBYPID(?1,?2,?3,?4,?5))");
+				qr.setParameter(1, "");
+				qr.setParameter(2, "R");
+				qr.setParameter(3, Requeststatus.getMerchantID());
+				qr.setParameter(4, "");
+				qr.setParameter(5, Requeststatus.getRefNum());
+				List<Object[]> result = qr.getResultList();
+				// SEQUENCE_UNIQUE_ID,CIM_MESSAGE_ID,CIM_ACCOUNT,IPSX_ACCOUNT,TRAN_AMOUNT,CBS_STATUS,IPSX_STATUS_CODE,IPSX_STATUS,IPSX_STATUS_ERROR
+				if (result.size() > 0) {
+					for (Object[] a : result) {
+						logger.info("RTP Status Request->" + a[0].toString());
+						QrPaymentStatusData qrdata = new QrPaymentStatusData();
+						QrPaymentStatus qrstatus = new QrPaymentStatus();
+						qrdata.setSeqUniqueId(a[0].toString());
+						qrdata.setTransactionNo(a[1].toString());
+						if ((a[7].toString()).equals("IPSX_RESPONSE_ACSP")) {
+							qrstatus.setIssuccess(Boolean.TRUE);
+						} else {
+							qrstatus.setIssuccess(Boolean.FALSE);
+							qrstatus.setMessage(a[8].toString());
+							qrstatus.setStatusCode(a[6].toString());
+						}
+						response.setData(qrdata);
+						response.setStatus(qrstatus);
+						return new ResponseEntity<>(response, HttpStatus.OK);
+					};
+				} else {
+					String responseStatus = errorCode.validationError("BIPSQR1");
+					throw new IPSXException(responseStatus);
+				}
+			}else {
+			String responseStatus = errorCode.validationError("BIPSQR2");
+			throw new IPSXException(responseStatus);
 			}
 
 		}

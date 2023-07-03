@@ -447,6 +447,7 @@ public class CimCBSservice {
 		cimCBSrequestData.setBeneficiarySwiftCode(data.getBeneficiaryswiftcode());
 		logger.info("inside to send reversal msg inside API before Status");
 		cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
+		cimCBSrequestData.setTransactionNoToCBS(data.getTransactionnotocbs());
 		/*if(data.getStatus().equals("RJCT")) {
 			cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
 		}else {
