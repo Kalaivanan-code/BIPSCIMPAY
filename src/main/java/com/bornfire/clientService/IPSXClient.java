@@ -41,6 +41,7 @@ import com.bornfire.controller.CimCBSservice;
 import com.bornfire.controller.Connect24Service;
 import com.bornfire.controller.IPSConnection;
 import com.bornfire.controller.IPSDao;
+import com.bornfire.controller.IPSNotification;
 import com.bornfire.controller.IPSRevDao;
 import com.bornfire.entity.BankAgentTable;
 import com.bornfire.entity.BankAgentTableRep;
@@ -113,6 +114,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 	@Autowired
 	Environment env;
 
+	@Autowired
+	IPSNotification ipsnotification;
+	
 	@Autowired
 	TransactionMonitorRep tranRep;
 
@@ -692,6 +696,8 @@ public class IPSXClient extends WebServiceGatewaySupport {
 							ipsDao.insertTranIPS(seqUniqueID008, bobMsgID008, "pacs.002.001.10", "", "", "", "", "O",
 									env.getProperty("ipsx.sender"), env.getProperty("ipsx.msgReceiver"), msgOutPacs002NteMIR, "",endToEndID008,docPacs.getPacs_002_001_10UnMarshalDocXML(sendRequest008));
 
+
+
 							
 							///// Send Pacs.002 Pacs to IPSX
 							com.bornfire.jaxb.wsdl.ObjectFactory obj008 = new com.bornfire.jaxb.wsdl.ObjectFactory();
@@ -881,6 +887,10 @@ logger.debug("errorDesc002"+errorDesc002);
 						"I", msgSender, msgReceiver, msgNetMIR, userReference,endToendID002,docPacs.getPacs_002_001_10UnMarshalDocXML(request));
 			}
 
+			if (ipsnotification.invalidTran_ID(orglMsgID002)) {
+				ipsnotification.sendNotification(orglMsgID002);
+				}
+			
 			break;
 
 		case "camt.025.001.05":
@@ -1546,7 +1556,7 @@ logger.debug("errorDesc002"+errorDesc002);
 
 			
 			String orglTxRefDate =docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0).getOrgnlTxRef().getReqdExctnDt().getDt().toString();
-
+			String TranCode =docPain002.getCstmrPmtStsRpt().getOrgnlPmtInfAndSts().get(0).getTxInfAndSts().get(0).getOrgnlTxRef().getPmtTpInf().getCtgyPurp().getPrtry();
 			logger.info("datae-"+orglTxRefDate);
 			
 			if (tranStatus.equals(TranMonitorStatus.ACSP.toString())) {
@@ -1569,8 +1579,9 @@ logger.debug("errorDesc002"+errorDesc002);
 							TranMonitorStatus.SUCCESS.toString(), "pain.002.001.10",orglTxRefDate);
 				//}
 					
-					if(String.valueOf(dataParse.getInstg_agt()).equals(env.getProperty("ipsx.bicfi")) && !String.valueOf(dataParse.getCdtr_agt()).equals(env.getProperty("ipsx.bicfi"))) {
-						
+					/*10.10.2023 for checking 101 part
+					 * if(String.valueOf(dataParse.getInstg_agt()).equals(env.getProperty("ipsx.bicfi")) && !String.valueOf(dataParse.getCdtr_agt()).equals(env.getProperty("ipsx.bicfi")) ) {
+						//&& !String.valueOf(TranCode).equals("300")
 						logger.info("Inside Pain002 processing ESB Request");
 			
 						String initTranNumber = dataParse.getResv_field1() != null ? dataParse.getResv_field1()
@@ -1587,7 +1598,7 @@ logger.debug("errorDesc002"+errorDesc002);
 					logger.info("calling ESB API for status from pain.002");
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
 				}
-					}
+					}*/
 
 			} else {
 				
@@ -1637,8 +1648,9 @@ logger.debug("errorDesc002"+errorDesc002);
 							TranMonitorStatus.RJCT.toString(), tranErrorCode);
 				//}
 
-					if(String.valueOf(dataParse.getInstg_agt()).equals(env.getProperty("ipsx.bicfi")) && !String.valueOf(dataParse.getCdtr_agt()).equals(env.getProperty("ipsx.bicfi"))) {
-						
+					/* 10.10.2023 for checking 101 part
+					 * if(String.valueOf(dataParse.getInstg_agt()).equals(env.getProperty("ipsx.bicfi")) && !String.valueOf(dataParse.getCdtr_agt()).equals(env.getProperty("ipsx.bicfi"))) {
+						//&& !String.valueOf(TranCode).equals("300")
 						logger.info("Inside Pain002 processing ESB Request");
 			
 						String initTranNumber = dataParse.getResv_field1() != null ? dataParse.getResv_field1()
@@ -1655,8 +1667,11 @@ logger.debug("errorDesc002"+errorDesc002);
 					logger.info("calling ESB API for status from pain.002");
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
 				}
-					}
+					}*/
 			}
+			if (ipsnotification.invalidTran_ID(orglMsgID)) {
+				ipsnotification.sendNotification(orglMsgID);
+				}
 			break;
 
 		}

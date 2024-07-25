@@ -1,10 +1,12 @@
 package com.bornfire.config;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -36,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import com.bornfire.controller.Connect24Service;
+import com.bornfire.controller.Documentsettelment;
 import com.bornfire.controller.IPSConnection;
 import com.bornfire.controller.IPSDao;
 import com.bornfire.entity.AccountContactResponse;
@@ -78,6 +81,9 @@ public class CronJobScheduler {
 
 	@Autowired
 	Environment env;
+	
+	@Autowired
+	Documentsettelment  docset;
 	
 	
 	private final LdapTemplate ldapTemplate;
@@ -702,5 +708,42 @@ public class CronJobScheduler {
 	 * } }else { this.setSettlDate(new Date()); this.setSettleFlg("Y"); } } }
 	 */
 
+	
+	@Scheduled(cron = "0 * * * * *")
+	public void generateMerchantSettlementfile() {
+		
+		/*Date currentDate = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("kk:mm:ss");
+        String formattedTime = formatter.format(currentDate);
+        logger.info("Current time (24-hour format): " + formattedTime);*/
+        
+		String getMinutes=new SimpleDateFormat("mm").format(new Date());
+		String getHour=new SimpleDateFormat("kk").format(new Date());
+
+		String fixedminutes= env.getProperty("Settlementfile.runtimeMinutes");
+		String fixedhours= env.getProperty("Settlementfile.runtimehours");
+		String Settlementfile = env.getProperty("Settlementfile.file");
+		logger.info("GL get : Start"+getHour);
+		if((Double.parseDouble(getMinutes)==Double.parseDouble(fixedminutes)) && (Double.parseDouble(getHour)==Double.parseDouble(fixedhours))) {
+			logger.info("GL Payment : Start"+new Date());
+			String values =	docset.createsettlementfile(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
+			
+			File input = new File(Settlementfile + new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()) + ".txt");
+			FileOutputStream Request = null;
+
+			try {
+				
+				BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(input), "UTF-8"));
+				wr.write(values);
+				wr.close();
+
+			} catch (Exception e) {
+				
+				e.printStackTrace();
+			}
+			//ipsConnection.initGLPayment(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
+		}
+		
+	}
 	
 }

@@ -1185,7 +1185,7 @@ public class IPSDao {
 							tm.setMconnectin("N");
 							
 							outwardTranRep.saveAndFlush(tm);
-							ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(tm.getP_id(),tm.getMaster_ref_id(),tm.getTran_date(),tm.getReq_unique_id(),tm.getCim_account(),tm.getTran_amount(),"RJCT",ipsxErrorCode,ipsxerrorDesc,tm.getSequence_unique_id());
+						//10.10.2023	ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(tm.getP_id(),tm.getMaster_ref_id(),tm.getTran_date(),tm.getReq_unique_id(),tm.getCim_account(),tm.getTran_amount(),"RJCT",ipsxErrorCode,ipsxerrorDesc,tm.getSequence_unique_id());
 							taskExecutor.execute(new Runnable() {
 								@Override
 								public void run() {
@@ -1462,7 +1462,7 @@ public class IPSDao {
 							tm.setIpsx_response_time(new Date());
 							tm.setTran_status(tranStatus);
 							outwardTranRep.save(tm);
-							ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(tm.getP_id(),tm.getMaster_ref_id(),tm.getTran_date(),tm.getReq_unique_id(),tm.getCim_account(),tm.getTran_amount(),"ACSP","","",tm.getSequence_unique_id());
+						//10.10.2023	ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.updateStatusMobile(tm.getP_id(),tm.getMaster_ref_id(),tm.getTran_date(),tm.getReq_unique_id(),tm.getCim_account(),tm.getTran_amount(),"ACSP","","",tm.getSequence_unique_id());
 						}else {
 							List<OutwardTransactionMonitoringTable> tranMonitorList = outwardTranRep.findBulkDebitID(tm.getMaster_ref_id());
 
@@ -6666,7 +6666,7 @@ public class IPSDao {
 		boolean status =false;
 		
 		try {
-			Optional<BankAgentTable> data=bankAgentTableRep.findByCustomBankName(debtorAgent008);
+			Optional<BankAgentTable> data=bankAgentTableRep.findByCustomBankName(debtorAgent008.replace("XXXX", ""));
 			if(data.isPresent()) {
 				if(!String.valueOf(data.get().getDel_flg()).equals("Y")&&!String.valueOf(data.get().getDisable_flg()).equals("Y")) {
 					status =true;

@@ -57,4 +57,7 @@ public interface TranCimCBSTableRep extends JpaRepository<TranCimCBSTable, Strin
 
 	@Query(value = "select * from BIPS_TRAN_CIM_CBS_TABLE where sequence_unique_id=?1 and POST_TO_CBS='True'", nativeQuery = true)
 	TranCimCBSTable findBySeqUniqueIDCustom(String seqUniqueID);
+	
+	@Query(value = "select * from BIPS_TRAN_CIM_CBS_TABLE where sequence_unique_id=?1 and POST_TO_CBS='True'", nativeQuery = true)
+	Optional<TranCimCBSTable> findBySeqUniqueIDCustomOpt(String seqUniqueID);
 }

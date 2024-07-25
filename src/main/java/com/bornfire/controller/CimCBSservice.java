@@ -13,8 +13,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Optional;
 
+import com.bornfire.entity.*;
+import org.apache.el.stream.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,30 +34,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.bornfire.config.Listener;
 import com.bornfire.config.SequenceGenerator;
-import com.bornfire.entity.C24FTRequest;
-import com.bornfire.entity.C24FTResponse;
-import com.bornfire.entity.C24RequestAcount;
-import com.bornfire.entity.CimCBSCustDocData;
-import com.bornfire.entity.CimCBSCustDocHeader;
-import com.bornfire.entity.CimCBSCustDocRequest;
-import com.bornfire.entity.CimCBSCustDocResponse;
-import com.bornfire.entity.CimCBSrequest;
-import com.bornfire.entity.CimCBSrequestData;
-import com.bornfire.entity.CimCBSrequestGL;
-import com.bornfire.entity.CimCBSrequestGLData;
-import com.bornfire.entity.CimCBSrequestGLDataTranDet;
-import com.bornfire.entity.CimCBSrequestGLHeader;
-import com.bornfire.entity.CimCBSrequestHeader;
-import com.bornfire.entity.CimCBSresponse;
-import com.bornfire.entity.CimGLresponse;
-import com.bornfire.entity.CimUpdatePaymentStatusRequest;
-import com.bornfire.entity.SettlementAccount;
-import com.bornfire.entity.TranCimCBSTable;
-import com.bornfire.entity.TranCimCBSTableRep;
-import com.bornfire.entity.TranCimGLRep;
-import com.bornfire.entity.TranCimGLTable;
-import com.bornfire.entity.TranMonitorStatus;
 import com.google.gson.Gson;
+import com.sun.xml.bind.v2.runtime.reflect.Lister;
 
 @Component
 public class CimCBSservice {
@@ -82,6 +61,14 @@ public class CimCBSservice {
 	
 	@Autowired
 	SequenceGenerator sequence;
+	
+	@Autowired
+	MerchantQrGenTablerep MerQrGenTabrep;
+	@Autowired
+	TransactionMonitorRep transactionMonitorRep;
+
+	@Autowired
+	BankAgentTableRep bankAgentTableRep;
 
 	public ResponseEntity<CimCBSresponse> cdtFundRequest(String requestUUID) {
 		logger.info("Inside CBS REQUEST");
@@ -417,8 +404,16 @@ public class CimCBSservice {
         	cimCBSrequestData.setBranchId("TESTING");
 		}
 			
-		cimCBSrequestData.setTransactionType(data.getTran_type());
-		cimCBSrequestData.setIsReversal(data.getIsreversal());
+		
+		if(data.getBeneficiaryswiftcode().equals(env.getProperty("ipsx.bicfi"))) {
+			logger.info("inside to send reversal msg inside API inside bicfi");
+			cimCBSrequestData.setIsReversal("Y");
+			cimCBSrequestData.setTransactionType("DR");
+		}else {
+			cimCBSrequestData.setIsReversal(data.getIsreversal());
+			cimCBSrequestData.setTransactionType(data.getTran_type());
+		}
+		
 		cimCBSrequestData.setTransactionNoFromCBS((data.getTran_no_from_cbs()==null)?"":data.getTran_no_from_cbs());
 		cimCBSrequestData.setCustomerName(data.getCustomer_name());
 		cimCBSrequestData.setFromAccountNo(data.getFrom_account_no());
@@ -447,7 +442,7 @@ public class CimCBSservice {
 		cimCBSrequestData.setBeneficiarySwiftCode(data.getBeneficiaryswiftcode());
 		logger.info("inside to send reversal msg inside API before Status");
 		cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
-		cimCBSrequestData.setTransactionNoToCBS(data.getTransactionnotocbs());
+		cimCBSrequestData.setTransactionNoToCBS(data.getTran_no());
 		/*if(data.getStatus().equals("RJCT")) {
 			cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
 		}else {
@@ -566,8 +561,6 @@ public class CimCBSservice {
 		}
 
 	}
-
-	
 	public ResponseEntity<CimCBSCustDocResponse> custDocType(String agreementNumber) {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -693,4 +686,103 @@ public class CimCBSservice {
 
 	}
 
+	public ResponseEntity<QrNotificationResponse> triggerQrNotification(String instr_Id){
+		
+		ResponseEntity<QrNotificationResponse> response = null;
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		
+		QrNotificationRequest qrNotificationRequest = new QrNotificationRequest();
+		
+		QrNotificationRequestHeader qrNotificationHeader = new QrNotificationRequestHeader();
+		qrNotificationHeader.setRequestUUId(sequence.generateRequestUUId());
+		qrNotificationHeader.setChannelId(env.getProperty("cimESBNotification.channelID"));
+		qrNotificationHeader.setServiceRequestVersion(env.getProperty("cimESBNotification.servicereqversion"));
+		qrNotificationHeader.setServiceRequestId(env.getProperty("cimESBNotification.servicereqID"));
+		qrNotificationHeader.setMessageDateTime(listener.getxmlGregorianCalender("1"));
+		qrNotificationHeader.setCountryCode(env.getProperty("cimESBNotification.countryCode"));
+		
+		QrNotificationRequestData qrNotificationRequestData = getNotificationRequestData(instr_Id);
+		
+		qrNotificationRequest.setHeader(qrNotificationHeader);
+		qrNotificationRequest.setData(qrNotificationRequestData);
+		
+		HttpEntity<QrNotificationRequest> entity = new HttpEntity<>(qrNotificationRequest, httpHeaders);
+		try {
+			response = restTemplate.postForEntity(env.getProperty("cimESBNotification.url")+"appname="+env.getProperty("cimESBNotification.appname")+"&prgname="+env.getProperty("cimESBNotification.prgname")+"&arguments="+env.getProperty("cimESBNotification.arguments"),entity, QrNotificationResponse.class);
+			logger.debug("Done");
+			logger.debug("Response"+response);
+			return new ResponseEntity<>(response.getBody(), HttpStatus.OK);
+		} catch (HttpClientErrorException ex) {
+			logger.debug("HttpClient"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			QrNotificationResponse notificationResponse = getQrNotificationResponse();
+			logger.debug("Response"+notificationResponse);
+			return new ResponseEntity<>(notificationResponse, HttpStatus.BAD_REQUEST);
+		} catch (HttpServerErrorException ex) {
+			logger.debug("HttpServerErrorException"+ex.getStatusCode());
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			QrNotificationResponse notificationResponse = getQrNotificationResponse();
+			logger.debug("Response"+notificationResponse);
+			return new ResponseEntity<>(notificationResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}catch (Exception ex) {
+			logger.debug("Exception"+ex.getLocalizedMessage());
+			QrNotificationResponse notificationResponse = getQrNotificationResponse();
+			logger.debug("Response"+notificationResponse);
+			return new ResponseEntity<>(notificationResponse, HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	private static QrNotificationResponse getQrNotificationResponse() {
+		QrNotificationResponse notificationResponse = new QrNotificationResponse();
+		QrNotificationResponseData qrNotificationResponseData =  new QrNotificationResponseData();
+		QrNotificationResponseStatus qrNotificationResponseStatus = new QrNotificationResponseStatus();
+		qrNotificationResponseData.setMessage("Failed");
+		qrNotificationResponseStatus.setIsSuccess(false);
+		qrNotificationResponseStatus.setMessage("Failed");
+		qrNotificationResponseStatus.setStatusCode("001");
+		notificationResponse.setData(qrNotificationResponseData);
+		notificationResponse.setStatus(qrNotificationResponseStatus);
+		return notificationResponse;
+	}
+
+	public QrNotificationRequestData getNotificationRequestData(String instr_Id){
+		List<Object[]> tranMonitorDetail = transactionMonitorRep.getNotifyTranDetails(instr_Id);
+		QrNotificationRequestData QrNotifyRequestData = new QrNotificationRequestData();
+		for (int i = 0; i <= tranMonitorDetail.size(); i++) {
+			QrNotifyRequestData.setBeneficiarySwiftCode(String.valueOf(tranMonitorDetail.get(0)[0]));
+			QrNotifyRequestData.setBeneficiaryBank(String.valueOf(tranMonitorDetail.get(0)[1]));
+			QrNotifyRequestData.setBeneficiaryBankCode(String.valueOf(tranMonitorDetail.get(0)[2]));
+			QrNotifyRequestData.setRemitterSwiftCode(String.valueOf(tranMonitorDetail.get(0)[3]));
+			QrNotifyRequestData.setRemitterBank(String.valueOf(tranMonitorDetail.get(0)[4]));
+			QrNotifyRequestData.setRemitterBankCode(String.valueOf(tranMonitorDetail.get(0)[5]));
+			QrNotifyRequestData.setErrorCode(String.valueOf(tranMonitorDetail.get(0)[6]));
+			QrNotifyRequestData.setErrorMessage(String.valueOf(tranMonitorDetail.get(0)[7]));
+			QrNotifyRequestData.setIpsMasterRefId(String.valueOf(tranMonitorDetail.get(0)[8]));
+			QrNotifyRequestData.setIpsxTranStatus(String.valueOf(tranMonitorDetail.get(0)[9]).equals("SUCCESS") ? Boolean.TRUE : Boolean.FALSE);
+			QrNotifyRequestData.setPostToCBS(String.valueOf(tranMonitorDetail.get(0)[10]).equals("CBS_CREDIT_OK") || String.valueOf(tranMonitorDetail.get(0)[10]).equals("CBS_DEBIT_OK") ? Boolean.TRUE : Boolean.FALSE);
+			QrNotifyRequestData.setTransactionAmount(String.valueOf(tranMonitorDetail.get(0)[11]));
+			QrNotifyRequestData.setTransactionCurrency(String.valueOf(tranMonitorDetail.get(0)[12]));
+			QrNotifyRequestData.setTransactionNo(String.valueOf(tranMonitorDetail.get(0)[13]));
+			QrNotifyRequestData.setTransactionNoToCBS(String.valueOf(tranMonitorDetail.get(0)[13]));
+			QrNotifyRequestData.setTransactionDate(new Date());
+			QrNotifyRequestData.setCustomerName(String.valueOf(tranMonitorDetail.get(0)[14]));
+			QrNotifyRequestData.setFromAccountNo(String.valueOf(tranMonitorDetail.get(0)[15]));
+			QrNotifyRequestData.setToAccountNo(String.valueOf(tranMonitorDetail.get(0)[16]));
+			QrNotifyRequestData.setTransactionParticularCode(String.valueOf(tranMonitorDetail.get(0)[17]));
+			QrNotifyRequestData.setInitatorTransactionNo(String.valueOf(tranMonitorDetail.get(0)[18]));
+			QrNotifyRequestData.setInitatorSubTransactionNo(String.valueOf(tranMonitorDetail.get(0)[19]));
+			QrNotifyRequestData.setInitiatingChannel(String.valueOf(tranMonitorDetail.get(0)[20]));
+			QrNotifyRequestData.setpId(String.valueOf(tranMonitorDetail.get(0)[21]));
+			QrNotifyRequestData.setPsuDeviceId(String.valueOf(tranMonitorDetail.get(0)[22]));
+			QrNotifyRequestData.setNotificationChannel(String.valueOf(tranMonitorDetail.get(0)[23]));
+			// Optional
+			QrNotifyRequestData.setCreditRemarks("");
+			QrNotifyRequestData.setDebitRemarks("");
+			QrNotifyRequestData.setReservedField1("");
+			QrNotifyRequestData.setReservedField2("");
+		}
+		return QrNotifyRequestData;
+	}
 }

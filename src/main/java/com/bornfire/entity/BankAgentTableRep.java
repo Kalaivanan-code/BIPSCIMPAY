@@ -23,6 +23,8 @@ public interface BankAgentTableRep extends JpaRepository<BankAgentTable, String>
 	
 	@Query(value = "select * from BIPS_OTHER_BANK_AGENT_TABLE where (bank_agent=?1 and (del_flg='Y' or disable_flg='Y')) or (bank_agent=?2 and (del_flg='Y' or disable_flg='Y'))  or (bank_agent=?3 and (del_flg='Y' or disable_flg='Y'))", nativeQuery = true)
 	List<Object[]> findByCustomBankName1(String instgAgent,String debtorAgent,String instdAgt);
-	
+
+	@Query(value = "select * from BIPS_OTHER_BANK_AGENT_TABLE where bank_agent=?1", nativeQuery = true)
+	BankAgentTable findBySwiftCode(String bankAgent);
 }
 

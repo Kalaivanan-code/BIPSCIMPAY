@@ -1,6 +1,7 @@
 package com.bornfire.controller;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -273,56 +274,67 @@ public class IPSRevDao {
 			}
 
 			String settlReceivableAccount = settlAccountRep.findById("03").get().getAccount_number();
+			Optional<TranCimCBSTable> tr = tranCimCBSTableRep.findBySeqUniqueIDCustomOpt(sequence_unique_id);
+			String response=null;
+			if (tr.isPresent()) {
+				 response ="1";
+			}
 
-			String response = registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+			
+			
+			/*String response = registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 					env.getProperty("cimCBS.servicereqversionrev"), env.getProperty("cimCBS.servicereqID"), new Date(),
 					sequence.generateSystemTraceAuditNumber(), tm.getInit_channel_id(), init_tran_no, "TRUE", "DR", "Y",
 					"", tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 					tm.getSequence_unique_id(), settlReceivableAccount, tm.getCim_account_name(), "RTP", "", "", "", "",
 					new Date(), "RECEIVABLE", tm.getReq_unique_id(), ipsxErrorCode, ipsxerrorDesc,
-					tm.getMaster_ref_id(),tm.getDbtr_agt(),tm.getCdtr_agt());
+					tm.getMaster_ref_id(),tm.getDbtr_agt(),tm.getCdtr_agt());*/
 
 			logger.info("Pain Output Return Msg to ThirdParty Application");
 
 			logger.info(tm.getSequence_unique_id() + " :CIM Register Reverse Data Output:" + response);
 
+
 			if (response.equals("1")) {
-				logger.info("inside to send reversal msg");
-				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cbsResponseFailure(requestUUID);
+				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cbsResponseFailure(tr.get().getRequest_uuid());
 
 				logger.debug(listener.generateJsonFormat(connect24Response.toString()));
 				logger.info(tm.getSequence_unique_id() + "CIM : 0");
 
 				if (connect24Response.getStatusCode() == HttpStatus.OK) {
+					CimCBSresponse data=connect24Response.getBody();
 
-					/*
-					 * CimCBSresponse data=connect24Response.getBody();
-					 * logger.info(tm.getSequence_unique_id() + " CIM: 1");
-					 * 
-					 * if(connect24Response.getBody().getData()!=null) {
-					 * if(connect24Response.getBody().getStatus().getIsSuccess()) {
-					 * updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus(
-					 * ).getStatusCode(),connect24Response.getBody().getStatus().getMessage(),
-					 * connect24Response.getBody().getData().getTransactionNoFromCBS());
-					 * 
-					 * logger.info(tm.getSequence_unique_id() + " CIM: 2");
-					 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"SUCCESS","");
-					 * 
-					 * }else {
-					 * updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus(
-					 * ).getStatusCode(),connect24Response.getBody().getStatus().getMessage(),
-					 * connect24Response.getBody().getData().getTransactionNoFromCBS());
-					 * logger.info(tm.getSequence_unique_id() + " CIM: 3");
-					 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE",
-					 * connect24Response.getBody().getStatus().getMessage()); } }else {
-					 * updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus(
-					 * ).getStatusCode(),connect24Response.getBody().getStatus().getMessage(),
-					 * connect24Response.getBody().getData().getTransactionNoFromCBS());
-					 * logger.info(tm.getSequence_unique_id() + " CIM: 3");
-					 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,
-					 * "FAILURE","No Response return from CBS"); }
-					 */
-				} /*
+					 logger.info(tm.getSequence_unique_id() + " CIM: 1");
+					 
+				if (connect24Response.getBody().getData() != null) {
+					if (connect24Response.getBody().getStatus().getIsSuccess()) {
+						updateCIMcbsData(requestUUID, "REV_SUCCESS",
+								connect24Response.getBody().getStatus().getStatusCode(),
+								connect24Response.getBody().getStatus().getMessage(),
+								connect24Response.getBody().getData().getTransactionNoFromCBS());
+
+						/*
+						 * logger.info(tm.getSequence_unique_id() + " CIM: 2");
+						 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"SUCCESS","");
+						 */
+					} else {
+						updateCIMcbsData(requestUUID, "REV_FAILURE",
+								connect24Response.getBody().getStatus().getStatusCode(),
+								connect24Response.getBody().getStatus().getMessage(),
+								connect24Response.getBody().getData().getTransactionNoFromCBS());
+						logger.info(tm.getSequence_unique_id() + " CIM: 3");
+						/*updateCBSStatus(tm.getSequence_unique_id(), requestUUID, "FAILURE",
+								connect24Response.getBody().getStatus().getMessage());*/
+					}
+				} else {
+					updateCIMcbsData(requestUUID, "FAILURE", connect24Response.getBody().getStatus().getStatusCode(),
+							connect24Response.getBody().getStatus().getMessage(),
+							connect24Response.getBody().getData().getTransactionNoFromCBS());
+					logger.info(tm.getSequence_unique_id() + " CIM: 3");
+/*					updateCIMCNFData(tm.getSequence_unique_id(), requestUUID, "FAILURE", "No Response return from CBS");
+*/				}
+
+			} /*
 					 * else { logger.info(tm.getSequence_unique_id() + " : CIM 4:Failure");
 					 * updateCIMcbsData(requestUUID,"FAILURE","500","Internal Server Error","");
 					 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,
@@ -348,55 +360,64 @@ public class IPSRevDao {
 		
 
 			String settlReceivableAccount = settlAccountRep.findById("03").get().getAccount_number();
+			Optional<TranCimCBSTable> tr = tranCimCBSTableRep.findBySeqUniqueIDCustomOpt(sequence_unique_id);
+			String response=null;
+			if (tr.isPresent()) {
+				 response ="1";
+			}
 
-			String response = registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
-					env.getProperty("cimCBS.servicereqversionrev"), env.getProperty("cimCBS.servicereqID"), new Date(),
-					sequence.generateSystemTraceAuditNumber(), env.getProperty("cimCBS.incCRChannel"), tm.getEnd_end_id(), "TRUE", "DR", "Y",
-					"", tm.getBob_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
-					tm.getSequence_unique_id(), settlReceivableAccount, tm.getBob_account_name(), "NRT", "", tm.getRmt_info(), "", "",
-					new Date(), "RECEIVABLE", tm.getRmt_info(), ipsxErrorCode, ipsxerrorDesc,
-					tm.getMaster_ref_id(),tm.getDbtr_agt(),tm.getCdtr_agt());
+//			String response = registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
+//					env.getProperty("cimCBS.servicereqversionrev"), env.getProperty("cimCBS.servicereqID"), new Date(),
+//					sequence.generateSystemTraceAuditNumber(), env.getProperty("cimCBS.incCRChannel"), tm.getEnd_end_id(), "TRUE", "DR", "Y",
+//					"", tm.getBob_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
+//					tm.getSequence_unique_id(), settlReceivableAccount, tm.getBob_account_name(), "NRT", "", tm.getRmt_info(), "", "",
+//					new Date(), "RECEIVABLE", tm.getRmt_info(), ipsxErrorCode, ipsxerrorDesc,
+//					tm.getMaster_ref_id(),tm.getDbtr_agt(),tm.getCdtr_agt());
 
 			logger.info("Pain Output Return Msg to ThirdParty Application");
 
 			logger.info(tm.getSequence_unique_id() + " :CIM Register Reverse Data Output:" + response);
 
 			if (response.equals("1")) {
-				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cbsResponseFailure(requestUUID);
+				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cbsResponseFailure(tr.get().getRequest_uuid());
 
 				logger.debug(listener.generateJsonFormat(connect24Response.toString()));
 				logger.info(tm.getSequence_unique_id() + "CIM : 0");
 
 				if (connect24Response.getStatusCode() == HttpStatus.OK) {
+					CimCBSresponse data=connect24Response.getBody();
 
-					/*
-					 * CimCBSresponse data=connect24Response.getBody();
-					 * logger.info(tm.getSequence_unique_id() + " CIM: 1");
-					 * 
-					 * if(connect24Response.getBody().getData()!=null) {
-					 * if(connect24Response.getBody().getStatus().getIsSuccess()) {
-					 * updateCIMcbsData(requestUUID,"SUCCESS",connect24Response.getBody().getStatus(
-					 * ).getStatusCode(),connect24Response.getBody().getStatus().getMessage(),
-					 * connect24Response.getBody().getData().getTransactionNoFromCBS());
-					 * 
-					 * logger.info(tm.getSequence_unique_id() + " CIM: 2");
-					 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"SUCCESS","");
-					 * 
-					 * }else {
-					 * updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus(
-					 * ).getStatusCode(),connect24Response.getBody().getStatus().getMessage(),
-					 * connect24Response.getBody().getData().getTransactionNoFromCBS());
-					 * logger.info(tm.getSequence_unique_id() + " CIM: 3");
-					 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"FAILURE",
-					 * connect24Response.getBody().getStatus().getMessage()); } }else {
-					 * updateCIMcbsData(requestUUID,"FAILURE",connect24Response.getBody().getStatus(
-					 * ).getStatusCode(),connect24Response.getBody().getStatus().getMessage(),
-					 * connect24Response.getBody().getData().getTransactionNoFromCBS());
-					 * logger.info(tm.getSequence_unique_id() + " CIM: 3");
-					 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,
-					 * "FAILURE","No Response return from CBS"); }
-					 */
-				} /*
+					 logger.info(tm.getSequence_unique_id() + " CIM: 1");
+					 
+				if (connect24Response.getBody().getData() != null) {
+					if (connect24Response.getBody().getStatus().getIsSuccess()) {
+						updateCIMcbsData(requestUUID, "REV_SUCCESS",
+								connect24Response.getBody().getStatus().getStatusCode(),
+								connect24Response.getBody().getStatus().getMessage(),
+								connect24Response.getBody().getData().getTransactionNoFromCBS());
+
+						/*
+						 * logger.info(tm.getSequence_unique_id() + " CIM: 2");
+						 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,"SUCCESS","");
+						 */
+					} else {
+						updateCIMcbsData(requestUUID, "REV_FAILURE",
+								connect24Response.getBody().getStatus().getStatusCode(),
+								connect24Response.getBody().getStatus().getMessage(),
+								connect24Response.getBody().getData().getTransactionNoFromCBS());
+						logger.info(tm.getSequence_unique_id() + " CIM: 3");
+						/*updateCBSStatus(tm.getSequence_unique_id(), requestUUID, "FAILURE",
+								connect24Response.getBody().getStatus().getMessage());*/
+					}
+				} else {
+					updateCIMcbsData(requestUUID, "FAILURE", connect24Response.getBody().getStatus().getStatusCode(),
+							connect24Response.getBody().getStatus().getMessage(),
+							connect24Response.getBody().getData().getTransactionNoFromCBS());
+					logger.info(tm.getSequence_unique_id() + " CIM: 3");
+/*					updateCIMCNFData(tm.getSequence_unique_id(), requestUUID, "FAILURE", "No Response return from CBS");
+*/				}
+
+			} /*
 					 * else { logger.info(tm.getSequence_unique_id() + " : CIM 4:Failure");
 					 * updateCIMcbsData(requestUUID,"FAILURE","500","Internal Server Error","");
 					 * updateCIMCNFData(tm.getSequence_unique_id(),requestUUID,
@@ -489,4 +510,39 @@ public BankAgentTable findByBank(String bankAgent) {
 		}
 		return tm;
 	}
+
+public void updateCIMcbsData(String requestUUID, String status, String statusCode, String message,String tranNoFromCBS) {
+	
+	tranCimCBSTableRep.updateCIMcbsData(requestUUID,status,statusCode,message,tranNoFromCBS,
+			new SimpleDateFormat("dd-MMM-yyyy").format(new Date()));
+	/*Optional<TranCimCBSTable> data=tranCimCBSTableRep.findByIdCustomReUUID(requestUUID);
+	if(data.isPresent()) {
+		TranCimCBSTable tranCimCBSTable=data.get();
+		tranCimCBSTable.setStatus(status);
+		tranCimCBSTable.setStatus_code(statusCode);
+		tranCimCBSTable.setMessage(message);
+		tranCimCBSTable.setTran_no_from_cbs(tranNoFromCBS);
+		tranCimCBSTable.setMessage_res_time(new Date());
+		tranCimCBSTableRep.save(tranCimCBSTable);
+	}*/
+}
+
+public void updateCIMCNFData(String seqUniqueID,String requestUUID,String status,String statusError) {
+	
+	outwardTranRep.updateCIMCNFData(seqUniqueID,requestUUID,status,statusError);
+	/*Optional<OutwardTransactionMonitoringTable> data=outwardTranRep.findById(seqUniqueID);
+	if(data.isPresent()) {
+		OutwardTransactionMonitoringTable outTable=data.get();
+		outTable.setCim_cnf_request_uid(requestUUID);
+		outTable.setCim_cnf_status(status);
+		outTable.setCim_cnf_status_error(statusError);
+		outwardTranRep.save(outTable);
+	}*/
+}
+
+public void updateCBSStatus(String seqUniqueID, String cbsStatus, String tranStatus) {
+	
+	tranRep.updateCBSStatus(seqUniqueID,cbsStatus,tranStatus);
+
+}
 }

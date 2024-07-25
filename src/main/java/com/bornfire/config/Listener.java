@@ -23,6 +23,8 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Enumeration;
@@ -296,9 +298,29 @@ public class Listener {
 
 	}
 		
-
+	public String generatejuliandate(String type,Date date) {
+		// Create a LocalDate for the date you want to convert
+         LocalDate newDate = LocalDate.now();
+         // Get the year and day of the year
+         int year = newDate.getYear();
+         int dayOfYear = newDate.getDayOfYear();
+         // Format the Julian date with the desired format
+         String julianDate = String.format("%d%03d", year, dayOfYear);
+			return julianDate;
+	}
 	
-	
+	public String generatejuliandateSettlement(String type,Date date) {
+		// Create a LocalDate for the date you want to convert
+         LocalDate newDate = date.toInstant()
+        	      .atZone(ZoneId.systemDefault())
+        	      .toLocalDate();;
+         // Get the year and day of the year
+         int year = newDate.getYear();
+         int dayOfYear = newDate.getDayOfYear();
+         // Format the Julian date with the desired format
+         String julianDate = String.format("%d%03d", year, dayOfYear);
+			return julianDate;
+	}
 	
 
 }

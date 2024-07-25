@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class QrPaymentStatus {
 
-	@JsonProperty("isSuccess")
-	private Boolean IsSuccess;
+	@JsonProperty("issuccess")
+	private Boolean isSuccess;
 	
 	@JsonProperty("message")
 	private String Message;
@@ -13,12 +13,12 @@ public class QrPaymentStatus {
 	@JsonProperty("statusCode")
 	private String StatusCode;
 
-	public Boolean getIssuccess() {
-		return IsSuccess;
+	public Boolean getIsSuccess() {
+		return isSuccess;
 	}
 
-	public void setIssuccess(Boolean issuccess) {
-		IsSuccess = issuccess;
+	public void setIsSuccess(Boolean isSuccess) {
+		this.isSuccess = isSuccess;
 	}
 
 	public String getMessage() {
@@ -37,22 +37,12 @@ public class QrPaymentStatus {
 		StatusCode = statusCode;
 	}
 
-	public QrPaymentStatus(Boolean issuccess, String message, String statusCode) {
-		super();
-		IsSuccess = issuccess;
-		Message = message;
-		StatusCode = statusCode;
-	}
-
 	@Override
 	public String toString() {
-		return "QrPaymentStatus [Issuccess=" + IsSuccess + ", Message=" + Message + ", StatusCode=" + StatusCode + "]";
+		return "QrPaymentStatus [isSuccess=" + isSuccess + ", Message=" + Message + ", StatusCode=" + StatusCode + "]";
 	}
 
-	public QrPaymentStatus() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
+
 
 	
 }

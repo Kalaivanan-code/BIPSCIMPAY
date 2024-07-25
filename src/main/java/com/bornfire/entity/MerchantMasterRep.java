@@ -29,4 +29,8 @@ Optional<MerchantMaster> findById(String directorId);
 	@Query(value = "select fees from BIPS_MERCHANT_CHARGES_AND_FEES_TABLE where DESCRIPTION in (select MERCHANT_FEES from MERCHANT_MASTER_TABLE where MERCHANT_ID=?1)", nativeQuery = true)
 	String getMerchantfees(String Id);
 
+	@Query(value = "select * from MERCHANT_MASTER_TABLE where merchant_id= ?1 and del_flg ='N' and type_upi='Upi' and status_enable='Enable'", nativeQuery = true)
+	MerchantMaster findByIdCustomVal(String Id);
+	
+	
 }

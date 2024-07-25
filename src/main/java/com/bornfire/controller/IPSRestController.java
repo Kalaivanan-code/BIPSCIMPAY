@@ -1,12 +1,17 @@
 package com.bornfire.controller;
 
+import java.io.BufferedWriter;
+import java.io.File;
+
 /*CREATED BY	: KALAIVANAN RAJENDRAN.R
 CREATED ON	: 30-DEC-2019
 PURPOSE		: IPS Rest Controller
 */
 
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -77,6 +82,8 @@ import com.bornfire.entity.MCCreditTransferResponse;
 import com.bornfire.entity.ManualFndTransferRequest;
 import com.bornfire.entity.McConsentOutwardAccessResponse;
 import com.bornfire.entity.OtherBankDetResponse;
+import com.bornfire.entity.QrNotificationRequestData;
+import com.bornfire.entity.QrNotificationResponse;
 import com.bornfire.entity.RTPTransferRequestStatus;
 import com.bornfire.entity.RTPTransferStatusResponse;
 import com.bornfire.entity.RTPbulkTransferRequest;
@@ -86,10 +93,10 @@ import com.bornfire.entity.SCAAthenticationResponse;
 import com.bornfire.entity.SCAAuthenticatedData;
 import com.bornfire.entity.SettlementAccountRep;
 import com.bornfire.entity.SettlementLimitResponse;
+import com.bornfire.entity.StudentResponse;
 import com.bornfire.entity.TranCimCBSTable;
 import com.bornfire.entity.TranIPSTableRep;
 import com.bornfire.entity.TransactionListResponse;
-import com.bornfire.entity.UPIQREntityRep;
 import com.bornfire.entity.UserRegistrationRequest;
 import com.bornfire.entity.UserRegistrationResponse;
 import com.bornfire.entity.WalletAccessRequest;
@@ -108,7 +115,6 @@ import com.bornfire.qrcode.core.isos.Country;
 import com.bornfire.qrcode.core.isos.Currency;
 import com.bornfire.upiqrcodeentity.ErrorResponseforUPI;
 import com.bornfire.upiqrcodeentity.NpciupiReqcls;
-import com.bornfire.upiqrcodeentity.UPIRespEntity;
 
 @RestController
 @Validated
@@ -175,6 +181,11 @@ public class IPSRestController {
 	NPCIQrcodeValidation npciqrcode;
 	
 	
+	@Autowired
+	CimCBSservice cimcbsser;
+	
+	@Autowired
+	Documentsettelment  docset;
 
 	/* Credit Fund Transfer Initiated from MConnect Application */
 	/* MConnect Initiate the request */
@@ -379,6 +390,21 @@ public class IPSRestController {
 		List<OtherBankDetResponse> response = ipsDao.getPartcipantBankDet();
 
 		return new ResponseEntity<List<OtherBankDetResponse>>(response, HttpStatus.OK);
+	}
+	
+	
+	////QRPayment Notification
+	////Create api to call cimCBSService
+	@PostMapping(path = "api/ws/QrNotification", produces="application/json",consumes = "application/json")
+	public ResponseEntity<QrNotificationResponse> createQrNotification(@RequestHeader(value = "INSTR_ID", required = true) String instr_Id){
+			return cimcbsser.triggerQrNotification(instr_Id) ;
+	}
+
+	@GetMapping(path = "api/ws/QrNotification/test")
+	public QrNotificationRequestData testAPI(@RequestParam(value = "INSTR_ID") String instr_Id){
+		System.out.println(instr_Id);
+		
+		return cimcbsser.getNotificationRequestData(instr_Id) ;
 	}
 
 	//// MYT Registration
@@ -1458,6 +1484,7 @@ public class IPSRestController {
 		//UPIRespEntity response = new UPIRespEntity();
 		ErrorResponseforUPI resp=null;
 		String response = npciqrcode.ValidateQrcode(npcireq,p_id);
+		//	String response = npciqrcode.ValidateQrcodeNew(npcireq,p_id);
 		ErrorResponseforUPI errRes = new ErrorResponseforUPI();
 /*if(response.equals("SUCCESS")) {
 			
@@ -1488,6 +1515,80 @@ public class IPSRestController {
 
 	
 	
+	@PostMapping(path = "/api/ws/generateMerchantQRcodeStr", produces = "application/json", consumes = "application/json")
+	public ResponseEntity<CimMerchantResponse> generateMerchantQRcodeStr(
+			@RequestHeader(value = "P-ID", required = true) @NotEmpty(message = "Required") String p_id,
+			@RequestHeader(value = "PSU-Device-ID", required = true) @NotEmpty(message = "Required") String psuDeviceID,
+			@RequestHeader(value = "PSU-IP-Address", required = true) String psuIpAddress,
+			@RequestHeader(value = "PSU-ID", required = false) String psuID,
+			@RequestHeader(value = "PSU-Channel", required = true) String channelID,
+			@RequestHeader(value = "PSU-Resv-Field1", required = false) String resvfield1,
+			@RequestHeader(value = "PSU-Resv-Field2", required = false) String resvfield2,
+			@Valid @RequestBody CIMMerchantQRcodeRequest mcCreditTransferRequest)
+			throws DatatypeConfigurationException, JAXBException, KeyManagementException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+
+		logger.info("Service Starts generate QR Code");
+		
+		System.out.println(mcCreditTransferRequest.toString());
+
+		CimMerchantResponse response = null;
+
+		if (ipsDao.checkConvenienceFeeValidationQR(mcCreditTransferRequest)) {
+			if (!ipsDao.invaliQRdBankCode(
+					mcCreditTransferRequest.getMerchantAcctInformation().getPayeeParticipantCode())) {
+				if (Currency.exists(mcCreditTransferRequest.getCurrency())) {
+					if (Country.exists(mcCreditTransferRequest.getCountryCode())) {
+						response = ipsConnection.createMerchantQRConnectionStr(psuDeviceID, psuIpAddress, psuID,
+								mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
+					} else {
+						String responseStatus = errorCode.validationError("BIPS20");
+						throw new IPSXException(responseStatus);
+					}
+
+				} else {
+					String responseStatus = errorCode.validationError("BIPS19");
+					throw new IPSXException(responseStatus);
+				}
+
+			} else {
+				String responseStatus = errorCode.validationError("BIPS10");
+				throw new IPSXException(responseStatus);
+			}
+
+		}
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 	
+	
+	
+	@GetMapping("getMerSettlementReport")
+	public ResponseEntity<StudentResponse> getid1(@RequestHeader(value="id",required=true)String id){
+		
+		ResponseEntity<StudentResponse> response = null;
+		
+		//response = connser.getidvalue(id);
+		logger.info("id"+id);
+	String values =	docset.createsettlementfile(id);
+	
+	File input = new File("D:\\Gateway\\input\\" + id + ".txt");
+	FileOutputStream Request = null;
+
+	try {
+		
+		BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(input), "UTF-8"));
+		wr.write(values);
+		wr.close();
+
+	} catch (Exception e) {
+		
+		e.printStackTrace();
+	}
+		
+		
+		return response;
+		
+	}
 	
 }

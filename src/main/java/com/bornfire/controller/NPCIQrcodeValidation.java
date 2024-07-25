@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.bornfire.entity.MerchantMaster;
+import com.bornfire.entity.MerchantMasterRep;
 import com.bornfire.entity.QRUrlGlobalEntity;
 import com.bornfire.entity.UPIQREntityRep;
 import com.bornfire.entity.UPI_REQ_QRCODE;
@@ -51,7 +53,9 @@ public class NPCIQrcodeValidation {
 
 	@Autowired
 	Environment env;
-
+	
+	@Autowired
+	MerchantMasterRep merchantmastrep;
 	public UPIRespEntity getreqdet(NpciupiReqcls npcireq, String pid) throws ParseException {
 
 		UPIRespEntity response = new UPIRespEntity();
@@ -265,6 +269,84 @@ public class NPCIQrcodeValidation {
 		return response;
 	}
 
+	
+	public String ValidateQrcodeNew(NpciupiReqcls npcireq, String pid) throws ParseException {
+
+		ObjectMapper mapper = new ObjectMapper();
+		// Converting the Object to JSONString
+		String jsonString = "";
+		try {
+			jsonString = mapper.writeValueAsString(npcireq.toString());
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		logger.info("reqvalqr Request->" + jsonString);
+		String qrcode = npcireq.getQrPayLoad().substring(16);
+		QRUrlGlobalEntity qrdet = getQrentityValue(qrcode);
+
+		String crccheck = env.getProperty("ipsx.upiQRcheck");
+		String valQr = null;
+		if (crccheck.equals("true")) {
+			valQr = validateQr(qrcode);
+		} else {
+			valQr = "Success";
+		}
+
+		String response = "";
+		//Optional<QRUrlGlobalEntity> qr = upiqrRep.findById(qrdet.getMid());
+		Optional<MerchantMaster> qr = merchantmastrep.findById(qrdet.getMid());
+
+		if (qr.isPresent()) {
+
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+04:00");
+			Date dat;
+
+			dat = dateFormat.parse(qrdet.getQrexpire());
+
+			if (dat.compareTo(new Date()) > 0) {
+				if (qrdet.getMtid().equals(qr.get().getMtid()) && !qr.get().getDel_flg().equals('Y') && qr.get().getType_upi().equals("Upi")
+						&& valQr.equals("Success")) {
+					response = "SUCCESS";
+					npciIPSXservice.respvalQr(npcireq, pid);
+				} else if (qr.get().getDel_flg().equals('Y')) {
+					response = "CUSTOMER_NOT_ACTIVE";
+					npciIPSXservice.respvalQr(npcireq, pid);
+				} else if  (qr.get().getStatus_enable().equals("Disable")) {
+					response = "CUSTOMER_NOT_ACTIVE";
+					npciIPSXservice.respvalQr(npcireq, pid);
+				}else if (valQr.equals("Failure")) {
+					response = "INVALID_QRCODE";
+					npciIPSXservice.respvalQr(npcireq, pid);
+				} else {
+					response = "TERMINAL_MISSMATCH";
+					npciIPSXservice.respvalQr(npcireq, pid);
+				}
+
+			} else {
+				response = "EXPIRED";
+				npciIPSXservice.respvalQr(npcireq, pid);
+			}
+		} else {
+			response = "FAILURE";
+			npciIPSXservice.respvalQr(npcireq, pid);
+		}
+
+		UPI_REQ_QRCODE qrreq = new UPI_REQ_QRCODE();
+
+		qrreq.setCustRef(npcireq.getTxn().getCustRef());
+		qrreq.setIds(npcireq.getTxn().getID());
+		qrreq.setNote(npcireq.getTxn().getNote());
+		qrreq.setQrPayLoad(npcireq.getQrPayLoad());
+		qrreq.setRefId(npcireq.getTxn().getRefId());
+		qrreq.setRefUrl(npcireq.getTxn().getRefUrl());
+		qrreq.setReq_id(pid);
+		qrreq.setTs(new Date());
+		qrreq.setResponse(response);
+		uPI_REQ_REP.save(qrreq);
+
+		return response;
+	}
+	
 	public String validateQr(String qrcode) {
 
 		String resp = "";

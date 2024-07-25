@@ -121,7 +121,7 @@ public class IPSQRCODEController {
 		merchantQRgenerator.setPayee_participant_code(paycode);
 		merchantQRgenerator.setGlobal_unique_id(globalUnique);
 		merchantQRgenerator.setPayload_format_indicator(payload);
-		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_acc_no());
+		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_id());
 		merchantQRgenerator.setMerchant_id(ms.getMerchant_id());
 		merchantQRgenerator.setMerchant_name(ms.getMerchant_name());
 		merchantQRgenerator.setMerchant_category_code(ms.getMerchant_cat_code());
@@ -281,7 +281,7 @@ public class IPSQRCODEController {
 		merchantQRgenerator.setPayee_participant_code(paycode);
 		merchantQRgenerator.setGlobal_unique_id(globalUnique);
 		merchantQRgenerator.setPayload_format_indicator(payload);
-		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_acc_no());
+		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_id());
 		merchantQRgenerator.setMerchant_id(ms.getMerchant_id());
 		merchantQRgenerator.setMerchant_name(ms.getMerchant_name());
 		merchantQRgenerator.setMerchant_category_code(ms.getMerchant_cat_code());
@@ -986,6 +986,7 @@ public class IPSQRCODEController {
 		MerchantMaster ms = merchantmasterRep.findByIdCustom(cimmaudynamic.getMerchant_ID());
 		if (ipsDao.invalidPIDQR(p_id)) {
 			if (ms != null) {
+				if(ms.getStatic_field()!=null && ms.getStatic_field().equals("Dynamic")) {
 				if (!ms.getFreeze_flg().equals("Y")) {
 					CIMMerchantQRcodeRequest cimMerchantQRcodeRequest = GetDynamicdata(ms, cimmaudynamic);
 
@@ -998,7 +999,12 @@ public class IPSQRCODEController {
 					String responseStatus = errorCode.validationError("BIPSQ33");
 					throw new IPSXException(responseStatus);
 				}
-			} else {
+				} else {
+					String responseStatus = errorCode.validationError("BIPSQR3");
+					throw new IPSXException(responseStatus);
+				}
+			} 
+				else {
 				String responseStatus = errorCode.validationError("BIPSQ32");
 				throw new IPSXException(responseStatus);
 			}
@@ -1050,7 +1056,7 @@ public class IPSQRCODEController {
 		merchantQRgenerator.setPayee_participant_code(paycode);
 		merchantQRgenerator.setGlobal_unique_id(globalUnique);
 		merchantQRgenerator.setPayload_format_indicator(payload);
-		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_acc_no());
+		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_id());
 		merchantQRgenerator.setMerchant_id(ms.getMerchant_id());
 		merchantQRgenerator.setMerchant_name(ms.getMerchant_name());
 		merchantQRgenerator.setMerchant_category_code(ms.getMerchant_cat_code());
@@ -1064,55 +1070,56 @@ public class IPSQRCODEController {
 		merchantQRgenerator.setTransaction_amt(cimmaudynamic.getTran_amt());
 		merchantQRgenerator.setZip_code(ms.getPincode());
 
-		if(cimmaudynamic.getBill_num().equals("null") && cimmaudynamic.getBill_num().equals("") ) {
+		if(!cimmaudynamic.getBill_num().equals("null") && !cimmaudynamic.getBill_num().equals("") ) {
+			
+			merchantQRgenerator.setBill_number(cimmaudynamic.getBill_num());
+		}else {
 			merchantQRgenerator.setBill_number(ms.getBill_number());
-		}else {
-		merchantQRgenerator.setBill_number(cimmaudynamic.getBill_num());
 		}
-		if(cimmaudynamic.getLoy_num().equals("null") && cimmaudynamic.getLoy_num().equals("")) {
-			merchantQRgenerator.setLoyalty_number(ms.getLoyalty_number());
+		if(!cimmaudynamic.getLoy_num().equals("null") && !cimmaudynamic.getLoy_num().equals("")) {
+			merchantQRgenerator.setLoyalty_number(cimmaudynamic.getLoy_num());
 		}else {
-		merchantQRgenerator.setLoyalty_number(cimmaudynamic.getLoy_num());
+		merchantQRgenerator.setLoyalty_number(ms.getLoyalty_number());
 		}
-		if(cimmaudynamic.getMob_num().equals("null") && cimmaudynamic.getMob_num().equals("")) {
-			merchantQRgenerator.setMobile(ms.getMerchant_cont_details());
+		if(!cimmaudynamic.getMob_num().equals("null") && !cimmaudynamic.getMob_num().equals("")) {
+			merchantQRgenerator.setMobile(cimmaudynamic.getMob_num());
 		}else {
-		merchantQRgenerator.setMobile(cimmaudynamic.getMob_num());
+		merchantQRgenerator.setMobile(ms.getMerchant_cont_details());
 		}
-		if(cimmaudynamic.getCust_label().equals("null") && cimmaudynamic.getCust_label().equals("")) {
-			merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
+		if(!cimmaudynamic.getCust_label().equals("null") && !cimmaudynamic.getCust_label().equals("")) {
+			merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
 		}else {
-		merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
+		merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
 		}
-		if(cimmaudynamic.getSto_label().equals("null") && cimmaudynamic.getSto_label().equals("")) {
-			merchantQRgenerator.setStore_label(ms.getStore_label());
+		if(!cimmaudynamic.getSto_label().equals("null") && !cimmaudynamic.getSto_label().equals("")) {
+			merchantQRgenerator.setStore_label(cimmaudynamic.getSto_label());
 		}else {
-		merchantQRgenerator.setStore_label(cimmaudynamic.getSto_label());
+		merchantQRgenerator.setStore_label(ms.getStore_label());
 		}
-		if(cimmaudynamic.getTer_label().equals("null") && cimmaudynamic.getTer_label().equals("")) {
-			merchantQRgenerator.setTerminal_label(ms.getTerminal_label());
+		if(!cimmaudynamic.getTer_label().equals("null") && !cimmaudynamic.getTer_label().equals("")) {
+			merchantQRgenerator.setTerminal_label(cimmaudynamic.getTer_label());
 		}else {
-		merchantQRgenerator.setTerminal_label(cimmaudynamic.getTer_label());
+		merchantQRgenerator.setTerminal_label(ms.getTerminal_label());
 		}
-		if(cimmaudynamic.getRef_label().equals("null") && cimmaudynamic.getRef_label().equals("")) {
-			merchantQRgenerator.setReference_label(ms.getReference_label());
+		if(!cimmaudynamic.getRef_label().equals("null") && !cimmaudynamic.getRef_label().equals("")) {
+			merchantQRgenerator.setReference_label(cimmaudynamic.getRef_label());
 		}else {
-		merchantQRgenerator.setReference_label(cimmaudynamic.getRef_label());
+		merchantQRgenerator.setReference_label(ms.getReference_label());
 		}
-		if(cimmaudynamic.getPur_tran().equals("null") && cimmaudynamic.getPur_tran().equals("")) {
-			merchantQRgenerator.setPurpose_of_tran(ms.getPurpose_of_tran());
+		if(!cimmaudynamic.getPur_tran().equals("null") && !cimmaudynamic.getPur_tran().equals("")) {
+			merchantQRgenerator.setPurpose_of_tran(cimmaudynamic.getPur_tran());
 		}else {
-		merchantQRgenerator.setPurpose_of_tran(cimmaudynamic.getPur_tran());
+		merchantQRgenerator.setPurpose_of_tran(ms.getPurpose_of_tran());
 		}
-		if(cimmaudynamic.getAdd_det().equals("null") && cimmaudynamic.getAdd_det().equals("")) {
-			merchantQRgenerator.setAdditional_details(ms.getAdd_details_req());
+		if(!cimmaudynamic.getAdd_det().equals("null") && !cimmaudynamic.getAdd_det().equals("")) {
+			merchantQRgenerator.setAdditional_details(cimmaudynamic.getAdd_det());
 		}else {
-		merchantQRgenerator.setAdditional_details(cimmaudynamic.getAdd_det());
+		merchantQRgenerator.setAdditional_details(ms.getAdd_details_req());
 		}
-		if(cimmaudynamic.getCust_label().equals("null") && cimmaudynamic.getCust_label().equals("") ) {
-			merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
+		if(!cimmaudynamic.getCust_label().equals("null") && !cimmaudynamic.getCust_label().equals("") ) {
+			merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
 		}else {
-		merchantQRgenerator.setCustomer_label(cimmaudynamic.getCust_label());
+		merchantQRgenerator.setCustomer_label(ms.getCustomer_label());
 		}
 		
 		
@@ -1207,7 +1214,7 @@ public class IPSQRCODEController {
 		merchantQRgenerator.setPayee_participant_code(paycode);
 		merchantQRgenerator.setGlobal_unique_id(globalUnique);
 		merchantQRgenerator.setPayload_format_indicator(payload);
-		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_acc_no());
+		merchantQRgenerator.setMerchant_acct_no(ms.getMerchant_id());
 		merchantQRgenerator.setMerchant_id(ms.getMerchant_id());
 		merchantQRgenerator.setMerchant_name(ms.getMerchant_name());
 		merchantQRgenerator.setMerchant_category_code(ms.getMerchant_cat_code());

@@ -218,7 +218,9 @@ public class IPSQRCODEControllerPOS {
 		CimMerchantResponse response = null;
 		MerchantMaster ms = merchantmasterRep.findByIdCustom(cimmaudynamic.getMerchant_ID());
 		if (ipsDao.invalidPIDQR(p_id)) {
+			
 			if (ms != null) {
+				if(ms.getStatic_field()!=null && ms.getStatic_field().equals("Dynamic")) {
 				if (!ms.getFreeze_flg().equals("Y")) {
 					CIMMerchantQRcodeRequest cimMerchantQRcodeRequest = GetDynamicdata(ms, cimmaudynamic);
 
@@ -242,6 +244,10 @@ public class IPSQRCODEControllerPOS {
 					response.setBase64QR(imageAsBase64);
 				} else {
 					String responseStatus = errorCode.validationError("BIPSQ33");
+					throw new IPSXException(responseStatus);
+				}
+				} else {
+					String responseStatus = errorCode.validationError("BIPSQR3");
 					throw new IPSXException(responseStatus);
 				}
 			} else {
@@ -888,9 +894,11 @@ public class IPSQRCODEControllerPOS {
 						qrdata.setSeqUniqueId(a[0].toString());
 						qrdata.setTransactionNo(a[1].toString());
 						if ((a[7].toString()).equals("IPSX_RESPONSE_ACSP")) {
-							qrstatus.setIssuccess(Boolean.TRUE);
+							qrstatus.setIsSuccess(Boolean.TRUE);
+							qrstatus.setMessage("Success");
+							qrstatus.setStatusCode("200");
 						} else {
-							qrstatus.setIssuccess(Boolean.FALSE);
+							qrstatus.setIsSuccess(Boolean.FALSE);
 							qrstatus.setMessage(a[8].toString());
 							qrstatus.setStatusCode(a[6].toString());
 						}
@@ -926,9 +934,11 @@ public class IPSQRCODEControllerPOS {
 						qrdata.setSeqUniqueId(a[0].toString());
 						qrdata.setTransactionNo(a[1].toString());
 						if ((a[7].toString()).equals("IPSX_RESPONSE_ACSP")) {
-							qrstatus.setIssuccess(Boolean.TRUE);
+							qrstatus.setIsSuccess(Boolean.TRUE);
+							qrstatus.setMessage("Success");
+							qrstatus.setStatusCode("200");
 						} else {
-							qrstatus.setIssuccess(Boolean.FALSE);
+							qrstatus.setIsSuccess(Boolean.FALSE);
 							qrstatus.setMessage(a[8].toString());
 							qrstatus.setStatusCode(a[6].toString());
 						}
@@ -958,9 +968,11 @@ public class IPSQRCODEControllerPOS {
 						qrdata.setSeqUniqueId(a[0].toString());
 						qrdata.setTransactionNo(a[1].toString());
 						if ((a[7].toString()).equals("IPSX_RESPONSE_ACSP")) {
-							qrstatus.setIssuccess(Boolean.TRUE);
+							qrstatus.setIsSuccess(Boolean.TRUE);
+							qrstatus.setMessage("Success");
+							qrstatus.setStatusCode("200");
 						} else {
-							qrstatus.setIssuccess(Boolean.FALSE);
+							qrstatus.setIsSuccess(Boolean.FALSE);
 							qrstatus.setMessage(a[8].toString());
 							qrstatus.setStatusCode(a[6].toString());
 						}
@@ -990,9 +1002,11 @@ public class IPSQRCODEControllerPOS {
 						qrdata.setSeqUniqueId(a[0].toString());
 						qrdata.setTransactionNo(a[1].toString());
 						if ((a[7].toString()).equals("IPSX_RESPONSE_ACSP")) {
-							qrstatus.setIssuccess(Boolean.TRUE);
+							qrstatus.setIsSuccess(Boolean.TRUE);
+							qrstatus.setMessage("Success");
+							qrstatus.setStatusCode("200");
 						} else {
-							qrstatus.setIssuccess(Boolean.FALSE);
+							qrstatus.setIsSuccess(Boolean.FALSE);
 							qrstatus.setMessage(a[8].toString());
 							qrstatus.setStatusCode(a[6].toString());
 						}
