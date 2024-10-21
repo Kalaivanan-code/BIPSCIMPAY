@@ -32,7 +32,7 @@ public interface Feestranpartion extends JpaRepository<Feestranparition, String>
 	*/
 	
 	@Query(value="SELECT merchant_acct_no,Tran_amt_loc,Partition_detail,Tran_date,Ipsx_account_number,Part_tran_type,Tran_ref_cur,Value_date,Ipsx_acct_name\r\n" + 
-	",tran_id,part_tran_id,PARTICIPANT_BANK,srl_num,business_date,posting\r\n" + 
+	",tran_id,part_tran_id,PARTICIPANT_BANK,srl_num,nvl(business_date,sysdate+1),nvl(posting,sysdate+1)\r\n" + 
 	"FROM bips_tran_fees_parition_table where  trunc(TRAN_DATE) =?1 and TRAN_AMT_LOC <>0 \r\n" + 
 	"ORDER BY tran_id,part_tran_id,\r\n" + 
 	"merchant_acct_no,Tran_amt_loc,Partition_detail,Tran_date,Ipsx_account_number,Part_tran_type,Tran_ref_cur,Value_date,Ipsx_acct_name,PARTICIPANT_BANK\r\n" + 
