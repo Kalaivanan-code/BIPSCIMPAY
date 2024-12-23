@@ -35,4 +35,7 @@ public interface SettlementAccountRep extends JpaRepository<SettlementAccount, S
 	String findByAccountNuber(String acc);
 	
 	
+	@Query(value = "select  getBNPLamount(?1) from dual", nativeQuery = true)
+	String getBNPLValue(String acc);
+	
 }

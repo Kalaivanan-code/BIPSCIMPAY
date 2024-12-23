@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,11 +24,11 @@ public class Documentsettelment {
 	@Autowired
 	Feestranpartion Feestran;
 	
-	
+	private static final Logger logger = LoggerFactory.getLogger(Documentsettelment.class);
 	
 	public String createsettlementfile(String id) {
 		
-		
+		logger.trace("Inside Settlement");
 
 		 int totalNumbers = 1;
 		StringBuilder st = new StringBuilder();
@@ -59,10 +61,10 @@ public class Documentsettelment {
 				Feestranparition Feestranparition = new Feestranparition();
 				
 				Feestranparition.setMerchant_id((String) item[0]);
-				System.out.println((String) item[0]);
+				logger.info((String) item[0]);
 				Feestranparition.setTran_amt_loc((BigDecimal) item[1]);
 				Feestranparition.setPartition_detail((String) item[2]);
-				System.out.println((String) item[2]);
+				logger.info((String) item[2]);
 				Feestranparition.setTran_date((Date) item[3]);
 				Feestranparition.setIpsx_account_number((String) item[4]);
 				Feestranparition.setPart_tran_type((String) item[5]);
@@ -75,11 +77,11 @@ public class Documentsettelment {
 				Feestranparition.setBusiness_date((Date) item[13]);
 				Feestranparition.setPosting((Date) item[14]);
 				
-				System.out.println(item[10]);
+				
 				feestran.add(Feestranparition);
 			}
 			
-			System.out.println(feestran.size());
+			
 			 for (int i = 0; i < feestran.size(); i++) {
 					st.append("DT");///Record Type
 
@@ -102,7 +104,7 @@ public class Documentsettelment {
 		            st.append(Sequenceaccentry+spaces);/// Need to enter the values from table
 		            
 		            String Merchantid = feestran.get(i).getMerchant_id();
-		            System.out.println(Merchantid);
+		            logger.info(Merchantid);
 		            int Merchantlen = Merchantid.length();
 		            
 		            int spc = 512 - Merchantlen; 
@@ -123,7 +125,7 @@ public class Documentsettelment {
 		            }else {
 		            	Descrp = feestran.get(i).getPartition_detail();
 		            }
-		            System.out.println(Descrp+"val");
+		            logger.info(Descrp+"val");
 		            int desclen = Descrp.length();
 		            int deslen = 80 - desclen;
 		            String space3 = "";
@@ -134,18 +136,18 @@ public class Documentsettelment {
 		           
 		           ////Posting Date
 		            String julianDate = listener.generatejuliandateSettlement("3",feestran.get(i).getPosting());
-		            System.out.println(julianDate+"julianDate");
+		            logger.info(julianDate+"julianDate");
 		            st.append(julianDate);///Entry Label
 		            ///Entry Date
 					String julianDate1 = listener.generatejuliandateSettlement("3",feestran.get(i).getTran_date());
 					st.append(julianDate1);
-					System.out.println(julianDate1+"julianDate1");
+					logger.info(julianDate1+"julianDate1");
 		            
 		            ///Entry Account Number
 		            String Navisioncode = feestran.get(i).getIpsx_account_number() == null ? "" : feestran.get(i).getIpsx_account_number();
 		            int Navcodlen = Navisioncode.length();
 		            int Navcodlenval = 24 - Navcodlen;
-		           // System.out.println(Navcodlenval);
+		           // logger.info(Navcodlenval);
 		            String spaces4 ="";
 		            for(int c = 0; c< Navcodlenval; c++) { 
 		            	spaces4+=" ";
@@ -158,20 +160,23 @@ public class Documentsettelment {
 		            ///Amount of the accounting entry
 		            
 		            String Totdebamt = feestran.get(i).getTran_amt_loc().toString();
-		            System.out.println(Totdebamt+"org amt");
+		            logger.info(Totdebamt+"org amt");
 		            double data  = Double.parseDouble(Totdebamt);
-		            /*System.out.println(data);
+		           
+		            double dd = 100;
+		            System.out.println("Double Amount :"+data*dd);
+		            /*logger.info(data);
 		            int value = (int)data;
 		            
-		            System.out.println(value);*/
-		            Double amount;
+		            logger.info(value);*/
+		            long amount;
 					if(Totdebamt != null) {
-						amount = data*100;
+						amount = Math.round(data*100);
 		            }else {
-		            	amount= 0.00;
+		            	amount= (long) 0.00;
 		            }
-					int value =amount.intValue();
-					System.out.println(value + "changed amount");
+					int value =(int) amount;
+					logger.info(value + "changed amount"+amount);
 //		            Double amount = Integer.valueOf(feestran.get(i).getTran_amt_loc());
 		            String amountaccentry = String.format("%018d", value);
 		            st.append(amountaccentry);///Entry Key Account
@@ -184,13 +189,13 @@ public class Documentsettelment {
 		            if(Entrysign.equals("QR")) {
 		            	Entrysign = "C";
 		            }
-		            System.out.println(Entrysign);
+		            logger.info(Entrysign);
 		            st.append(Entrysign);
 		            
 		            ///ISO Currencycode
 		        //    String currcode = feestran.get(i).getTran_ref_cur() == "MUR" ? "480" : feestran.get(i).getTran_ref_cur();
 		            String currcode = "480";
-		            System.out.println(currcode);
+		            logger.info(currcode);
 		            st.append(currcode);
 		            
 		            ///Flag indicating if the accounting entry was posted or not:
@@ -312,10 +317,10 @@ public class Documentsettelment {
 			            String Totdebamt = Feestran.sumofdebit(id);
 			            
 			            double data  = Double.parseDouble(Totdebamt);
-			            System.out.println(data);
+
 			            /*int value = (int)data;*/
 			            
-			           /* System.out.println(value);*/
+			           /* logger.info(value);*/
 			            Double Totdebditamt;
 						if(Totdebamt != null) {
 							Totdebditamt = data*100;
@@ -342,7 +347,7 @@ public class Documentsettelment {
 			            String Totalcreditamount = String.format("%018d", value1);
 			            st.append(Totalcreditamount);
 			       
-				 System.out.println(st);
+				 //logger.info("String :"+st.toString());
 				return st.toString();
 			
 		

@@ -42,6 +42,7 @@ import com.bornfire.controller.Connect24Service;
 import com.bornfire.controller.IPSConnection;
 import com.bornfire.controller.IPSDao;
 import com.bornfire.controller.IPSNotification;
+import com.bornfire.controller.IPSOutgoingConnection;
 import com.bornfire.controller.IPSRevDao;
 import com.bornfire.entity.BankAgentTable;
 import com.bornfire.entity.BankAgentTableRep;
@@ -65,6 +66,7 @@ import com.bornfire.entity.TranMonitorStatus;
 import com.bornfire.entity.TransactionMonitor;
 import com.bornfire.entity.TransactionMonitorRep;
 import com.bornfire.entity.UpdateCBSIncProceRep;
+import com.bornfire.entity.Outgoing.CimGLOutgoingResponse;
 import com.bornfire.exception.CustomWebServiceIOException;
 import com.bornfire.exception.IPSXException;
 import com.bornfire.exception.ServerErrorException;
@@ -171,6 +173,9 @@ public class IPSXClient extends WebServiceGatewaySupport {
 	
 	@Autowired
 	IPSRevDao ipsRevDao;
+	
+	@Autowired
+	IPSOutgoingConnection ipsOutgoingConnection;
 	
 
 	@SuppressWarnings("unchecked")
@@ -857,9 +862,14 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					}
 					
 				}
-			
+				if (ipsOutgoingConnection.invalidOutgoingTran_ID(endToendID002)) {
+					ResponseEntity<CimGLOutgoingResponse> red= ipsOutgoingConnection.sendreversal(endToendID002, errorDesc002, msgID002,
+							TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
+							TranMonitorStatus.RJCT.toString(), errorCode002);
+					}
+				
 				//List<StatusReasonInformation121> listerrorDesc=doc.getFIToFIPmtStsRpt().getTxInfAndSts().get(0).getStsRsnInf();
-if(errorDesc002.equals("NRT - Rejected by timeout")) {
+				else if(errorDesc002.equals("NRT - Rejected by timeout")) {
 	ipsRevDao.updateIPSXStatusResponseRJCT(orglMsgID002, errorDesc002, msgID002,
 			TranMonitorStatus.FAILURE.toString(), TranMonitorStatus.IPSX_RESPONSE_RJCT.toString(),
 			TranMonitorStatus.RJCT.toString(), errorCode002,"pacs.002.001.10");

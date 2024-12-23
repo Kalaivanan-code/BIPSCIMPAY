@@ -424,12 +424,19 @@ public class CronJobScheduler {
 		}
 	}
 
-	@Scheduled(cron = "0 3/5 03 * * *")
+	//@Scheduled(cron = "0 3/5 03 * * *")
+	@Scheduled(cron = "0 * * * * *")
 	public void initIncGLPayment() {
-		
+		String getHour=new SimpleDateFormat("kk").format(new Date());
+
 		String getMinutes=new SimpleDateFormat("mm").format(new Date());
 		//logger.info("GL get : Start"+getMinutes);
-		if(Double.parseDouble(getMinutes)<20) {
+	//	if(Double.parseDouble(getMinutes)<20) {
+		String fixedminutes= env.getProperty("Settlementfile.runtimeMinutes");
+		String fixedhours= env.getProperty("Settlementfile.runtimehours");
+		String Settlementfile = env.getProperty("Settlementfile.file");
+		logger.info("GL get : Start"+getHour);
+		if((Double.parseDouble(getMinutes)==Double.parseDouble(fixedminutes)) && (Double.parseDouble(getHour)==Double.parseDouble(fixedhours))) {
 			logger.info("GL Payment : Start"+new Date());
 			ipsConnection.initGLPayment(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
 		}

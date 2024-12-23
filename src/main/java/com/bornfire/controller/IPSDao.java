@@ -40,6 +40,7 @@ import javax.validation.Valid;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6891,7 +6892,17 @@ public class IPSDao {
 			
 			///Get CashClrAccount
 			Optional<SettlementAccount> settlAcctCashClr=settlAccountRep.findById(env.getProperty("settl.cashClr"));
-
+			
+			///Get BOM MACSS Settlement Account	 BNPL
+			Optional<SettlementAccount> settlAcctBNPL=settlAccountRep.findById(env.getProperty("settl.macssSettlBNPL"));
+			
+			///Get CashClrAccount BNPL
+			Optional<SettlementAccount> settlAcctCashClrBNPL=settlAccountRep.findById(env.getProperty("settl.cashClrBNPL"));
+			
+			String result = settlAccountRep.getBNPLValue(glDate);
+			
+			logger.info("Inside checking valid transaction for sending notification"+result.toString());
+			
 
 				TranCimGLTable tranCimGlTable=new TranCimGLTable();
 				
@@ -6944,12 +6955,70 @@ public class IPSDao {
 				tranCimGlTable1.setPosting_date1(date);
 				tranCimGlTable1.setTran_code1(settlAcctCashClr.get().getTran_code());
 				tranCimGlTable1.setTran_desc1("CT  BIPS - "+new SimpleDateFormat("ddMMyy").format(new Date()));
-				tranCimGlTable1.setTran_remarks1("Cr Cash Clearing");
+				tranCimGlTable1.setTran_remarks1("Cr ELAN Cash Clearing");
 				tranCimGlTable1.setRate1("0");
 				tranCimGlTable1.setValue_date(new SimpleDateFormat("dd-MMM-yyyy").parse(glDate));
 				
 				tranCimGLRep.saveAndFlush(tranCimGlTable1);
 				
+	//Addition of records for BNPL Settlement			
+				
+TranCimGLTable tranCimGlTable2=new TranCimGLTable();
+				
+				tranCimGlTable2.setRequest_uuid(requestUUID);
+				tranCimGlTable2.setChannel_id(channelID);
+				tranCimGlTable2.setService_request_version(servicerequestVersion);
+				tranCimGlTable2.setService_request_id(serviceReqId);
+				tranCimGlTable2.setCountry_code(countryCode);
+				tranCimGlTable2.setMessage_date_time(date);
+				
+				tranCimGlTable2.setTran_no(tranNo);
+				tranCimGlTable2.setBatch_no(batchNo);
+				tranCimGlTable2.setModule(module);
+				
+				tranCimGlTable2.setSrl_no1("3");
+				tranCimGlTable2.setTran_type1(settlAcctBNPL.get().getTran_type());
+				tranCimGlTable2.setAcct_no1(settlAcctBNPL.get().getAccount_number());
+				tranCimGlTable2.setAcct_type1(settlAcctBNPL.get().getAcct_type());
+				tranCimGlTable2.setTran_amt1(new BigDecimal(result));
+				tranCimGlTable2.setCurrency_code1(settlAcctBNPL.get().getCrncy());
+				tranCimGlTable2.setPosting_date1(date);
+				tranCimGlTable2.setTran_code1(settlAcctBNPL.get().getTran_code());
+				tranCimGlTable2.setTran_desc1("CT  BIPS - "+new SimpleDateFormat("ddMMyy").format(new Date()));
+				tranCimGlTable2.setTran_remarks1("Dr BOM MACSS Settlement Account");
+				tranCimGlTable2.setRate1("0");
+				tranCimGlTable2.setValue_date(new SimpleDateFormat("dd-MMM-yyyy").parse(glDate));
+				
+				
+				tranCimGLRep.saveAndFlush(tranCimGlTable2);
+				
+				TranCimGLTable tranCimGlTable3=new TranCimGLTable();
+				
+				tranCimGlTable3.setRequest_uuid(requestUUID);
+				tranCimGlTable3.setChannel_id(channelID);
+				tranCimGlTable3.setService_request_version(servicerequestVersion);
+				tranCimGlTable3.setService_request_id(serviceReqId);
+				tranCimGlTable3.setCountry_code(countryCode);
+				tranCimGlTable3.setMessage_date_time(date);
+				
+				tranCimGlTable3.setTran_no(tranNo);
+				tranCimGlTable3.setBatch_no(batchNo);
+				tranCimGlTable3.setModule(module);
+				
+				tranCimGlTable3.setSrl_no1("4");
+				tranCimGlTable3.setTran_type1(settlAcctCashClrBNPL.get().getTran_type());
+				tranCimGlTable3.setAcct_no1(settlAcctCashClrBNPL.get().getAccount_number());
+				tranCimGlTable3.setAcct_type1(settlAcctCashClrBNPL.get().getAcct_type());
+				tranCimGlTable3.setTran_amt1(new BigDecimal(result).negate());
+				tranCimGlTable3.setCurrency_code1(settlAcctCashClrBNPL.get().getCrncy());
+				tranCimGlTable3.setPosting_date1(date);
+				tranCimGlTable3.setTran_code1(settlAcctCashClrBNPL.get().getTran_code());
+				tranCimGlTable3.setTran_desc1("CT  BIPS - "+new SimpleDateFormat("ddMMyy").format(new Date()));
+				tranCimGlTable3.setTran_remarks1("Cr BNPL Cash Clearing");
+				tranCimGlTable3.setRate1("0");
+				tranCimGlTable3.setValue_date(new SimpleDateFormat("dd-MMM-yyyy").parse(glDate));
+				
+				tranCimGLRep.saveAndFlush(tranCimGlTable3);
 				status="1";
 
 		}catch(Exception e) {

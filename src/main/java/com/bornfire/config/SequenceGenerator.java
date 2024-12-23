@@ -594,5 +594,17 @@ public class SequenceGenerator {
 		return randStr.toString();
 	}
 	
+	public String generateRequesttranUUId() {
+
+		StringBuffer randStr = new StringBuffer();
+		randStr.append(new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		randStr.append("_");
+		
+		Long request_UUID=tranCimCBSTableRep.getRequestUUID();
+		
+		randStr.append(String.format("%05d", request_UUID));
+		
+		return randStr.toString();
+	}
 
 }
