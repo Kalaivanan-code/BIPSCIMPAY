@@ -629,6 +629,49 @@ public boolean invalidTran_ID(String pid) {
 }
 
 
+public boolean valid_PACS002(String pid) {
+	boolean valid = false;
+	logger.info("Inside checking valid Pacs.002");
+	try {
+		Optional<OutwardTransactionMonitoringTable> otm = outwardTranRep.findById(pid);
+	
+		Optional<TransactionMonitor> otm1 = tranRep.findById(pid);
+		
+		if (otm.isPresent()) {
+			OutwardTransactionMonitoringTable tm = otm.get();
+			logger.info("Inside checking valid Pacs.002 inside OTM");
+			if(!String.valueOf(tm.getResponse_status()).equals("null")	&& !String.valueOf(tm.getResponse_status()).equals("")) {
+				valid=false;
+				return valid;
+			}else {
+				valid = true;
+				return valid;	
+			}
+			
+		}else if(otm1.isPresent()) {
+			TransactionMonitor tm1 = otm1.get();
+			logger.info("Inside checking valid Pacs.002 inside TM");
+			if(!String.valueOf(tm1.getResponse_status()).equals("null")	&& !String.valueOf(tm1.getResponse_status()).equals("")) {
+				valid=false;
+				return valid;
+			}else {
+				valid = true;
+				return valid;	
+			}
+		}
+		
+		
+		else {
+			valid = true;
+			return valid;
+		}
+	} catch (Exception e) {
+		System.err.println(e.getMessage());
+	}
+
+	return valid;
+}
+
 
 }
 

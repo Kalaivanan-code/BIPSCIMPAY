@@ -814,7 +814,8 @@ public class IPSXClient extends WebServiceGatewaySupport {
 					.map(indAliasList -> indAliasList.get(0)).orElse("");
 
 			logger.info(errorCode002 + "  " + errorDesc002);
-
+			if (ipsnotification.valid_PACS002(orglMsgID002)) {
+				logger.info(orglMsgID002 + " Pac.002 validation success ");
 			if (tranStatus002.equals(TranMonitorStatus.ACSP.toString())) {
 				logger.info(orglMsgID002 + " :Update IPSX response ACSP to Table");
 
@@ -896,7 +897,11 @@ logger.debug("errorDesc002"+errorDesc002);
 				ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "",tranStatus002, errorCode002, errorDesc002,
 						"I", msgSender, msgReceiver, msgNetMIR, userReference,endToendID002,docPacs.getPacs_002_001_10UnMarshalDocXML(request));
 			}
-
+}else {
+	logger.info(orglMsgID002 + " :Update IPSX other msg response in table");
+	ipsDao.insertTranIPS(orglMsgID002, msgID002, "pacs.002.001.10", "",tranStatus002, errorCode002, errorDesc002,
+			"I", msgSender, msgReceiver, msgNetMIR, userReference,endToendID002,docPacs.getPacs_002_001_10UnMarshalDocXML(request));
+}
 			if (ipsnotification.invalidTran_ID(orglMsgID002)) {
 				ipsnotification.sendNotification(orglMsgID002);
 				}
