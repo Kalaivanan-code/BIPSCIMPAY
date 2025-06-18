@@ -35,6 +35,11 @@ public class BenAccount {
 	@JsonProperty("trRmks")
 	private String TrRmks;
 	
+	@JsonProperty("source")
+	@NotBlank(message="Source Data Required")
+	private String Source;
+	
+	
 	@NotBlank(message="Beneficiary Bank Code Required")
 	private String BankCode;
 
@@ -94,12 +99,25 @@ public class BenAccount {
 		BankCode = bankCode;
 	}
 
+	
+	
+	public String getSource() {
+		return Source;
+	}
+
+	public void setSource(String source) {
+		Source = source;
+	}
+
 	@Override
 	public String toString() {
 		return "BenAccount [ReqUniqueId=" + ReqUniqueId + ", BenName=" + BenName + ", BenAcctNumber=" + BenAcctNumber
-				+ ", TrAmt=" + TrAmt + ", CurrencyCode=" + CurrencyCode + ", TrRmks=" + TrRmks + ", BankCode="
-				+ BankCode + "]";
+				+ ", TrAmt=" + TrAmt + ", CurrencyCode=" + CurrencyCode + ", TrRmks=" + TrRmks + ", Source=" + Source
+				+ ", BankCode=" + BankCode + "]";
 	}
+
+
+
 
 	
 	

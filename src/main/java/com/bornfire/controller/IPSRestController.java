@@ -1342,9 +1342,18 @@ public class IPSRestController {
 							List<ConsentOutwardAccessTable> regAccList = consentOutwardAccessTableRep
 									.getAccountNumber(mcCreditTransferRequest.getRemitterAccount().getAcctNumber());
 							if (regAccList.size() > 0) {
+								
+								if(mcCreditTransferRequest.getMerchantAccount().getPayeeParticipantCode().replace("XXXX", "").equals(env.getProperty("ipsx.bicfi")) && String.valueOf(mcCreditTransferRequest.getMerchantAccount().getPointOfInitiationFormat()).equals("12")) {
+									if(!ipsDao.findvalidQRcode(mcCreditTransferRequest)) {
+										response = ipsConnection.createMerchantRTPconnection(psuDeviceID, psuIpAddress, psuID,
+												mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
+									}else {
+									String responseStatus = errorCode.validationError("BIPSQR4");
+									throw new IPSXException(responseStatus);
+									}}else {
 								response = ipsConnection.createMerchantRTPconnection(psuDeviceID, psuIpAddress, psuID,
 										mcCreditTransferRequest, p_id, channelID, resvfield1, resvfield2);
-
+								}
 							} else {
 								String responseStatus = errorCode.validationError("BIPS31");
 								throw new IPSXException(responseStatus);

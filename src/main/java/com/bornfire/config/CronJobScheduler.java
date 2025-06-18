@@ -425,23 +425,25 @@ public class CronJobScheduler {
 	}
 
 	//@Scheduled(cron = "0 3/5 03 * * *")
-	@Scheduled(cron = "0 * * * * *")
+	@Scheduled(cron = "0 0/30 * * * * ")
 	public void initIncGLPayment() {
 		String getHour=new SimpleDateFormat("kk").format(new Date());
 
 		String getMinutes=new SimpleDateFormat("mm").format(new Date());
 		//logger.info("GL get : Start"+getMinutes);
 	//	if(Double.parseDouble(getMinutes)<20) {
-		String fixedminutes= env.getProperty("Settlementfile.runtimeMinutes");
-		String fixedhours= env.getProperty("Settlementfile.runtimehours");
+		String fixedminutes= env.getProperty("Settlementgl.runtimeMinutes");
+		String fixedhours= env.getProperty("Settlementgl.runtimehours");
 		String Settlementfile = env.getProperty("Settlementfile.file");
-		logger.info("GL get : Start"+getHour);
+		logger.info("in GL get : Start inside "+getHour);
 		if((Double.parseDouble(getMinutes)==Double.parseDouble(fixedminutes)) && (Double.parseDouble(getHour)==Double.parseDouble(fixedhours))) {
-			logger.info("GL Payment : Start"+new Date());
+			logger.info("inside GL Payment : Start"+new Date());
 			ipsConnection.initGLPayment(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
 		}
 		
 	}
+	
+
 	
 ///// Get Settlement Amount from Connect24
 	//@Scheduled(cron = "0 0/1 * 1/1 * ?")
@@ -716,7 +718,8 @@ public class CronJobScheduler {
 	 */
 
 	
-	@Scheduled(cron = "0 * * * * *")
+	//@Scheduled(cron = "0 * * * * *")
+	@Scheduled(cron = "0 0/30 * * * * ")
 	public void generateMerchantSettlementfile() {
 		
 		/*Date currentDate = new Date();
@@ -730,9 +733,13 @@ public class CronJobScheduler {
 		String fixedminutes= env.getProperty("Settlementfile.runtimeMinutes");
 		String fixedhours= env.getProperty("Settlementfile.runtimehours");
 		String Settlementfile = env.getProperty("Settlementfile.file");
-		logger.info("GL get : Start"+getHour);
+		logger.info("Inside Settlement file generation get : Start Hour"+getHour);
+		logger.info("Inside Settlement file generation get : Start Min"+getMinutes);
+		
+		logger.info("Inside Settlement file generation Given : Start Hour"+fixedhours);
+		logger.info("Inside Settlement file generation Given : Start Min"+fixedminutes);
 		if((Double.parseDouble(getMinutes)==Double.parseDouble(fixedminutes)) && (Double.parseDouble(getHour)==Double.parseDouble(fixedhours))) {
-			logger.info("GL Payment : Start"+new Date());
+			logger.info("Inside Settlement file generation Payment : Start"+new Date());
 			String values =	docset.createsettlementfile(new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()));
 			
 			File input = new File(Settlementfile + new SimpleDateFormat("dd-MMM-yyyy").format(previousDay()) + ".txt");

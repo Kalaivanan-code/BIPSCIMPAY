@@ -388,7 +388,7 @@ public class IPSConnection {
 						mcCreditTransferRequest.getFrAccount().getAcctNumber(),
 						mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT",
 						mcCreditTransferRequest.getTrRmks(), "", "", "", new Date(), "PAYABLE", "", "", "", "",
-						RemitterBankAgent.getBank_agent(), othBankAgent.getBank_agent());
+						RemitterBankAgent.getBank_agent(), othBankAgent.getBank_agent(),"");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -590,7 +590,7 @@ public class IPSConnection {
 							manualFundTransferRequest.get(i).getRemitterAcctNumber(),
 							manualFundTransferRequest.get(i).getRemitterName(), "NRT",
 							manualFundTransferRequest.get(i).getTrRmks(), "", "", "", new Date(), "PAYABLE", "", "", "",
-							"", RemitterBankAgent.getBank_agent(), othBankAgent.getBank_agent());
+							"", RemitterBankAgent.getBank_agent(), othBankAgent.getBank_agent(),"");
 
 					///// Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -774,7 +774,7 @@ public class IPSConnection {
 						mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT",
 						mcCreditTransferRequest.getToAccountList().get(0).getTrRmks(), "", "", "", new Date(),
 						"PAYABLE", "", "", "", "", RemitterBankAgent.getBank_agent(),
-						RemitterBankAgent.getBank_agent());
+						RemitterBankAgent.getBank_agent(),"");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -971,7 +971,7 @@ public class IPSConnection {
 							bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterAcctNumber(),
 							bulkDebitFndTransferRequest.getRemitterAccount().get(i).getRemitterName(), "NRT",
 							bulkDebitFndTransferRequest.getRemitterAccount().get(i).getTrRmks(), "", "", "", new Date(),
-							"PAYABLE", "", "", "", "", RemitterBankAgent.getBank_agent(), othBankAgent.getBank_agent());
+							"PAYABLE", "", "", "", "", RemitterBankAgent.getBank_agent(), othBankAgent.getBank_agent(),"");
 
 					///// Call ESB Connection
 					ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -2142,7 +2142,7 @@ public class IPSConnection {
 						cbsData.getTran_currency(), cbsData.getSequence_unique_id(), settlPayableAccount,
 						cbsData.getCustomer_name(), "NRT", "", tranCBSTable.getDebit_remarks(), "", "",
 						cbsData.getTran_date(), "PAYABLE", "", "", "", "", cbsData.getRemitterswiftcode(),
-						cbsData.getBeneficiaryswiftcode());
+						cbsData.getBeneficiaryswiftcode(),"");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2237,7 +2237,7 @@ public class IPSConnection {
 						cbsData.getTran_currency(), cbsData.getSequence_unique_id(), cbsData.getFrom_account_no(),
 						cbsData.getCustomer_name(), cbsData.getTran_particular_code(), tranCBSTable.getDebit_remarks(),
 						"", "", "", cbsData.getTran_date(), "RECEIVABLE", cbsData.getInit_sub_tran_no(), "", "", "",
-						cbsData.getRemitterswiftcode(), cbsData.getBeneficiaryswiftcode());
+						cbsData.getRemitterswiftcode(), cbsData.getBeneficiaryswiftcode(),"");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2351,7 +2351,7 @@ public class IPSConnection {
 						tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
 						tranCBSTable.getSequence_unique_id(), settlPayableAccount, cbsData.getCustomer_name(), "NRT",
 						"", tranCBSTable.getDebit_remarks(), "", "", cbsData.getTran_date(), "PAYABLE", "", "", "", "",
-						cbsData.getRemitterswiftcode(), cbsData.getBeneficiaryswiftcode());
+						cbsData.getRemitterswiftcode(), cbsData.getBeneficiaryswiftcode(),"");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -2463,7 +2463,7 @@ public class IPSConnection {
 						tranCBSTable.getTran_amt().toString(), cbsData.getTran_currency(),
 						tranCBSTable.getSequence_unique_id(), settlPayableAccount, cbsData.getCustomer_name(), "NRT",
 						"", tranCBSTable.getDebit_remarks(), "", "", cbsData.getTran_date(), "PAYABLE", "", "", "", "",
-						cbsData.getRemitterswiftcode(), cbsData.getBeneficiaryswiftcode());
+						cbsData.getRemitterswiftcode(), cbsData.getBeneficiaryswiftcode(),"");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.cdtFundRequest(requestUUID);
@@ -4394,7 +4394,7 @@ public class IPSConnection {
 						mcCreditTransferRequest.getRemitterAccount().getAcctNumber(),
 						mcCreditTransferRequest.getRemitterAccount().getAcctName(), "NRT", remarks, "", "", "",
 						new Date(), "PAYABLE", "", "", "", "", env.getProperty("ipsx.dbtragt"),
-						othBankAgent.getBank_agent());
+						othBankAgent.getBank_agent(),"");
 
 				///// Call ESB Connection
 				ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -4869,14 +4869,14 @@ public class IPSConnection {
 					sysTraceAuditNumber, dataParse.getInit_channel_id(), initTranNumber, "True", "CR", "N", "",
 					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "RTP", "", rmtInfo, "",
 					"", new Date(), "RECEIVABLE", dataParse.getReq_unique_id(), "", "", dataParse.getMaster_ref_id(),
-					debitoragent, creditoragent);
+					debitoragent, creditoragent,dataParse.getSource());
 
 		} else {
 			response = ipsDao.registerCIMcbsIncomingData(requestUUID, env.getProperty("cimCBS.channelID"),
 					env.getProperty("cimCBS.servicereqversion"), env.getProperty("cimCBS.servicereqID"), new Date(),
 					sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID, "True", "CR", "N", "",
 					acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "NRT", "", rmtInfo, "",
-					"", new Date(), "RECEIVABLE", "", "", "", "", debitoragent, creditoragent);
+					"", new Date(), "RECEIVABLE", "", "", "", "", debitoragent, creditoragent,"");
 
 		}
 
@@ -4994,11 +4994,15 @@ public class IPSConnection {
 				int merchantsize = MasTranList.size();
 				String merchantFees = ipsDao.GetMerchantFees(acctNumber);
 
+				if(!ipsDao.findvalidQRcodeincoming(acctNumber,rmtInfo)) {
 				response = ipsDao.registerMerchantIncomingData(requestUUID, new Date(), sysTraceAuditNumber, "",
 						acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName, "QR", "", rmtInfo,
 						"", "", new Date(), dataParse.getMerchant_name(), merchantFees, debrAcctNumber, debtAcctName,
 						instgAcct, ctgyPurp, trRmks, instrId, endToEndID, instdAgtPacs008, debitoragent, creditoragent);
-
+				}else {
+					tranResponse = errorCode.ErrorCode("AG01");
+					return tranResponse;
+				}
 				if (response.equals("1")) {
 					logger.info("Calling 8");
 					if (sizeOutTran > 0) {
@@ -5009,7 +5013,7 @@ public class IPSConnection {
 						return tranResponse;
 					}
 				}
-
+//if it is initiated from CIM Finance we need to send the notification to ESB
 				if (merchantsize > 0) {
 					logger.info("Calling 2");
 					OutwardTransactionMonitoringTable dataParse1 = MasTranList.get(0);
@@ -5023,7 +5027,7 @@ public class IPSConnection {
 							new Date(), sysTraceAuditNumber, dataParse1.getInit_channel_id(), initTranNumber, "False",
 							"CR", "N", "", acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount, acctName,
 							"QR", "", rmtInfo, "", "", new Date(), "RECEIVABLE", dataParse1.getReq_unique_id(), "", "",
-							dataParse1.getMaster_ref_id(), debitoragent, creditoragent);
+							dataParse1.getMaster_ref_id(), debitoragent, creditoragent,dataParse1.getSource());
 					if (response.equals("1")) {
 						logger.info("Calling 8");
 						if (sizeOutTran > 0) {
@@ -5062,7 +5066,7 @@ public class IPSConnection {
 							new Date(), sysTraceAuditNumber, env.getProperty("cimCBS.incCRChannel"), endToEndID,
 							"False", "CR", "N", "", acctNumber, trAmt, currency, SeqUniqueID, settlReceivableAccount,
 							acctName, "QR", "", rmtInfo, "", "", new Date(), "RECEIVABLE", "", "", "", "", debitoragent,
-							creditoragent);
+							creditoragent,"");
 
 					if (response.equals("1")) {
 						logger.info("Calling 8");
@@ -6145,6 +6149,7 @@ public class IPSConnection {
 		int i;
 		String seqUniqueID1;
 		String masterRefID;
+		
 
 		public BulkEntry(String psuDeviceID, String psuIpAddress, String psuID,
 				RTPbulkTransferRequest rtpBulkTransferRequest, String p_id, String channelID, String resvfield1,
@@ -6159,6 +6164,7 @@ public class IPSConnection {
 			this.i = i;
 			this.seqUniqueID1 = seqUniqueID1;
 			this.masterRefID = masterRefID;
+			
 		}
 
 		@Override
@@ -6246,7 +6252,7 @@ public class IPSConnection {
 					remAcct.getAcctNumber(), benAcct.getBankCode(), remAcct.getCurrencyCode(), benAcct.getBenName(),
 					benAcct.getBenAcctNumber(), benAcct.getReqUniqueId(), benAcct.getTrAmt(), benAcct.getTrRmks(), p_id,
 					benAcct.getReqUniqueId(), channelID, resvfield1, resvfield2, bankAgentTable.getBank_code(),
-					chargeBearer);
+					chargeBearer,benAcct.getSource());
 
 			logger.info("Create Cryptogram Message");
 			String cryptogram = "";

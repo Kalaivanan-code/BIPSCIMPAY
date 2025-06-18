@@ -106,6 +106,7 @@ public class SignDocument {
 	Environment env;
 
 	public String parseDoc(String document) {
+		logger.info("Inside Sign Parse Doc Initial");
 		DocumentBuilder db = null;
 		Document doc = null;
 		try {
@@ -115,12 +116,14 @@ public class SignDocument {
 			e.printStackTrace();
 		}
 		String signedString = signDoc(doc);
+		logger.info("Output Sign Doc "+signedString);
 		return signedString;
 	}
 
 	private String signDoc(Document doc) {
 
 		try {
+			logger.info("Inside Sign Doc Initial");
 			// Getting JKS Keystore
 			//KeyStore ks = KeyStore.getInstance("JKS");
 			char[] pwdArray = env.getProperty("sign.pwd").toCharArray();
@@ -129,6 +132,7 @@ public class SignDocument {
 			//ks.load(new FileInputStream(ResourceUtils.getFile("classpath:ipsxprod.jks")), pwdArray);
 			ks.load(new FileInputStream(env.getProperty("sign.file")), pwdArray);
 
+			logger.info("Inside Sign File Calling Initial");
 			Enumeration<String> e = ks.aliases();
 			String alis = e.nextElement();
 
@@ -182,14 +186,15 @@ public class SignDocument {
 
 			Node appHdr = null;
 			NodeList sgntrList = doc.getElementsByTagName("AppHdr");
+			logger.info("Inside Sign File Calling App Hdr");
 			if (sgntrList.getLength() != 0)
 				appHdr = sgntrList.item(0);
 			if (appHdr == null)
 				throw new Exception("mandatory element AppHdr is missing in the document to be signed");
 			Node sgntr = appHdr.appendChild(doc.createElement("Sgntr"));
-			// System.out.println(appHdr.getNodeName());
+			logger.info(appHdr.getNodeName());
 			DOMSignContext dsc;
-
+			logger.debug("Inside Sign File Under Sgntr");
 			dsc = new DOMSignContext(ks.getKey(alis, pwdArray), sgntr);
 
 			dsc.putNamespacePrefix(XMLSignature.XMLNS, "ds");

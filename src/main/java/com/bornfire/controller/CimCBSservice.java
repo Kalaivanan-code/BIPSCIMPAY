@@ -141,6 +141,7 @@ public class CimCBSservice {
 		cimCBSrequestData.setBeneficiaryBank(data.getBeneficiarybank());
 		cimCBSrequestData.setBeneficiaryBankCode(data.getBeneficiarybankcode());
 		cimCBSrequestData.setBeneficiarySwiftCode(data.getBeneficiaryswiftcode());
+		cimCBSrequestData.setSource(data.getSource());
 		
 		/*if(data.getStatus().equals("ACSP")) {
 			cimCBSrequestData.setIpsxTranStatus(Boolean.TRUE);
@@ -443,6 +444,7 @@ public class CimCBSservice {
 		logger.info("inside to send reversal msg inside API before Status");
 		cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
 		cimCBSrequestData.setTransactionNoToCBS(data.getTran_no());
+		cimCBSrequestData.setSource(data.getSource());
 		/*if(data.getStatus().equals("RJCT")) {
 			cimCBSrequestData.setIpsxTranStatus(Boolean.FALSE);
 		}else {

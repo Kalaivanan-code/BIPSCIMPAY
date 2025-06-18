@@ -1101,7 +1101,7 @@ public class IPSQRCODEController {
 		}else {
 		merchantQRgenerator.setTerminal_label(ms.getTerminal_label());
 		}
-		if(!cimmaudynamic.getRef_label().equals("null") && !cimmaudynamic.getRef_label().equals("")) {
+		if( !cimmaudynamic.getRef_label().equals("")&& !cimmaudynamic.getRef_label().equals("null")) {
 			merchantQRgenerator.setReference_label(cimmaudynamic.getRef_label());
 		}else {
 		merchantQRgenerator.setReference_label(ms.getReference_label());

@@ -72,9 +72,9 @@ public class MerchantQrGenTable {
 	private String status;
 	private String reason;
 
-	@Lob
-    @Column(name = "qr_code", columnDefinition="BLOB")
-    private byte[] qr_code;
+//	@Lob
+//    @Column(name = "qr_code", columnDefinition="BLOB")
+//    private byte[] qr_code;
 
 	public String getP_id() {
 		return p_id;
@@ -460,13 +460,13 @@ public class MerchantQrGenTable {
 		this.reason = reason;
 	}
 
-	public byte[] getQr_code() {
-		return qr_code;
-	}
-
-	public void setQr_code(byte[] qr_code) {
-		this.qr_code = qr_code;
-	}
+//	public byte[] getQr_code() {
+//		return qr_code;
+//	}
+//
+//	public void setQr_code(byte[] qr_code) {
+//		this.qr_code = qr_code;
+//	}
 
 	public MerchantQrGenTable() {
 		super();

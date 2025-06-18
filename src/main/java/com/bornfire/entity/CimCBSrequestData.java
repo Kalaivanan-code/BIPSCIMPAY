@@ -105,6 +105,9 @@ public class CimCBSrequestData {
 	@JsonProperty("transactionNoToCBS")
 	private String transactionNoToCBS;
 	
+	@JsonProperty("source")
+	private String Source;
+	
 	public String getTransactionNo() {
 		return transactionNo;
 	}
@@ -358,6 +361,14 @@ public class CimCBSrequestData {
 		this.transactionNoToCBS = transactionNoToCBS;
 	}
 
+	public String getSource() {
+		return Source;
+	}
+
+	public void setSource(String source) {
+		Source = source;
+	}
+
 	@Override
 	public String toString() {
 		return "CimCBSrequestData [branchId=" + branchId + ", transactionNo=" + transactionNo + ", initiatingChannel="
@@ -373,8 +384,9 @@ public class CimCBSrequestData {
 				+ ", remitterBank=" + remitterBank + ", remitterBankCode=" + remitterBankCode + ", remitterSwiftCode="
 				+ remitterSwiftCode + ", beneficiaryBank=" + beneficiaryBank + ", beneficiaryBankCode="
 				+ beneficiaryBankCode + ", beneficiarySwiftCode=" + beneficiarySwiftCode + ", ipsxTranStatus="
-				+ ipsxTranStatus + ", transactionNoToCBS=" + transactionNoToCBS + "]";
+				+ ipsxTranStatus + ", transactionNoToCBS=" + transactionNoToCBS + ", Source=" + Source + "]";
 	}
+
 
 
 

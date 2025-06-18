@@ -195,6 +195,8 @@ public class ErrorResponseCode {
 			responseDesc = "BIPSQR2:Required Fields Missing";
 		} else if (code.equals("BIPSQR3")) {
 			responseDesc = "BIPSQR3:Merchant Not Subscribed For This Feature";
+		}else if (code.equals("BIPSQR4")) {
+			responseDesc = "BIPSQR4:Merchant QRCode is expired or Request doesn't Exist";
 		}
 		return responseDesc;
 	}

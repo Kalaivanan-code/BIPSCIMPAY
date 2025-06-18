@@ -155,6 +155,7 @@ public class OutwardTransactionMonitoringTable {
 	private String tip_or_conv_indicator;
 	private String tip_amount;
 	private String conv_amount;
+	private String source;
 
 	
 	
@@ -1087,6 +1088,15 @@ public class OutwardTransactionMonitoringTable {
 	}
 	
 	
+	
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
 	public OutwardTransactionMonitoringTable(String p_id, String req_unique_id, String init_channel_id, String resv_field1,
 			String resv_field2, String msg_type, String tran_audit_number, String sequence_unique_id, String cim_message_id,
 			String cim_account, String ipsx_account, String receiver_bank, String initiator_bank,
@@ -1094,7 +1104,7 @@ public class OutwardTransactionMonitoringTable {
 			String device_ip, String nat_id, String master_ref_id, String end_end_id, String cim_account_name,
 			String ipsx_account_name, String tran_type_code, String net_mir, String instg_agt, String instd_agt,
 			String dbtr_agt, String dbtr_agt_acc, String cdtr_agt, String cdtr_agt_acc, String instr_id,
-			String svc_lvl, String lcl_instrm, String ctgy_purp, String chrg_br, String tran_rmks, Date value_date) {
+			String svc_lvl, String lcl_instrm, String ctgy_purp, String chrg_br, String tran_rmks, Date value_date,String source) {
 		super();
 		this.p_id = p_id;
 		this.req_unique_id = req_unique_id;
@@ -1136,7 +1146,7 @@ public class OutwardTransactionMonitoringTable {
 		this.resv_field2 = resv_field2;
 		this.chrg_br = chrg_br;
 		this.tran_rmks = tran_rmks;
-
+		this.source=source;
 		
 	}
 

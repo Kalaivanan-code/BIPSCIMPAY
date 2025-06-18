@@ -1014,7 +1014,7 @@ public class IPSDao {
 						sequence.generateSystemTraceAuditNumber(), tm.getInit_channel_id(), tm.getReq_unique_id(), "False", "", "",
 						"", tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 						tm.getSequence_unique_id(), tm.getIpsx_account(), tm.getIpsx_account_name(), "NRT", "", "",
-						"Failure", ipsxerrorDesc,new Date(),"","","","","",tm.getDbtr_agt(),tm.getCdtr_agt());
+						"Failure", ipsxerrorDesc,new Date(),"","","","","",tm.getDbtr_agt(),tm.getCdtr_agt(),tm.getSource());
 
 				logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -1301,7 +1301,7 @@ public class IPSDao {
 					sequence.generateSystemTraceAuditNumber(),tm.getInit_channel_id(),init_tran_no,"False","","","",
 					tm.getCim_account(), tm.getTran_amount().toString(), tm.getTran_currency(),
 					tm.getSequence_unique_id(),settlReceivableAccount,tm.getCim_account_name(),"RTP","","","","",new Date(),"RECEIVABLE",tm.getReq_unique_id(),
-					ipsxErrorCode,ipsxerrorDesc,tm.getMaster_ref_id(),tm.getDbtr_agt(),tm.getCdtr_agt());
+					ipsxErrorCode,ipsxerrorDesc,tm.getMaster_ref_id(),tm.getDbtr_agt(),tm.getCdtr_agt(),tm.getSource());
 			
 			logger.info("Pain Output Return Msg to ThirdParty Application");
 
@@ -3898,7 +3898,7 @@ public class IPSDao {
 			String lcl_instrm, String ctgy_purp, String tran_type_code,String remitterAcctName,String remitterAcctNumber,
 			String bank_code,String currencyCode,String benAcctName,String benAcctNumber,String reqUniqueId,String trAmt,
 			String trRmks,String p_id,String req_unique_id,String channelID,String resvfield1,String resvfield2,String remitterBankCode,
-			String chargeBearer) {
+			String chargeBearer,String source) {
 		
 		String status="0";
 		try {
@@ -3925,7 +3925,7 @@ public class IPSDao {
 					TranMonitorStatus.INITIATED.toString(),psuDeviceID,psuIpAddress,"",master_ref_id,
 					endTOEndID,benAcctName,remitterAcctName,tran_type_code,msgNetMIR,instg_agt,instd_agt,
 					dbtr_agt,dbtr_agt_acc,cdtr_agt,cdtr_agt_acc,instr_id,svc_lvl,lcl_instrm,ctgy_purp,
-					chargeBearer,trRmks,valDate);
+					chargeBearer,trRmks,valDate,source);
 			
 			/*tranManitorTable.setP_id(p_id);
 			tranManitorTable.setReq_unique_id(req_unique_id);
@@ -6041,7 +6041,7 @@ public class IPSDao {
 			String seqUniqueID,  String debrAcctNumber,
 			String debtAcctName,String tran_part_code,String debit_remarks,String credit_remarks,
 			String resv_field1,String res_field2,Date valueDate,String settlType,
-			String init_sub_tran_no,String error_code,String error_msg,String ipsMasterRefId,String debitoragent,String creditoragent) {
+			String init_sub_tran_no,String error_code,String error_msg,String ipsMasterRefId,String debitoragent,String creditoragent,String source) {
 		
 		String response="0";
 		try {
@@ -6088,6 +6088,7 @@ public class IPSDao {
 			tranCimCBSTable.setBeneficiarybank(benificiaryBank.getBank_name());
 			tranCimCBSTable.setBeneficiarybankcode(benificiaryBank.getBank_code());
 			tranCimCBSTable.setBeneficiaryswiftcode(benificiaryBank.getBank_agent());
+			tranCimCBSTable.setSource(source);
 			tranCimCBSTableRep.saveAndFlush(tranCimCBSTable);
 			response="1";
 
@@ -6322,6 +6323,87 @@ public class IPSDao {
 		return data1;
 	}
 	
+	
+
+	public boolean findvalidQRcodeincoming(String merchant_id, String refinfo) {
+		
+		boolean valid = true;
+		try {
+			
+			String getrefnum = mercantQrGenTableRep.getrefnum(refinfo);
+		
+			Optional<MerchantQrGenTable> otm = mercantQrGenTableRep.findByCustomBankName(merchant_id,getrefnum);
+
+			if (otm.isPresent()) {
+
+logger.info("Entry_time :"+otm.get().getEntry_time().getTime());
+logger.info("Current_time :"+new Date().getTime());
+Long l1 = otm.get().getEntry_time().getTime();
+Long l2 = new Date().getTime();
+Long l3 = l2-l1;
+Long l4 = l3/1000;
+logger.info("Entry_time :"+l1);
+logger.info("Entry_time :"+l2);
+logger.info("Entry_time :"+l3);
+logger.info("Entry_time :"+l4);
+Long crccheck =Long.valueOf( env.getProperty("ipsx.QRExpiryincoming"));
+logger.info("crccheck :"+crccheck);
+				if (crccheck > l4) {
+					valid = false;
+					logger.info("QRcheck is fine");
+				} else {
+					valid = true;
+				}
+			} else {
+				valid = true;
+			}
+			
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			return valid;
+		}
+
+		return valid;
+	}
+
+	public boolean findvalidQRcode(CIMMerchantDirectFndRequest mcCreditTransferRequest) {
+		
+		boolean valid = true;
+		try {
+			
+			Optional<MerchantQrGenTable> otm = mercantQrGenTableRep.findByCustomBankName(mcCreditTransferRequest.getMerchantAccount().getMerchantID(),mcCreditTransferRequest.getAdditionalDataInformation().getReferenceLabel());
+
+			if (otm.isPresent()) {
+
+logger.info("Entry_time :"+otm.get().getEntry_time().getTime());
+logger.info("Current_time :"+new Date().getTime());
+Long l1 = otm.get().getEntry_time().getTime();
+Long l2 = new Date().getTime();
+Long l3 = l2-l1;
+Long l4 = l3/1000;
+logger.info("Entry_time :"+l1);
+logger.info("Entry_time :"+l2);
+logger.info("Entry_time :"+l3);
+logger.info("Entry_time :"+l4);
+Long crccheck =Long.valueOf( env.getProperty("ipsx.QRExpiry"));
+logger.info("crccheck :"+crccheck);
+				if (crccheck > l4) {
+					valid = false;
+					logger.info("QRcheck is fine");
+				} else {
+					valid = true;
+				}
+			} else {
+				valid = true;
+			}
+			
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			return valid;
+		}
+
+		return valid;
+	}
 	public boolean checkConvenienceFeeValidation(CIMMerchantDirectFndRequest mcCreditTransferRequest) {
 		
 		/*if (mcCreditTransferRequest.getMerchantAccount().isConvenienceIndicator()) {
@@ -6636,6 +6718,7 @@ public class IPSDao {
 			merchantQrGenTable.setLoyalty_number(qrrequest.getAdditionalDataInformation().getLoyaltyNumber());
 			merchantQrGenTable.setAdditional_details(qrrequest.getAdditionalDataInformation().getAddlDataRequest());
 			merchantQrGenTable.setEntry_time(new Date());
+			merchantQrGenTable.setTransaction_amt(qrrequest.getTrAmt());
 			
 			mercantQrGenTableRep.save(merchantQrGenTable);
 			status="1";
@@ -6652,8 +6735,8 @@ public class IPSDao {
 			MerchantQrGenTable subData=data.get();
 			subData.setStatus(status);
 			if(status.equals("SUCCESS")) {
-				byte[] decodedBytesQR = Base64.getDecoder().decode(reason);
-				subData.setQr_code(decodedBytesQR);
+//				byte[] decodedBytesQR = Base64.getDecoder().decode(reason);
+//				subData.setQr_code(decodedBytesQR);
 			}else {
 				subData.setReason(reason);
 			}

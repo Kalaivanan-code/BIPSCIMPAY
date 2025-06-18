@@ -66,6 +66,7 @@ public class TranCimCBSTable implements Serializable{
 	private String beneficiarybankcode;
 	private String beneficiaryswiftcode;
 	private String transactionnotocbs;
+	private String source;
 
 
 
@@ -90,6 +91,13 @@ public class TranCimCBSTable implements Serializable{
 	}
 	public void setChannel_id(String channel_id) {
 		this.channel_id = channel_id;
+	}
+	
+	public String getSource() {
+		return source;
+	}
+	public void setSource(String source) {
+		this.source = source;
 	}
 	public String getService_request_version() {
 		return service_request_version;
@@ -355,7 +363,7 @@ public class TranCimCBSTable implements Serializable{
 			Date value_date, String settl_acct_type, String tran_charge_type, String init_sub_tran_no,
 			String error_code, String error_msg, String ips_master_ref_id, Date message_res_time, String remitterbank,
 			String remitterbankcode, String remitterswiftcode, String beneficiarybank, String beneficiarybankcode,
-			String beneficiaryswiftcode, String transactionnotocbs) {
+			String beneficiaryswiftcode, String transactionnotocbs,String source) {
 		super();
 		this.sequence_unique_id = sequence_unique_id;
 		this.request_uuid = request_uuid;
@@ -402,6 +410,7 @@ public class TranCimCBSTable implements Serializable{
 		this.beneficiarybankcode = beneficiarybankcode;
 		this.beneficiaryswiftcode = beneficiaryswiftcode;
 		this.transactionnotocbs = transactionnotocbs;
+		this.source=source;
 	}
 	
 	

@@ -16,6 +16,7 @@ public class CimDynamicMaucasRequest {
 	private String Loy_num;
 	private String Sto_label;
 	private String Cust_label;
+	@NotBlank(message="Reference Label Required")
 	private String Ref_label;
 	private String Ter_label;
 	private String Pur_tran;

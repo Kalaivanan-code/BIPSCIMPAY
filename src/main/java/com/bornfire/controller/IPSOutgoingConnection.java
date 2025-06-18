@@ -184,7 +184,7 @@ public class IPSOutgoingConnection {
 						mcCreditTransferRequest.getFrAccount().getAcctName(), "NRT",
 						mcCreditTransferRequest.getToAccountList().get(0).getTrRmks(), "", "", "", new Date(),
 						"PAYABLE", "", "", "", "", RemitterBankAgent.getBank_agent(),
-						RemitterBankAgent.getBank_agent());
+						RemitterBankAgent.getBank_agent(),"");
 
 				///// Call ESB Connection
 			//	ResponseEntity<CimCBSresponse> connect24Response = cimCBSservice.dbtFundRequest(requestUUID);
@@ -327,6 +327,7 @@ public ResponseEntity<CimGLOutgoingResponse> postPaymentforoutgoingGLInc(List<Bi
 	HttpHeaders httpHeaders = new HttpHeaders();
 	httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 	
+	logger.info("Sending REVERSAL MSG to ESB for OUTGOING TRANSACTION");
 	////Get Data from Table
 	List<BipsOutgoingGLEntryEntity> data=tranList;
 	
@@ -371,7 +372,7 @@ public ResponseEntity<CimGLOutgoingResponse> postPaymentforoutgoingGLInc(List<Bi
 		//tranData.setPostingDate(new SimpleDateFormat("yyyy-MM-dd").format(data1.getPosting_date1()));
 		tranData.setPostingDate(convertDateToGreDate(data1.getTran_date(),"3").toString());
 		
-		tranData.setTransactionCode(data1.getTran_code());
+		tranData.setTransactionCode(gl.getBc_dimension_id());
 		tranData.setTransactionDescription(data1.getTran_particular());
 		tranData.setTransactionRemarks(data1.getTran_particular());
 		tranData.setRate("0");
